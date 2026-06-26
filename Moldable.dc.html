@@ -143,6 +143,12 @@
             </sc-if>
           </button>
           <div style="display:flex;align-items:center;gap:8px;margin-top:12px;flex-wrap:wrap;">
+            <span style="font-size:12px;color:#7d8a9a;font-weight:600;">Model:</span>
+            <button onClick="{{ setModelTrellis }}" title="Trellis — clean low-poly, fast, ~5–10¢/sculpt" style="{{ modelTrellisStyle }}">Trellis</button>
+            <button onClick="{{ setModelHunyuan }}" title="Hunyuan3D — denser/higher detail, ~20–30¢/sculpt" style="{{ modelHunyuanStyle }}">Hunyuan3D</button>
+            <span style="font-size:11px;color:#9aa7b6;">try both — one may suit your object better</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap;">
             <span style="font-size:12px;color:#7d8a9a;font-weight:600;">Print style:</span>
             <button onClick="{{ setQualityDetail }}" title="Keep all the detail; your slicer auto-fixes any minor holes on import" style="{{ qualityDetailStyle }}">Detail</button>
             <button onClick="{{ setQualityWatertight }}" title="Sealed solid mesh — guaranteed watertight, slightly softer detail" style="{{ qualityWatertightStyle }}">Watertight</button>
@@ -958,6 +964,7 @@ class Component extends DCLogic {
   toggleForceAI() { this.setState({ forceAI: !this.state.forceAI }); }
   startSculpt() { this.setImageMode(); this.showToast('Drop a photo — the AI sculpts the main object (background removed automatically)'); }
   setMeshQuality(q) { try { localStorage.setItem('moldable_mesh_quality', q); } catch {} this.setState({ meshQuality: q }); this.showToast(q === 'watertight' ? 'Watertight: sealed solid mesh' : 'Detail: full detail, slicer auto-fixes holes'); }
+  setMeshModelChoice(m) { try { localStorage.setItem('moldable_mesh_model', m); } catch {} this.setState({ meshModel: m }); this.showToast(m === 'hunyuan' ? 'Hunyuan3D — more detail (pricier ~20–30¢)' : 'Trellis — clean & cheap (~5–10¢)'); }
   toggleParametric() { this.setState({ parametric: !this.state.parametric }); }
   newModel() {
     if (this.state.flow === 'guided') this.setState({ screen: 'home', prompt: '', imageURL: '', imageName: '', inputMode: 'text' });
@@ -1346,6 +1353,7 @@ class Component extends DCLogic {
   renderVals() {
     const s = this.state, M = this.MODELS[s.model] || this.MODELS.vase || { label: 'Model', cat: '', tags: [], params: [] };
     const mq = (() => { try { return localStorage.getItem('moldable_mesh_quality') || 'detail'; } catch { return 'detail'; } })();
+    const mmodel = (() => { try { return localStorage.getItem('moldable_mesh_model') || 'trellis'; } catch { return 'trellis'; } })();
     const qpill = 'padding:6px 13px;border-radius:99px;font-size:12px;font-weight:700;cursor:pointer;transition:.15s;';
     const qon = qpill + 'background:rgba(255,90,31,.12);color:var(--accent,#ff5a1f);border:1.5px solid var(--accent,#ff5a1f);';
     const qoff = qpill + 'background:#fff;color:#586575;border:1.5px solid #d0d8e2;';
@@ -1453,6 +1461,8 @@ class Component extends DCLogic {
       generateLabel: 'Generate model',
       meshQuality: mq, qualityDetailStyle: mq === 'detail' ? qon : qoff, qualityWatertightStyle: mq === 'watertight' ? qon : qoff,
       setQualityDetail: () => this.setMeshQuality('detail'), setQualityWatertight: () => this.setMeshQuality('watertight'),
+      meshModel: mmodel, modelTrellisStyle: mmodel === 'trellis' ? qon : qoff, modelHunyuanStyle: mmodel === 'hunyuan' ? qon : qoff,
+      setModelTrellis: () => this.setMeshModelChoice('trellis'), setModelHunyuan: () => this.setMeshModelChoice('hunyuan'),
       freeformNote: s.meshMode
         ? 'AI-sculpted mesh — no code or sliders. Download the STL to print (organic meshes can need a repair/cleanup pass first).'
         : 'No preset sliders — edit the OpenSCAD below to adjust it (the viewer updates as you type), or pick a template type above.',
