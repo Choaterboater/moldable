@@ -14,7 +14,10 @@ import { writeFileSync, readFileSync, existsSync } from 'node:fs';
 import { spawn } from 'node:child_process';
 
 const PORT = Number(process.env.PORT || 8788);
-const MODEL = process.env.REPLICATE_MODEL || 'tencent/hunyuan-3d-3.1';
+const MODEL = process.env.REPLICATE_MODEL || 'firtoz/trellis';   // fallback when the GUI doesn't name a model
+// friendly names the GUI sends -> Replicate slugs (so the GUI doesn't hard-code slugs)
+const MODEL_ALIASES = { trellis: 'firtoz/trellis', hunyuan: 'tencent/hunyuan-3d-3.1', hunyuan3: 'tencent/hunyuan-3d-3.1' };
+const slugFor = (k) => MODEL_ALIASES[k] || (k && k.includes('/') ? k : MODEL);
 const REPL = (process.env.REPLICATE_API_BASE || 'https://api.replicate.com').replace(/\/+$/, '');
 const SIZE = process.env.MESH_SIZE || '80';
 // Trellis detail knobs — firtoz defaults (mesh_simplify 0.95, 12 steps) give a low-poly blob.
@@ -36,19 +39,20 @@ const log = (...a) => console.log('[replicate-bridge]', ...a);
 
 // Resolve the model's latest version once (the /v1/predictions endpoint works for ALL models,
 // unlike /v1/models/.../predictions which only works for Replicate's official models).
-let MODEL_VERSION = null;
-async function resolveVersion(token) {
-  if (MODEL_VERSION) return MODEL_VERSION;
-  const m = await fetch(`${REPL}/v1/models/${MODEL}`, { headers: { Authorization: `Bearer ${token}` } });
+const versionCache = new Map();
+async function resolveVersion(token, model) {
+  if (versionCache.has(model)) return versionCache.get(model);
+  const m = await fetch(`${REPL}/v1/models/${model}`, { headers: { Authorization: `Bearer ${token}` } });
   const info = await m.json();
-  if (!m.ok) throw new Error('model "' + MODEL + '" ' + m.status + ': ' + (info.detail || JSON.stringify(info).slice(0, 150)));
-  MODEL_VERSION = info.latest_version && info.latest_version.id;
-  if (!MODEL_VERSION) throw new Error('model "' + MODEL + '" has no runnable version');
-  return MODEL_VERSION;
+  if (!m.ok) throw new Error('model "' + model + '" ' + m.status + ': ' + (info.detail || JSON.stringify(info).slice(0, 150)));
+  const v = info.latest_version && info.latest_version.id;
+  if (!v) throw new Error('model "' + model + '" has no runnable version');
+  versionCache.set(model, v);
+  return v;
 }
 
-async function startReplicate(token, input) {
-  const version = await resolveVersion(token);
+async function startReplicate(token, input, model) {
+  const version = await resolveVersion(token, model);
   const r = await fetch(`${REPL}/v1/predictions`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${token}`, 'content-type': 'application/json' },
@@ -119,19 +123,20 @@ const server = http.createServer((req, res) => {
       let b = {}; try { b = JSON.parse(body || '{}'); } catch {}
       // model-aware input: Trellis uses `images` (list) + needs generate_model:true for a GLB; others use `image`/`prompt`
       let input;
-      if (/trellis/i.test(MODEL)) {
-        if (!b.image_url) return json(res, 400, { error: 'Trellis is image-to-3D — use the Upload image tab (text prompts need Hunyuan3D-3.1)' });
-        input = { images: [b.image_url], generate_model: true };
+      const model = slugFor(b.model);   // per-request model (GUI picks Trellis vs Hunyuan); falls back to env default
+      if (/trellis/i.test(model)) {
+        if (!b.image_url) return json(res, 400, { error: 'Trellis is image-to-3D — use the Sculpt-from-photo tab' });
+        input = { images: [b.image_url], generate_model: true, mesh_simplify: TRELLIS_SIMPLIFY, ss_sampling_steps: TRELLIS_STEPS, slat_sampling_steps: TRELLIS_STEPS };
       } else if (b.image_url) {
         input = { image: b.image_url };
       } else {
         input = { prompt: b.prompt };
       }
       try {
-        const pred = await startReplicate(token, input);
+        const pred = await startReplicate(token, input, model);
         const id = 'rb' + (++seq);
-        tasks.set(id, { id, token, pred, status: 'IN_PROGRESS', progress: 5, quality: b.quality });
-        log('task', id, 'submitted to', MODEL, b.image_url ? '(image, ' + Math.round((b.image_url.length * 0.75) / 1024) + 'KB)' : JSON.stringify(b.prompt));
+        tasks.set(id, { id, token, pred, status: 'IN_PROGRESS', progress: 5, quality: b.quality, model });
+        log('task', id, 'submitted to', model, b.image_url ? '(image, ' + Math.round((b.image_url.length * 0.75) / 1024) + 'KB)' : JSON.stringify(b.prompt));
         json(res, 200, { result: id });
       } catch (e) { log('SUBMIT FAILED:', String(e.message || e).slice(0, 400)); json(res, 502, { error: String(e.message || e) }); }
     });
