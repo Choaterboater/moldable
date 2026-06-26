@@ -17,6 +17,9 @@ const PORT = Number(process.env.PORT || 8788);
 const MODEL = process.env.REPLICATE_MODEL || 'tencent/hunyuan-3d-3.1';
 const REPL = (process.env.REPLICATE_API_BASE || 'https://api.replicate.com').replace(/\/+$/, '');
 const SIZE = process.env.MESH_SIZE || '80';
+// Trellis detail knobs — firtoz defaults (mesh_simplify 0.95, 12 steps) give a low-poly blob.
+const TRELLIS_SIMPLIFY = Number(process.env.TRELLIS_SIMPLIFY || 0.9);  // lower = denser mesh (0.7–0.95)
+const TRELLIS_STEPS = Number(process.env.TRELLIS_STEPS || 25);          // more sampling steps = more detail (+cost)
 const TMP = process.env.TMPDIR || '/tmp';
 const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-methods': 'POST, GET, OPTIONS', 'access-control-allow-headers': 'authorization, content-type' };
 const tasks = new Map();
@@ -56,12 +59,15 @@ async function startReplicate(token, input) {
   return pred;
 }
 
-function remesh(rawGlb) {
+function remesh(rawGlb, watertight) {
   return new Promise((resolve) => {
     const stamp = Date.now();
     const inP = `${TMP}/repl_raw_${stamp}.glb`, outP = `${TMP}/repl_print_${stamp}.glb`;
     writeFileSync(inP, rawGlb);
-    const py = spawn('python3', ['tools/mesh-print.py', inP, outP, '--size', SIZE], { stdio: 'inherit' });
+    const args = ['tools/mesh-print.py', inP, outP, '--size', SIZE];
+    if (watertight) args.push('--voxel', '0.8');   // 'watertight' print style -> sealed voxel remesh
+    log('remesh', watertight ? '(watertight / voxel)' : '(detail)');
+    const py = spawn('python3', args, { stdio: 'inherit' });
     const finish = () => {
       if (existsSync(outP)) return resolve(outP);
       // never lose a paid-for generation: if mesh-print produced nothing, serve the RAW mesh
@@ -88,7 +94,7 @@ async function advance(t) {
   log('task', t.id, 'Replicate done -> remeshing for print');
   try {
     const raw = Buffer.from(await (await fetch(url)).arrayBuffer());
-    t.glbPath = await remesh(raw);
+    t.glbPath = await remesh(raw, t.quality === 'watertight');
     t.status = 'SUCCEEDED'; t.progress = 100;
     log('task', t.id, 'print-ready GLB ready');
   } catch (e) { t.status = 'FAILED'; t.err = String(e.message || e); log('remesh error', t.err); }
@@ -124,7 +130,7 @@ const server = http.createServer((req, res) => {
       try {
         const pred = await startReplicate(token, input);
         const id = 'rb' + (++seq);
-        tasks.set(id, { id, token, pred, status: 'IN_PROGRESS', progress: 5 });
+        tasks.set(id, { id, token, pred, status: 'IN_PROGRESS', progress: 5, quality: b.quality });
         log('task', id, 'submitted to', MODEL, b.image_url ? '(image, ' + Math.round((b.image_url.length * 0.75) / 1024) + 'KB)' : JSON.stringify(b.prompt));
         json(res, 200, { result: id });
       } catch (e) { log('SUBMIT FAILED:', String(e.message || e).slice(0, 400)); json(res, 502, { error: String(e.message || e) }); }

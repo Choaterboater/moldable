@@ -17,6 +17,7 @@ const K = {
   provider: 'moldable_mesh_provider',
   key: 'moldable_mesh_key',
   base: 'moldable_mesh_base',
+  quality: 'moldable_mesh_quality',   // 'detail' (keep detail, slicer repairs) | 'watertight' (voxel-sealed)
 };
 const ls = {
   get: (k) => { try { return localStorage.getItem(k) || ''; } catch { return ''; } },
@@ -29,6 +30,8 @@ export function getMeshKey() { return ls.get(K.key); }
 export function setMeshKey(v) { ls.set(K.key, (v || '').trim()); }
 export function getMeshBase() { return ls.get(K.base); }
 export function setMeshBase(v) { ls.set(K.base, (v || '').trim()); }
+export function getMeshQuality() { return ls.get(K.quality) || 'detail'; }
+export function setMeshQuality(v) { ls.set(K.quality, v); }
 export function hasMesh() { const p = getMeshProvider(); return p === 'custom' ? !!getMeshBase() : !!getMeshKey(); }
 
 const DEFAULT_BASE = {
@@ -83,11 +86,12 @@ function adapter(provider, base, key) {
   // meshy (and custom, which mirrors meshy's shape)
   return {
     async submit({ prompt, imageDataUrl }) {
+      const quality = getMeshQuality();
       if (imageDataUrl) {
-        const d = await jpost(base + '/openapi/v1/image-to-3d', auth, { image_url: imageDataUrl, enable_pbr: false });
+        const d = await jpost(base + '/openapi/v1/image-to-3d', auth, { image_url: imageDataUrl, enable_pbr: false, quality });
         return d.result;
       }
-      const d = await jpost(base + '/openapi/v2/text-to-3d', auth, { mode: 'preview', prompt, art_style: 'realistic' });
+      const d = await jpost(base + '/openapi/v2/text-to-3d', auth, { mode: 'preview', prompt, art_style: 'realistic', quality });
       return d.result;
     },
     async poll(id, imageMode) {
