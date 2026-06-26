@@ -1,0 +1,1463 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script type="importmap">
+{ "imports": { "three": "https://unpkg.com/three@0.150.1/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.150.1/examples/jsm/" } }
+</script>
+<script type="module">
+  // ESM three (same version) so GLTFLoader (AI-mesh GLB) + STLExporter are available.
+  // Exposed on window so the UMD-style component code (window.THREE) is unchanged.
+  import * as THREE from 'three';
+  import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+  import { STLExporter } from 'three/addons/exporters/STLExporter.js';
+  window.THREE = THREE; window.GLTFLoader = GLTFLoader; window.STLExporter = STLExporter;
+</script>
+<style>
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  @keyframes mw-spin{to{transform:rotate(360deg)}}
+  @keyframes mw-floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+  @keyframes mw-fadeup{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  @keyframes mw-pop{0%{transform:scale(.5);opacity:0}60%{transform:scale(1.12)}100%{transform:scale(1);opacity:1}}
+  @keyframes mw-grow{from{width:6%}to{width:94%}}
+  @keyframes mw-dot{0%,100%{opacity:.25;transform:translateY(0)}50%{opacity:1;transform:translateY(-4px)}}
+  input[type=range]{-webkit-appearance:none;appearance:none;height:6px;border-radius:99px;background:#d6dde6;outline:none;cursor:pointer;}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#fff;border:3px solid var(--accent,#ff5a1f);cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.22);}
+  input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:#fff;border:3px solid var(--accent,#ff5a1f);cursor:pointer;}
+  textarea,input,button{font-family:inherit;}
+  textarea:focus,input:focus{outline:none;}
+  ::-webkit-scrollbar{width:10px;height:10px}
+  ::-webkit-scrollbar-thumb{background:#ccd4df;border-radius:99px;border:2px solid transparent;background-clip:content-box}
+  ::-webkit-scrollbar-track{background:transparent}
+  /* signature: measured viewport — model floats on engineering graph paper */
+  .mw-grid{position:relative;background-color:#eaeef3;
+    background-image:
+      linear-gradient(rgba(43,61,92,.05) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(43,61,92,.05) 1px,transparent 1px),
+      linear-gradient(rgba(43,61,92,.10) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(43,61,92,.10) 1px,transparent 1px);
+    background-size:14px 14px,14px 14px,70px 70px,70px 70px;}
+  .mw-grid::before,.mw-grid::after{content:'';position:absolute;width:15px;height:15px;pointer-events:none;opacity:.55;z-index:1;
+    background:linear-gradient(var(--accent,#ff5a1f),var(--accent,#ff5a1f)) center/100% 1.5px no-repeat,
+              linear-gradient(var(--accent,#ff5a1f),var(--accent,#ff5a1f)) center/1.5px 100% no-repeat;}
+  .mw-grid::before{top:13px;left:13px}
+  .mw-grid::after{right:13px;bottom:13px}
+  /* dimension-callout sliders: tick the rule at both ends */
+  input[type=range]{background:
+      linear-gradient(#9aa6b6,#9aa6b6) left/1.5px 11px no-repeat,
+      linear-gradient(#9aa6b6,#9aa6b6) right/1.5px 11px no-repeat,
+      #ccd4df;}
+</style>
+</helmet>
+<div style="--accent: {{ accent }};">
+<div data-screen-label="Moldable app" style="height:100vh;display:flex;flex-direction:column;overflow:hidden;background:#e8ebf0;color:#19222d;font-family:'IBM Plex Sans',system-ui,sans-serif;">
+
+  <!-- ============ TOP BAR ============ -->
+  <header style="flex:0 0 auto;height:62px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;background:#f6f8fb;border-bottom:1px solid #dde3ea;z-index:30;">
+    <div style="display:flex;align-items:center;gap:11px;">
+      <div style="width:30px;height:30px;border-radius:9px;background:var(--accent,#ff5a1f);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.14);">
+        <div style="width:13px;height:13px;border:2.5px solid #fff;border-radius:4px;transform:rotate(45deg);"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;line-height:1;">
+        <span style="font-weight:700;font-size:18px;letter-spacing:-.02em;font-family:'Space Grotesk',sans-serif;">Moldable</span>
+        <span style="font-size:10px;color:#8e9bab;letter-spacing:.06em;text-transform:uppercase;margin-top:3px;">idea &rarr; printable model</span>
+      </div>
+    </div>
+
+    <div style="display:flex;background:#e6ebf1;border-radius:11px;padding:4px;gap:3px;">
+      <button onClick="{{ goGuided }}" style="{{ tabGuidedStyle }}">Guided</button>
+      <button onClick="{{ goStudio }}" style="{{ tabStudioStyle }}">Studio</button>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:10px;">
+      <button onClick="{{ openSettings }}" title="Settings &amp; Claude API key" style="position:relative;display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:10px;border:1.5px solid #d0d8e2;background:#fff;color:#586575;font-size:17px;cursor:pointer;">&#9881;<sc-if value="{{ hasKey }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;top:7px;right:7px;width:7px;height:7px;border-radius:50%;background:#3a9d5d;box-shadow:0 0 0 2px #fff;"></span></sc-if></button>
+      <button onClick="{{ openGallery }}" style="display:inline-flex;align-items:center;gap:7px;padding:9px 15px;border-radius:10px;border:1.5px solid #d0d8e2;background:#fff;color:#41505f;font-weight:600;font-size:14px;cursor:pointer;">
+        <span style="display:inline-grid;grid-template-columns:1fr 1fr;gap:2px;width:13px;height:13px;"><span style="background:currentColor;border-radius:1px;"></span><span style="background:currentColor;border-radius:1px;"></span><span style="background:currentColor;border-radius:1px;"></span><span style="background:currentColor;border-radius:1px;"></span></span>
+        Gallery
+      </button>
+    </div>
+  </header>
+
+  <!-- ============ GUIDED FLOW ============ -->
+  <sc-if value="{{ isGuided }}" hint-placeholder-val="{{ true }}">
+  <main style="flex:1;overflow-y:auto;">
+
+    <!-- HOME -->
+    <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+    <section data-screen-label="Guided — describe" style="max-width:760px;margin:0 auto;padding:54px 24px 80px;">
+      <div style="text-align:center;margin-bottom:34px;">
+        <div style="display:inline-block;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent,#ff5a1f);background:rgba(255,90,31,.1);padding:6px 13px;border-radius:99px;">No CAD skills needed</div>
+        <h1 style="font-size:46px;line-height:1.05;letter-spacing:-.03em;margin:18px 0 12px;font-weight:700;font-family:'Space Grotesk',sans-serif;">Describe it. We&rsquo;ll model it.</h1>
+        <p style="font-size:18px;color:#6b7888;max-width:480px;margin:0 auto;line-height:1.5;">Type what you want or drop in a photo. Get a real, adjustable 3D model ready to print &mdash; or publish to MakerWorld.</p>
+      </div>
+
+      <div style="background:#f6f8fb;border:1px solid #dde3ea;border-radius:22px;padding:10px;box-shadow:0 14px 40px -22px rgba(18,26,38,.32);">
+        <div style="display:flex;gap:4px;padding:6px 6px 0;">
+          <button onClick="{{ setTextMode }}" style="{{ textTabStyle }}">Describe</button>
+          <button onClick="{{ setImageMode }}" style="{{ imageTabStyle }}">Upload image</button>
+        </div>
+
+        <sc-if value="{{ isTextMode }}" hint-placeholder-val="{{ true }}">
+        <div style="padding:14px 14px 16px;">
+          <textarea value="{{ prompt }}" onInput="{{ onPromptInput }}" placeholder="e.g. a hexagonal twisted plant pot about 15cm tall" style="width:100%;min-height:96px;resize:none;border:1.5px solid #d6dde6;border-radius:14px;padding:15px 16px;font-size:16px;line-height:1.45;color:#19222d;background:#fff;"></textarea>
+          <div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:14px;">
+            <button onClick="{{ toggleForceAI }}" title="Author a fully custom OpenSCAD model with AI instead of matching a template (needs an API key)" style="{{ forceAIStyle }}">&#10024; Design with AI</button>
+            <button onClick="{{ toggleSculptMode }}" title="Switch Generate to AI mesh sculpting (organic shapes — characters, figurines). Needs a mesh provider in Settings + the bridge running." style="{{ sculptStyle }}">&#129501; Sculpt with AI</button>
+            <sc-if value="{{ forceAI }}" hint-placeholder-val="{{ false }}"><span style="font-size:11.5px;color:#7d8a9a;">every prompt → custom AI build</span></sc-if>
+            <sc-if value="{{ sculptMode }}" hint-placeholder-val="{{ false }}"><span style="font-size:11.5px;color:#7d8a9a;">Generate → AI sculpt (needs the bridge)</span></sc-if>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 4px;">
+            <sc-for list="{{ chips }}" as="chip" hint-placeholder-count="4">
+              <button onClick="{{ chip.onClick }}" style="font-size:13px;font-weight:600;color:#586575;background:#e6ebf1;border:1px solid #d6dde6;padding:8px 13px;border-radius:99px;cursor:pointer;">{{ chip.label }}</button>
+            </sc-for>
+          </div>
+          <button onClick="{{ onGenerate }}" style="width:100%;margin-top:10px;display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:15px;border:none;border-radius:14px;background:var(--accent,#ff5a1f);color:#fff;font-weight:700;font-size:16px;cursor:pointer;box-shadow:0 4px 14px -4px rgba(255,90,31,.7);">
+            <span style="font-size:17px;">&#9889;</span> {{ generateLabel }}
+          </button>
+          <sc-if value="{{ hasGenError }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:12px;display:flex;gap:9px;align-items:flex-start;background:rgba(176,0,32,.06);border:1px solid rgba(176,0,32,.3);border-radius:12px;padding:11px 13px;color:#b00020;font-size:13px;line-height:1.45;"><span style="font-size:15px;line-height:1;">&#9888;</span><span>Couldn’t build that — {{ genError }}</span></div>
+          </sc-if>
+        </div>
+        </sc-if>
+
+        <sc-if value="{{ isImageMode }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:14px 14px 16px;">
+          <button onClick="{{ triggerUpload }}" style="width:100%;border:2px dashed #c6d0db;border-radius:16px;background:#fff;padding:34px 20px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:10px;">
+            <sc-if value="{{ hasImage }}" hint-placeholder-val="{{ false }}">
+              <div style="{{ imagePreviewStyle }}"></div>
+              <span style="font-size:13px;color:#6b7888;">{{ imageName }} &middot; tap to replace</span>
+            </sc-if>
+            <sc-if value="{{ noImage }}" hint-placeholder-val="{{ true }}">
+              <div style="width:46px;height:46px;border-radius:13px;background:rgba(255,90,31,.12);display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--accent,#ff5a1f);">&#8682;</div>
+              <span style="font-weight:700;font-size:16px;color:#2b3340;">Drop a photo or screenshot</span>
+              <span style="font-size:13px;color:#8e9bab;">We&rsquo;ll detect the shape and build a parametric model</span>
+            </sc-if>
+          </button>
+        </div>
+        </sc-if>
+      </div>
+
+      <div style="text-align:center;margin-top:22px;">
+        <button onClick="{{ openGallery }}" style="background:none;border:none;color:#7d8a9a;font-size:14px;font-weight:600;cursor:pointer;text-decoration:underline;text-underline-offset:3px;">or start from a template in the gallery &rarr;</button>
+      </div>
+    </section>
+    </sc-if>
+
+    <!-- GENERATING -->
+    <sc-if value="{{ isGenerating }}" hint-placeholder-val="{{ false }}">
+    <section data-screen-label="Guided — generating" style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;padding:40px;">
+      <div style="width:96px;height:96px;border-radius:26px;background:var(--accent,#ff5a1f);display:flex;align-items:center;justify-content:center;animation:mw-floaty 2.4s ease-in-out infinite;box-shadow:0 20px 40px -16px rgba(255,90,31,.6);">
+        <div style="width:42px;height:42px;border:5px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:mw-spin .9s linear infinite;"></div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-size:21px;font-weight:700;">{{ genStatus }}</div>
+        <div style="display:flex;gap:6px;justify-content:center;margin-top:14px;">
+          <span style="width:8px;height:8px;border-radius:50%;background:var(--accent,#ff5a1f);animation:mw-dot 1s infinite;"></span>
+          <span style="width:8px;height:8px;border-radius:50%;background:var(--accent,#ff5a1f);animation:mw-dot 1s infinite .18s;"></span>
+          <span style="width:8px;height:8px;border-radius:50%;background:var(--accent,#ff5a1f);animation:mw-dot 1s infinite .36s;"></span>
+        </div>
+      </div>
+      <div style="width:280px;height:8px;border-radius:99px;background:#d6dde6;overflow:hidden;">
+        <div style="height:100%;border-radius:99px;background:var(--accent,#ff5a1f);animation:mw-grow 2.3s ease-out forwards;"></div>
+      </div>
+    </section>
+    </sc-if>
+
+    <!-- RESULT -->
+    <sc-if value="{{ isResult }}" hint-placeholder-val="{{ false }}">
+    <section data-screen-label="Guided — result" style="max-width:920px;margin:0 auto;padding:24px 24px 60px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:12px;">
+        <div style="display:flex;align-items:center;gap:12px;min-width:0;">
+          <input value="{{ title }}" onInput="{{ onTitleInput }}" style="font-size:25px;font-weight:700;letter-spacing:-.02em;border:none;background:transparent;color:#19222d;max-width:100%;font-family:'Space Grotesk',sans-serif;" />
+          <span style="flex:0 0 auto;font-size:12px;font-weight:700;color:var(--accent,#ff5a1f);background:rgba(255,90,31,.1);padding:5px 11px;border-radius:99px;">{{ modelLabel }}</span>
+        </div>
+        <button onClick="{{ newModel }}" style="flex:0 0 auto;font-size:14px;font-weight:600;color:#586575;background:#fff;border:1.5px solid #d0d8e2;padding:9px 15px;border-radius:10px;cursor:pointer;">+ New</button>
+      </div>
+
+      <sc-if value="{{ showUnrecognized }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;gap:10px;align-items:flex-start;background:#fbeede;border:1px solid #f0d9b8;border-radius:13px;padding:13px 15px;margin-bottom:14px;color:#8a5a22;font-size:14px;line-height:1.45;">
+          <span style="font-size:17px;line-height:1;">&#9888;</span><span>{{ unrecognizedText }}</span>
+        </div>
+      </sc-if>
+      <div style="margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:600;color:#8e9bab;margin-bottom:8px;">Model type</div>
+        <div style="display:flex;gap:7px;flex-wrap:wrap;">
+          <sc-for list="{{ typeList }}" as="ty" hint-placeholder-count="6">
+            <button onClick="{{ ty.onClick }}" style="{{ ty.style }}">{{ ty.label }}</button>
+          </sc-for>
+        </div>
+      </div>
+      <div class="mw-grid" style="height:430px;border-radius:20px;overflow:hidden;position:relative;border:1px solid #dde3ea;">
+        <canvas ref="{{ setCanvas }}" style="width:100%;height:100%;display:block;touch-action:none;"></canvas>
+        <sc-if value="{{ rendering }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;top:14px;left:14px;display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:#41505f;background:rgba(255,255,255,.92);border:1px solid #d6dde6;padding:8px 12px;border-radius:9px;backdrop-filter:blur(4px);z-index:6;"><span style="width:13px;height:13px;border:2px solid #ccd4df;border-top-color:var(--accent,#ff5a1f);border-radius:50%;animation:mw-spin .8s linear infinite;display:inline-block;"></span>Rendering&hellip;</div></sc-if>
+        <sc-if value="{{ hasRenderError }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;left:14px;right:14px;bottom:46px;font-size:12.5px;font-weight:600;color:#fff;background:rgba(176,0,32,.92);padding:9px 12px;border-radius:9px;z-index:6;">&#9888; {{ renderError }}</div></sc-if>
+        <button onClick="{{ resetView }}" style="position:absolute;top:14px;right:14px;display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:#41505f;background:rgba(255,255,255,.92);border:1px solid #d6dde6;padding:8px 12px;border-radius:9px;cursor:pointer;backdrop-filter:blur(4px);">&#8635; Reset view</button>
+        <div style="position:absolute;left:14px;bottom:14px;font-size:10.5px;color:#586575;font-family:'IBM Plex Mono',monospace;letter-spacing:.06em;text-transform:uppercase;background:rgba(255,255,255,.85);padding:5px 10px;border-radius:8px;font-weight:500;">drag to rotate &middot; scroll to zoom</div>
+      </div>
+
+      <!-- params -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px 30px;margin-top:24px;background:#f6f8fb;border:1px solid #dde3ea;border-radius:18px;padding:22px 24px;">
+        <div style="grid-column:1/-1;font-weight:700;font-size:15px;color:#2b3340;margin-bottom:-2px;">Adjust your model</div>
+        <sc-if value="{{ isFreeform }}" hint-placeholder-val="{{ false }}">
+          <div style="grid-column:1/-1;font-size:13px;color:#586575;line-height:1.5;">{{ freeformNote }}</div>
+        </sc-if>
+        <sc-for list="{{ paramList }}" as="p" hint-placeholder-count="4">
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px;">
+              <span style="font-size:13.5px;font-weight:600;color:#3a4654;">{{ p.label }}</span>
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8e9bab;">{{ p.display }}</span>
+            </div>
+            <input type="range" min="{{ p.min }}" max="{{ p.max }}" step="{{ p.step }}" value="{{ p.value }}" onInput="{{ p.onInput }}" style="width:100%;" />
+          </div>
+        </sc-for>
+        <div style="grid-column:1/-1;display:flex;align-items:center;gap:14px;margin-top:6px;">
+          <span style="font-size:13.5px;font-weight:600;color:#3a4654;">Color</span>
+          <div style="display:flex;gap:9px;">
+            <sc-for list="{{ colorList }}" as="c" hint-placeholder-count="6">
+              <button onClick="{{ c.onClick }}" title="{{ c.name }}" style="{{ c.style }}"></button>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+
+      <!-- code (OpenSCAD only — meshes have no source) -->
+      <sc-if value="{{ hasCode }}" hint-placeholder-val="{{ true }}">
+      <button onClick="{{ toggleCode }}" style="margin-top:16px;display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:#586575;background:none;border:none;cursor:pointer;">
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;background:#e6ebf1;border-radius:6px;padding:2px 7px;">&lt;/&gt;</span>
+        {{ codeToggleLabel }}
+      </button>
+      <sc-if value="{{ codeOpen }}" hint-placeholder-val="{{ false }}">
+        <div style="margin-top:10px;background:#10151b;border-radius:14px;overflow:hidden;">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid #222a34;">
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8e9bab;">model.scad &middot; OpenSCAD</span>
+            <span style="font-size:11px;color:#7d8a9a;">read-only &middot; tweak sliders above to change</span>
+          </div>
+          <pre style="margin:0;padding:16px 18px;overflow-x:auto;font-family:'IBM Plex Mono',monospace;font-size:12.5px;line-height:1.65;color:#dde5ef;">{{ code }}</pre>
+        </div>
+      </sc-if>
+      </sc-if>
+
+      <!-- actions -->
+      <div style="display:flex;gap:12px;margin-top:24px;">
+        <button onClick="{{ downloadSTL }}" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:15px;border-radius:14px;border:1.5px solid #d0d8e2;background:#fff;color:#19222d;font-weight:700;font-size:15px;cursor:pointer;">&darr; STL</button>
+        <sc-if value="{{ hasCode }}" hint-placeholder-val="{{ true }}">
+        <button onClick="{{ downloadSCAD }}" title="Parametric OpenSCAD — MakerWorld customizable" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:15px;border-radius:14px;border:1.5px solid #d0d8e2;background:#fff;color:#19222d;font-weight:700;font-size:15px;cursor:pointer;">&darr; .scad</button>
+        <button onClick="{{ openPublish }}" style="flex:1.5;display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:15px;border-radius:14px;border:none;background:var(--accent,#ff5a1f);color:#fff;font-weight:700;font-size:15px;cursor:pointer;box-shadow:0 4px 14px -4px rgba(255,90,31,.7);">Publish to MakerWorld &rarr;</button>
+        </sc-if>
+      </div>
+    </section>
+    </sc-if>
+
+  </main>
+  </sc-if>
+
+  <!-- ============ STUDIO FLOW ============ -->
+  <sc-if value="{{ isStudio }}" hint-placeholder-val="{{ false }}">
+  <main data-screen-label="Studio workspace" style="flex:1;display:grid;grid-template-columns:288px 1fr 348px;overflow:hidden;">
+
+    <!-- LEFT RAIL -->
+    <aside style="border-right:1px solid #dde3ea;background:#f6f8fb;display:flex;flex-direction:column;overflow:hidden;">
+      <div style="padding:18px 18px 14px;border-bottom:1px solid #dde3ea;">
+        <div style="font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#8e9bab;margin-bottom:10px;">Create</div>
+        <textarea value="{{ prompt }}" onInput="{{ onPromptInput }}" placeholder="Describe a part to model&hellip;" style="width:100%;min-height:70px;resize:none;border:1.5px solid #d6dde6;border-radius:12px;padding:11px 12px;font-size:14px;line-height:1.4;background:#fff;color:#19222d;"></textarea>
+        <button onClick="{{ toggleForceAI }}" title="Author a fully custom model with AI instead of matching a template (needs an API key)" style="{{ forceAIStyle }}margin-top:10px;">&#10024; Design with AI</button>
+        <div style="display:flex;gap:8px;margin-top:10px;">
+          <button onClick="{{ onGenerate }}" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:11px;border:none;border-radius:11px;background:var(--accent,#ff5a1f);color:#fff;font-weight:700;font-size:14px;cursor:pointer;">&#9889; Generate</button>
+          <button onClick="{{ triggerUpload }}" title="Upload image" style="flex:0 0 auto;width:44px;border:1.5px solid #d0d8e2;border-radius:11px;background:#fff;color:#586575;font-size:17px;cursor:pointer;">&#8682;</button>
+        </div>
+      </div>
+      <div style="padding:16px 18px 8px;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#8e9bab;">Templates &amp; history</div>
+      <div style="flex:1;overflow-y:auto;padding:4px 12px 16px;display:flex;flex-direction:column;gap:7px;">
+        <sc-for list="{{ galleryItems }}" as="g" hint-placeholder-count="6">
+          <button onClick="{{ g.onClick }}" style="display:flex;align-items:center;gap:12px;padding:9px;border:1px solid #dde3ea;border-radius:12px;background:#fff;cursor:pointer;text-align:left;">
+            <span style="flex:0 0 auto;width:42px;height:42px;border-radius:10px;{{ g.tile }}"></span>
+            <span style="display:flex;flex-direction:column;min-width:0;">
+              <span style="font-weight:700;font-size:14px;color:#19222d;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ g.name }}</span>
+              <span style="font-size:11.5px;color:#8e9bab;">{{ g.sub }}</span>
+            </span>
+          </button>
+        </sc-for>
+      </div>
+    </aside>
+
+    <!-- CENTER VIEWER -->
+    <section class="mw-grid" style="position:relative;display:flex;flex-direction:column;overflow:hidden;">
+      <div style="flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;padding:14px 20px;z-index:5;">
+        <div style="display:flex;align-items:center;gap:11px;min-width:0;">
+          <input value="{{ title }}" onInput="{{ onTitleInput }}" style="font-size:19px;font-weight:700;letter-spacing:-.02em;border:none;background:transparent;color:#19222d;font-family:'Space Grotesk',sans-serif;" />
+          <span style="flex:0 0 auto;font-size:11px;font-weight:700;color:var(--accent,#ff5a1f);background:rgba(255,90,31,.12);padding:4px 10px;border-radius:99px;">{{ modelLabel }}</span>
+        </div>
+        <button onClick="{{ resetView }}" style="display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:#41505f;background:rgba(255,255,255,.9);border:1px solid #d6dde6;padding:8px 12px;border-radius:9px;cursor:pointer;">&#8635; Reset</button>
+      </div>
+      <div style="flex:1;position:relative;">
+        <canvas ref="{{ setCanvas }}" style="width:100%;height:100%;display:block;touch-action:none;"></canvas>
+        <sc-if value="{{ rendering }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;top:14px;left:14px;display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:#41505f;background:rgba(255,255,255,.92);border:1px solid #d6dde6;padding:8px 12px;border-radius:9px;backdrop-filter:blur(4px);z-index:6;"><span style="width:13px;height:13px;border:2px solid #ccd4df;border-top-color:var(--accent,#ff5a1f);border-radius:50%;animation:mw-spin .8s linear infinite;display:inline-block;"></span>Rendering&hellip;</div></sc-if>
+        <sc-if value="{{ hasRenderError }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;left:14px;right:14px;bottom:46px;font-size:12.5px;font-weight:600;color:#fff;background:rgba(176,0,32,.92);padding:9px 12px;border-radius:9px;z-index:6;">&#9888; {{ renderError }}</div></sc-if>
+        <div style="position:absolute;left:20px;bottom:16px;font-size:10.5px;color:#586575;font-family:'IBM Plex Mono',monospace;letter-spacing:.06em;text-transform:uppercase;background:rgba(255,255,255,.8);padding:5px 10px;border-radius:8px;font-weight:500;">drag to rotate &middot; scroll to zoom</div>
+        <sc-if value="{{ isGenerating }}" hint-placeholder-val="{{ false }}">
+          <div style="position:absolute;inset:0;background:rgba(236,240,246,.82);backdrop-filter:blur(3px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;">
+            <div style="width:70px;height:70px;border-radius:20px;background:var(--accent,#ff5a1f);display:flex;align-items:center;justify-content:center;animation:mw-floaty 2.4s ease-in-out infinite;">
+              <div style="width:30px;height:30px;border:4px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:mw-spin .9s linear infinite;"></div>
+            </div>
+            <div style="font-size:16px;font-weight:700;color:#2b3340;">{{ genStatus }}</div>
+          </div>
+        </sc-if>
+      </div>
+    </section>
+
+    <!-- RIGHT RAIL -->
+    <aside style="border-left:1px solid #dde3ea;background:#f6f8fb;display:flex;flex-direction:column;overflow:hidden;">
+      <div style="flex:1;overflow-y:auto;padding:20px;">
+        <sc-if value="{{ showUnrecognized }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;gap:9px;align-items:flex-start;background:#fbeede;border:1px solid #f0d9b8;border-radius:12px;padding:11px 13px;margin-bottom:16px;color:#8a5a22;font-size:13px;line-height:1.4;">
+            <span style="font-size:15px;line-height:1;">&#9888;</span><span>{{ unrecognizedText }}</span>
+          </div>
+        </sc-if>
+        <div style="font-size:12px;font-weight:600;color:#8e9bab;margin-bottom:8px;">Model type</div>
+        <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:20px;">
+          <sc-for list="{{ typeList }}" as="ty" hint-placeholder-count="6">
+            <button onClick="{{ ty.onClick }}" style="{{ ty.style }}">{{ ty.label }}</button>
+          </sc-for>
+        </div>
+        <div style="font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#8e9bab;margin-bottom:16px;">Parameters</div>
+        <sc-if value="{{ isFreeform }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:13px;color:#586575;line-height:1.5;margin-bottom:16px;">{{ freeformNote }}</div>
+        </sc-if>
+        <div style="display:grid;gap:16px;">
+          <sc-for list="{{ paramList }}" as="p" hint-placeholder-count="4">
+            <div>
+              <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px;">
+                <span style="font-size:13.5px;font-weight:600;color:#3a4654;">{{ p.label }}</span>
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8e9bab;">{{ p.display }}</span>
+              </div>
+              <input type="range" min="{{ p.min }}" max="{{ p.max }}" step="{{ p.step }}" value="{{ p.value }}" onInput="{{ p.onInput }}" style="width:100%;" />
+            </div>
+          </sc-for>
+        </div>
+        <div style="margin-top:20px;">
+          <div style="font-size:13.5px;font-weight:600;color:#3a4654;margin-bottom:10px;">Filament color</div>
+          <div style="display:flex;gap:9px;flex-wrap:wrap;">
+            <sc-for list="{{ colorList }}" as="c" hint-placeholder-count="6">
+              <button onClick="{{ c.onClick }}" title="{{ c.name }}" style="{{ c.style }}"></button>
+            </sc-for>
+          </div>
+        </div>
+
+        <sc-if value="{{ hasCode }}" hint-placeholder-val="{{ true }}">
+        <button onClick="{{ toggleCode }}" style="margin-top:24px;width:100%;display:flex;align-items:center;justify-content:space-between;font-size:13.5px;font-weight:700;color:#3a4654;background:#e6ebf1;border:none;border-radius:10px;padding:11px 13px;cursor:pointer;">
+          <span style="display:inline-flex;align-items:center;gap:8px;"><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;background:#fff;border-radius:5px;padding:2px 6px;">&lt;/&gt;</span> OpenSCAD code</span>
+          <span style="color:#8e9bab;">{{ codeChevron }}</span>
+        </button>
+        <sc-if value="{{ codeOpen }}" hint-placeholder-val="{{ false }}">
+          <textarea value="{{ codeText }}" onInput="{{ onCodeInput }}" spellcheck="false" style="width:100%;min-height:230px;margin-top:10px;resize:vertical;border-radius:12px;border:none;background:#10151b;color:#dde5ef;font-family:'IBM Plex Mono',monospace;font-size:12px;line-height:1.6;padding:14px;"></textarea>
+          <div style="font-size:11px;color:#8e9bab;margin-top:6px;line-height:1.4;">Power users can edit the source directly. Sliders regenerate this on change.</div>
+        </sc-if>
+        </sc-if>
+      </div>
+
+      <div style="flex:0 0 auto;border-top:1px solid #dde3ea;padding:14px 16px;display:flex;gap:10px;">
+        <button onClick="{{ downloadSTL }}" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:13px;border-radius:12px;border:1.5px solid #d0d8e2;background:#fff;color:#19222d;font-weight:700;font-size:14px;cursor:pointer;">&darr; STL</button>
+        <sc-if value="{{ hasCode }}" hint-placeholder-val="{{ true }}">
+        <button onClick="{{ downloadSCAD }}" title="Parametric OpenSCAD — MakerWorld customizable" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:13px;border-radius:12px;border:1.5px solid #d0d8e2;background:#fff;color:#19222d;font-weight:700;font-size:14px;cursor:pointer;">&darr; .scad</button>
+        <button onClick="{{ openPublish }}" style="flex:2;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:13px;border-radius:12px;border:none;background:var(--accent,#ff5a1f);color:#fff;font-weight:700;font-size:14px;cursor:pointer;">Publish to MakerWorld</button>
+        </sc-if>
+      </div>
+    </aside>
+  </main>
+  </sc-if>
+
+  <!-- hidden file input -->
+  <input type="file" accept="image/*" ref="{{ fileRef }}" onChange="{{ onFileChange }}" style="display:none;" />
+
+  <!-- ============ GALLERY OVERLAY ============ -->
+  <sc-if value="{{ galleryOpen }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ closeGallery }}" style="position:fixed;inset:0;background:rgba(15,21,30,.46);backdrop-filter:blur(3px);z-index:50;display:flex;align-items:flex-start;justify-content:center;padding:48px 20px;overflow-y:auto;">
+    <div onClick="{{ stop }}" style="width:100%;max-width:840px;background:#eef2f6;border-radius:22px;overflow:hidden;box-shadow:0 30px 70px -20px rgba(0,0,0,.5);">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:22px 26px;border-bottom:1px solid #dde3ea;">
+        <div>
+          <div style="font-size:22px;font-weight:700;letter-spacing:-.02em;font-family:'Space Grotesk',sans-serif;">Template gallery</div>
+          <div style="font-size:14px;color:#7d8a9a;margin-top:2px;">Start from a ready-made parametric model</div>
+        </div>
+        <button onClick="{{ closeGallery }}" style="width:38px;height:38px;border-radius:11px;border:1px solid #d0d8e2;background:#fff;color:#586575;font-size:18px;cursor:pointer;">&times;</button>
+      </div>
+      <div style="padding:22px 26px;display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+        <sc-for list="{{ galleryItems }}" as="g" hint-placeholder-count="6">
+          <button onClick="{{ g.onClick }}" style="border:1px solid #dde3ea;border-radius:16px;background:#fff;overflow:hidden;cursor:pointer;text-align:left;padding:0;">
+            <span style="display:block;height:128px;{{ g.tile }}"></span>
+            <span style="display:block;padding:12px 14px;">
+              <span style="display:block;font-weight:700;font-size:15px;color:#19222d;">{{ g.name }}</span>
+              <span style="display:block;font-size:12.5px;color:#8e9bab;margin-top:2px;">{{ g.sub }}</span>
+            </span>
+          </button>
+        </sc-for>
+      </div>
+      <sc-if value="{{ hasCatalog }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:18px 26px 0;border-top:1px solid #dde3ea;">
+          <div style="font-size:18px;font-weight:700;letter-spacing:-.02em;font-family:'Space Grotesk',sans-serif;">Popular prints</div>
+          <div style="font-size:13px;color:#7d8a9a;margin-top:2px;">Ready to print &mdash; pick one, then tweak the OpenSCAD if you like</div>
+        </div>
+        <div style="padding:14px 26px 22px;display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+          <sc-for list="{{ catalogItems }}" as="c" hint-placeholder-count="6">
+            <button onClick="{{ c.onClick }}" style="border:1px solid #dde3ea;border-radius:16px;background:#fff;overflow:hidden;cursor:pointer;text-align:left;padding:0;">
+              <span style="display:block;height:116px;{{ c.tile }}"></span>
+              <span style="display:block;padding:11px 13px;">
+                <span style="display:block;font-weight:700;font-size:14px;color:#19222d;">{{ c.name }}</span>
+                <span style="display:block;font-size:12px;color:#8e9bab;margin-top:2px;">{{ c.sub }}</span>
+              </span>
+            </button>
+          </sc-for>
+        </div>
+      </sc-if>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- ============ PUBLISH MODAL ============ -->
+  <sc-if value="{{ publishOpen }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ closePublish }}" style="position:fixed;inset:0;background:rgba(15,21,30,.5);backdrop-filter:blur(3px);z-index:60;display:flex;align-items:center;justify-content:center;padding:24px;">
+    <div onClick="{{ stop }}" style="width:100%;max-width:480px;background:#eef2f6;border-radius:22px;overflow:hidden;box-shadow:0 30px 70px -20px rgba(0,0,0,.5);">
+
+      <sc-if value="{{ isPublishForm }}" hint-placeholder-val="{{ true }}">
+      <div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid #dde3ea;">
+          <div style="font-size:19px;font-weight:700;letter-spacing:-.02em;font-family:'Space Grotesk',sans-serif;">Publish to MakerWorld</div>
+          <button onClick="{{ closePublish }}" style="width:34px;height:34px;border-radius:10px;border:1px solid #d0d8e2;background:#fff;color:#586575;font-size:17px;cursor:pointer;">&times;</button>
+        </div>
+        <div style="padding:22px 24px;display:flex;flex-direction:column;gap:16px;max-height:62vh;overflow-y:auto;">
+          <div>
+            <label style="display:block;font-size:13px;font-weight:600;color:#3a4654;margin-bottom:6px;">Title</label>
+            <input value="{{ title }}" onInput="{{ onTitleInput }}" style="width:100%;border:1.5px solid #d6dde6;border-radius:11px;padding:11px 13px;font-size:15px;background:#fff;color:#19222d;" />
+          </div>
+          <div>
+            <label style="display:block;font-size:13px;font-weight:600;color:#3a4654;margin-bottom:6px;">Description</label>
+            <textarea value="{{ publishDesc }}" onInput="{{ onDescInput }}" style="width:100%;min-height:72px;resize:none;border:1.5px solid #d6dde6;border-radius:11px;padding:11px 13px;font-size:14px;line-height:1.45;background:#fff;color:#19222d;"></textarea>
+          </div>
+          <div>
+            <label style="display:block;font-size:13px;font-weight:600;color:#3a4654;margin-bottom:7px;">Tags</label>
+            <div style="display:flex;flex-wrap:wrap;gap:7px;">
+              <sc-for list="{{ tags }}" as="t" hint-placeholder-count="3">
+                <span style="font-size:12.5px;font-weight:600;color:#586575;background:#e6ebf1;border:1px solid #d6dde6;padding:6px 11px;border-radius:99px;">#{{ t }}</span>
+              </sc-for>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #dde3ea;border-radius:13px;padding:13px 15px;">
+            <div style="flex:1;">
+              <div style="font-weight:700;font-size:14px;color:#19222d;">Make it parametric on MakerWorld</div>
+              <div style="font-size:12.5px;color:#8e9bab;margin-top:2px;">Buyers tweak your sliders &amp; re-slice in the browser</div>
+            </div>
+            <button onClick="{{ toggleParametric }}" style="{{ paramToggleStyle }}"><span style="{{ paramKnobStyle }}"></span></button>
+          </div>
+          <div style="display:flex;gap:12px;">
+            <div style="flex:1;">
+              <label style="display:block;font-size:13px;font-weight:600;color:#3a4654;margin-bottom:6px;">License</label>
+              <div style="border:1.5px solid #d6dde6;border-radius:11px;padding:11px 13px;font-size:14px;background:#fff;color:#41505f;">CC BY 4.0</div>
+            </div>
+            <div style="flex:1;">
+              <label style="display:block;font-size:13px;font-weight:600;color:#3a4654;margin-bottom:6px;">Category</label>
+              <div style="border:1.5px solid #d6dde6;border-radius:11px;padding:11px 13px;font-size:14px;background:#fff;color:#41505f;">{{ publishCategory }}</div>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;gap:12px;padding:16px 24px;border-top:1px solid #dde3ea;">
+          <button onClick="{{ closePublish }}" style="flex:1;padding:13px;border-radius:12px;border:1.5px solid #d0d8e2;background:#fff;color:#19222d;font-weight:700;font-size:15px;cursor:pointer;">Cancel</button>
+          <button onClick="{{ doPublish }}" style="flex:1.6;padding:13px;border-radius:12px;border:none;background:var(--accent,#ff5a1f);color:#fff;font-weight:700;font-size:15px;cursor:pointer;">Publish now</button>
+        </div>
+      </div>
+      </sc-if>
+
+      <sc-if value="{{ isPublishSuccess }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:42px 30px 30px;text-align:center;">
+        <div style="width:70px;height:70px;border-radius:50%;background:#4f8a5b;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:34px;color:#fff;">&#10003;</div>
+        <div style="font-size:22px;font-weight:700;letter-spacing:-.02em;font-family:'Space Grotesk',sans-serif;">You&rsquo;re live on MakerWorld!</div>
+        <div style="font-size:14.5px;color:#6b7888;margin-top:8px;line-height:1.5;">Download the parametric <b>.scad</b> and upload it to MakerWorld&rsquo;s Parametric Model Maker (upload the .scad, not a .3mf) &mdash; it auto-adds a <b>Customize</b> button so buyers tweak these exact sliders in the browser.</div>
+        <div style="margin:22px 0 6px;background:#fff;border:1px solid #dde3ea;border-radius:11px;padding:12px 14px;font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--accent,#ff5a1f);">makerworld.com/en/makerlab/parametricModelMaker</div>
+        <div style="display:flex;gap:12px;margin-top:18px;">
+          <button onClick="{{ closePublish }}" style="flex:1;padding:13px;border-radius:12px;border:1.5px solid #d0d8e2;background:#fff;color:#19222d;font-weight:700;font-size:15px;cursor:pointer;">Done</button>
+          <button onClick="{{ downloadSCAD }}" style="flex:1.4;padding:13px;border-radius:12px;border:none;background:var(--accent,#ff5a1f);color:#fff;font-weight:700;font-size:15px;cursor:pointer;">&darr; Download .scad</button>
+        </div>
+      </div>
+      </sc-if>
+
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- ============ SETTINGS MODAL ============ -->
+  <sc-if value="{{ settingsOpen }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ closeSettings }}" style="position:fixed;inset:0;background:rgba(15,21,30,.5);backdrop-filter:blur(3px);z-index:70;display:flex;align-items:center;justify-content:center;padding:24px;">
+    <div onClick="{{ stop }}" style="width:100%;max-width:480px;background:#eef2f6;border-radius:22px;overflow:hidden;box-shadow:0 30px 70px -20px rgba(0,0,0,.5);">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid #dde3ea;">
+        <div style="font-size:19px;font-weight:700;letter-spacing:-.02em;font-family:'Space Grotesk',sans-serif;">Settings</div>
+        <button onClick="{{ closeSettings }}" style="width:34px;height:34px;border-radius:10px;border:1px solid #d0d8e2;background:#fff;color:#586575;font-size:17px;cursor:pointer;">&times;</button>
+      </div>
+      <div style="padding:22px 24px;display:flex;flex-direction:column;gap:18px;">
+        <sc-if value="{{ hasSettingsMsg }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;gap:9px;align-items:flex-start;background:rgba(255,90,31,.08);border:1px solid rgba(255,90,31,.3);border-radius:12px;padding:11px 13px;color:#a23c12;font-size:13px;line-height:1.45;"><span style="font-size:15px;line-height:1;">&#9888;</span><span>{{ settingsMsg }}</span></div>
+        </sc-if>
+        <div>
+          <label style="display:block;font-size:13px;font-weight:600;color:#3a4654;margin-bottom:8px;">AI provider</label>
+          <div style="display:flex;gap:8px;">
+            <sc-for list="{{ providerList }}" as="pv" hint-placeholder-count="3">
+              <button onClick="{{ pv.onClick }}" style="{{ pv.style }}">{{ pv.label }}</button>
+            </sc-for>
+          </div>
+        </div>
+        <div>
+          <label style="display:block;font-size:13px;font-weight:600;color:#3a4654;margin-bottom:6px;">{{ keyLabel }}</label>
+          <input value="{{ apiKey }}" onInput="{{ onApiKeyInput }}" type="password" placeholder="{{ keyPlaceholder }}" spellcheck="false" style="width:100%;border:1.5px solid #d6dde6;border-radius:11px;padding:11px 13px;font-size:13px;font-family:'IBM Plex Mono',monospace;background:#fff;color:#19222d;" />
+          <div style="font-size:11.5px;color:#7d8a9a;margin-top:7px;line-height:1.5;">{{ providerNote }} Without it, Moldable matches keywords to templates.</div>
+        </div>
+        <sc-if value="{{ isCustomProvider }}" hint-placeholder-val="{{ false }}">
+          <div>
+            <label style="display:block;font-size:13px;font-weight:600;color:#3a4654;margin-bottom:6px;">Base URL (OpenAI-compatible)</label>
+            <input value="{{ baseUrl }}" onInput="{{ onBaseUrlInput }}" placeholder="http://localhost:8080/v1" spellcheck="false" style="width:100%;border:1.5px solid #d6dde6;border-radius:11px;padding:11px 13px;font-size:13px;font-family:'IBM Plex Mono',monospace;background:#fff;color:#19222d;" />
+          </div>
+        </sc-if>
+        <div>
+          <label style="display:block;font-size:13px;font-weight:600;color:#3a4654;margin-bottom:8px;">Model</label>
+          <sc-if value="{{ showModelCards }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;gap:9px;">
+              <sc-for list="{{ modelList }}" as="md" hint-placeholder-count="3">
+                <button onClick="{{ md.onClick }}" style="{{ md.style }}">
+                  <span style="font-size:13px;font-weight:700;color:#19222d;">{{ md.label }}</span>
+                  <span style="font-size:11px;color:#7d8a9a;">{{ md.sub }}</span>
+                </button>
+              </sc-for>
+            </div>
+          </sc-if>
+          <sc-if value="{{ showModelText }}" hint-placeholder-val="{{ false }}">
+            <input value="{{ modelChoice }}" onInput="{{ onModelInput }}" placeholder="{{ modelPlaceholder }}" spellcheck="false" style="width:100%;border:1.5px solid #d6dde6;border-radius:11px;padding:11px 13px;font-size:13px;font-family:'IBM Plex Mono',monospace;background:#fff;color:#19222d;" />
+          </sc-if>
+        </div>
+        <div style="border-top:1px dashed #dde3ea;padding-top:16px;">
+          <label style="display:block;font-size:13px;font-weight:600;color:#3a4654;margin-bottom:8px;">&#129501; AI mesh &mdash; for "Sculpt with AI" (organic shapes)</label>
+          <div style="display:flex;gap:8px;margin-bottom:8px;">
+            <sc-for list="{{ meshProviderList }}" as="mp" hint-placeholder-count="4">
+              <button onClick="{{ mp.onClick }}" style="{{ mp.style }}">{{ mp.label }}</button>
+            </sc-for>
+          </div>
+          <input value="{{ meshKey }}" onInput="{{ onMeshKeyInput }}" type="password" placeholder="Meshy / Tripo / Replicate API token" spellcheck="false" style="width:100%;border:1.5px solid #d6dde6;border-radius:11px;padding:11px 13px;font-size:13px;font-family:'IBM Plex Mono',monospace;background:#fff;color:#19222d;" />
+          <sc-if value="{{ showMeshBase }}" hint-placeholder-val="{{ false }}">
+            <input value="{{ meshBase }}" onInput="{{ onMeshBaseInput }}" placeholder="http://localhost:8788 (bridge)" spellcheck="false" style="width:100%;margin-top:8px;border:1.5px solid #d6dde6;border-radius:11px;padding:11px 13px;font-size:13px;font-family:'IBM Plex Mono',monospace;background:#fff;color:#19222d;" />
+          </sc-if>
+          <div style="font-size:11.5px;color:#7d8a9a;margin-top:7px;line-height:1.5;">Makes characters/figurines OpenSCAD can't. Browser calls are often CORS-blocked &mdash; run <code>node tools/mesh-bridge.mjs</code> and pick Custom. Mesh output may need cleanup before printing.</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:12px;padding:16px 24px;border-top:1px solid #dde3ea;">
+        <button onClick="{{ closeSettings }}" style="flex:1;padding:13px;border-radius:12px;border:1.5px solid #d0d8e2;background:#fff;color:#19222d;font-weight:700;font-size:15px;cursor:pointer;">Cancel</button>
+        <button onClick="{{ saveSettings }}" style="flex:1.6;padding:13px;border-radius:12px;border:none;background:var(--accent,#ff5a1f);color:#fff;font-weight:700;font-size:15px;cursor:pointer;">Save</button>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- ============ TOAST ============ -->
+  <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:80;background:#10151b;color:#eef2f6;font-weight:600;font-size:14px;padding:13px 20px;border-radius:12px;box-shadow:0 14px 30px -10px rgba(0,0,0,.5);">{{ toast }}</div>
+  </sc-if>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:&quot;100%&quot;,&quot;height&quot;:&quot;100%&quot;},&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#ff5a1f&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;defaultFlow&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;guided&quot;,&quot;studio&quot;],&quot;default&quot;:&quot;guided&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;autoRotate&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;}}">
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    try { window.__moldable = this; } catch (e) {}   // test/thumbnail hook
+    this.MODELS = {
+      vase: { label: 'Vase / Planter', cat: 'Home Decor', tags: ['planter','vase','parametric','decor'], params: [
+        { key:'height', label:'Height',  min:60, max:240, step:1, def:150, unit:'mm' },
+        { key:'radius', label:'Width',   min:25, max:90,  step:1, def:50,  unit:'mm' },
+        { key:'sides',  label:'Sides',   min:3,  max:16,  step:1, def:6,   unit:'' },
+        { key:'twist',  label:'Twist',   min:0,  max:360, step:5, def:120, unit:'\u00b0' },
+        { key:'bulge',  label:'Belly',   min:0,  max:60,  step:1, def:24,  unit:'%' },
+      ]},
+      organizer: { label: 'Desk Organizer', cat: 'Office', tags: ['organizer','desk','storage','parametric'], params: [
+        { key:'width',  label:'Width',        min:60, max:260, step:2, def:160, unit:'mm' },
+        { key:'depth',  label:'Depth',        min:50, max:180, step:2, def:90,  unit:'mm' },
+        { key:'height', label:'Height',       min:25, max:90,  step:1, def:48,  unit:'mm' },
+        { key:'wall',   label:'Wall',         min:2,  max:8,   step:1, def:3,   unit:'mm' },
+        { key:'slots',  label:'Compartments', min:1,  max:5,   step:1, def:3,   unit:'' },
+      ]},
+      stand: { label: 'Phone Stand', cat: 'Gadgets', tags: ['phone-stand','desk','parametric','accessory'], params: [
+        { key:'width',     label:'Width',       min:60, max:140, step:1, def:82,  unit:'mm' },
+        { key:'height',    label:'Back height', min:70, max:170, step:1, def:115, unit:'mm' },
+        { key:'angle',     label:'Recline',     min:50, max:78,  step:1, def:64,  unit:'\u00b0' },
+        { key:'baseDepth', label:'Base depth',  min:60, max:130, step:1, def:92,  unit:'mm' },
+      ]},
+      holder: { label: 'HSW Tool Holder', cat: 'Workshop', tags: ['hsw','honeycomb-storage-wall','tool-holder','parametric'], params: [
+        { key:'dia',   label:'Tool slot \u2300', min:12, max:70,  step:1, def:32, unit:'mm' },
+        { key:'depth', label:'Cup depth',       min:25, max:120, step:1, def:64, unit:'mm' },
+        { key:'wall',  label:'Wall',            min:2,  max:6,   step:1, def:3,  unit:'mm' },
+        { key:'tiles', label:'Mount width',     min:1,  max:4,   step:1, def:1,  unit:'tiles' },
+      ]},
+      hook: { label: 'HSW Hook', cat: 'Workshop', tags: ['hsw','honeycomb-storage-wall','hook','parametric'], params: [
+        { key:'rod',    label:'Rod \u2300',     min:6,  max:18, step:1, def:10, unit:'mm' },
+        { key:'length', label:'Reach',        min:25, max:90, step:1, def:48, unit:'mm' },
+        { key:'tip',    label:'Up-turn',      min:8,  max:45, step:1, def:24, unit:'mm' },
+        { key:'tiles',  label:'Mount width',  min:1,  max:3,  step:1, def:1,  unit:'tiles' },
+      ]},
+      shelf: { label: 'HSW Display Shelf', cat: 'Workshop', tags: ['hsw','honeycomb-storage-wall','shelf','display-stand','parametric'], params: [
+        { key:'tiles', label:'Mount width', min:2,  max:5,   step:1, def:3,  unit:'tiles' },
+        { key:'depth', label:'Shelf depth', min:40, max:120, step:2, def:72, unit:'mm' },
+        { key:'lip',   label:'Front lip',   min:4,  max:32,  step:1, def:14, unit:'mm' },
+      ]},
+      gridfinity: { label: 'Gridfinity Bin', cat: 'Storage', tags: ['gridfinity','42mm-grid','bin','parametric'], params: [
+        { key:'gx',           label:'Grid X',       min:1, max:6,  step:1, def:2, unit:'u' },
+        { key:'gy',           label:'Grid Y',       min:1, max:6,  step:1, def:1, unit:'u' },
+        { key:'height',       label:'Height',       min:2, max:12, step:1, def:6, unit:'u' },
+        { key:'compartments', label:'Compartments', min:1, max:6,  step:1, def:1, unit:'' },
+        { key:'labelTab',     label:'Label tab',    min:0, max:1,  step:1, def:1, unit:'' },
+        { key:'scoop',        label:'Scoop',        min:0, max:1,  step:1, def:1, unit:'' },
+      ]},
+      baseplate: { label: 'Gridfinity Baseplate', cat: 'Storage', tags: ['gridfinity','baseplate','42mm-grid','parametric'], params: [
+        { key:'gx',      label:'Grid X',       min:1, max:8, step:1, def:3, unit:'u' },
+        { key:'gy',      label:'Grid Y',       min:1, max:8, step:1, def:2, unit:'u' },
+        { key:'magnets', label:'Magnet holes', min:0, max:1, step:1, def:0, unit:'' },
+      ]},
+      box: { label: 'Box', cat: 'Storage', tags: ['box','container','storage','parametric'], params: [
+        { key:'width',  label:'Width',         min:30, max:220, step:1,   def:100, unit:'mm' },
+        { key:'depth',  label:'Depth',         min:30, max:220, step:1,   def:70,  unit:'mm' },
+        { key:'height', label:'Height',        min:15, max:150, step:1,   def:45,  unit:'mm' },
+        { key:'wall',   label:'Wall',          min:1.2, max:5,  step:0.2, def:2.4, unit:'mm' },
+        { key:'fillet', label:'Corner radius', min:0, max:24,   step:1,   def:5,   unit:'mm' },
+      ]},
+      coaster: { label: 'Coaster', cat: 'Home Decor', tags: ['coaster','drinks','home','parametric'], params: [
+        { key:'dia',   label:'Diameter',  min:70, max:140, step:1,   def:96, unit:'mm' },
+        { key:'thick', label:'Base',      min:2,  max:6,   step:0.5, def:3,  unit:'mm' },
+        { key:'rim',   label:'Rim height',min:0,  max:10,  step:1,   def:4,  unit:'mm' },
+        { key:'sides', label:'Sides',     min:3,  max:64,  step:1,   def:64, unit:'' },
+      ]},
+      bracket: { label: 'L-Bracket', cat: 'Workshop', tags: ['bracket','mount','l-bracket','parametric'], params: [
+        { key:'legA',  label:'Leg A',     min:20, max:120, step:1, def:50, unit:'mm' },
+        { key:'legB',  label:'Leg B',     min:20, max:120, step:1, def:50, unit:'mm' },
+        { key:'width', label:'Width',     min:15, max:100, step:1, def:30, unit:'mm' },
+        { key:'thick', label:'Thickness', min:2,  max:10,  step:1, def:4,  unit:'mm' },
+        { key:'hole',  label:'Screw ⌀', min:0, max:8, step:1, def:4,  unit:'mm' },
+      ]},
+      cableclip: { label: 'Cable Clip', cat: 'Workshop', tags: ['cable','cord','management','parametric'], params: [
+        { key:'cables', label:'Cables',     min:1, max:6,  step:1, def:3, unit:'' },
+        { key:'dia',    label:'Cable ⌀',  min:3, max:14, step:1, def:6, unit:'mm' },
+        { key:'length', label:'Length',     min:16,max:60, step:1, def:32,unit:'mm' },
+        { key:'mount',  label:'Screw holes',min:0, max:1,  step:1, def:1, unit:'' },
+      ]},
+      knob: { label: 'Knob', cat: 'Gadgets', tags: ['knob','dial','control','parametric'], params: [
+        { key:'dia',    label:'Diameter', min:18, max:60, step:1,   def:32, unit:'mm' },
+        { key:'height', label:'Height',   min:10, max:30, step:1,   def:16, unit:'mm' },
+        { key:'shaft',  label:'Shaft ⌀',min:3,  max:10, step:0.5, def:6,  unit:'mm' },
+        { key:'grips',  label:'Grips',    min:0,  max:30, step:1,   def:14, unit:'' },
+      ]},
+      cupadapter: { label: 'Cupholder Adapter', cat: 'Auto', tags: ['car','cupholder','mug','adapter','insert','parametric'], params: [
+        { key:'holder',  label:'Cupholder ⌀', min:55, max:100, step:1,   def:74, unit:'mm' },
+        { key:'mug',     label:'Mug/cup ⌀',   min:45, max:115, step:1,   def:80, unit:'mm' },
+        { key:'cradleH', label:'Cradle height', min:25, max:120, step:1,   def:70, unit:'mm' },
+        { key:'plugH',   label:'Insert depth',  min:12, max:60,  step:1,   def:35, unit:'mm' },
+        { key:'handle',  label:'Opening width', min:0,  max:60,  step:1,   def:30, unit:'mm' },
+        { key:'openings',label:'Openings',      min:1,  max:6,   step:1,   def:1,  unit:'' },
+        { key:'wall',    label:'Wall',          min:2,  max:6,   step:0.5, def:2.5,  unit:'mm' },
+      ]},
+      funnel: { label: 'Funnel', cat: 'Kitchen', tags: ['funnel','pour','oil','parametric'], params: [
+        { key:'topDia',  label:'Mouth ⌀',      min:40, max:160, step:2,   def:90, unit:'mm' },
+        { key:'stemDia', label:'Spout ⌀',      min:5,  max:30,  step:1,   def:14, unit:'mm' },
+        { key:'height',  label:'Cone height',  min:25, max:120, step:1,   def:58, unit:'mm' },
+        { key:'stemLen', label:'Spout length', min:15, max:90,  step:1,   def:34, unit:'mm' },
+        { key:'wall',    label:'Wall',         min:1.2,max:3,   step:0.2, def:1.6,unit:'mm' },
+      ]},
+      soapdish: { label: 'Soap Dish', cat: 'Bathroom', tags: ['soap','dish','drain','tray','parametric'], params: [
+        { key:'width',  label:'Width',        min:80, max:170, step:2, def:110, unit:'mm' },
+        { key:'depth',  label:'Depth',        min:55, max:120, step:2, def:85,  unit:'mm' },
+        { key:'height', label:'Height',       min:10, max:35,  step:1, def:18,  unit:'mm' },
+        { key:'ridges', label:'Drain ridges', min:0,  max:12,  step:1, def:6,   unit:'' },
+      ]},
+      peghook: { label: 'Pegboard Hook', cat: 'Workshop', tags: ['pegboard','hook','tool','parametric'], params: [
+        { key:'reach',  label:'Reach',        min:20, max:110, step:1,   def:45,   unit:'mm' },
+        { key:'rod',    label:'Rod ⌀',        min:5,  max:14,  step:1,   def:8,    unit:'mm' },
+        { key:'pitch',  label:'Hole spacing', min:20, max:40,  step:0.5, def:25.4, unit:'mm' },
+        { key:'upturn', label:'Up-turn',      min:6,  max:40,  step:1,   def:16,   unit:'mm' },
+      ]},
+      wallhook: { label: 'Wall Hook', cat: 'Home', tags: ['hook','wall','coat','screw-mount','parametric'], params: [
+        { key:'reach',  label:'Reach',       min:25, max:90, step:1, def:42, unit:'mm' },
+        { key:'rod',    label:'Rod ⌀',       min:8,  max:22, step:1, def:12, unit:'mm' },
+        { key:'upturn', label:'Up-turn',     min:8,  max:45, step:1, def:20, unit:'mm' },
+        { key:'screws', label:'Screw holes', min:1,  max:2,  step:1, def:2,  unit:'' },
+      ]},
+      brick: { label: 'Building Brick', cat: 'Toys', tags: ['lego-compatible','brick','plate','tile','parametric'], params: [
+        { key:'studsX', label:'Studs wide',      min:1, max:8,  step:1, def:2, unit:'' },
+        { key:'studsY', label:'Studs long',      min:1, max:12, step:1, def:4, unit:'' },
+        { key:'layers', label:'Height (plates)', min:1, max:6,  step:1, def:3, unit:'' },
+        { key:'studs',  label:'Studs (0=tile)',  min:0, max:1,  step:1, def:1, unit:'' },
+      ]},
+      apmount: { label: 'Aruba AP-515 HSW Mount', cat: 'Network', tags: ['aruba','ap-515','access-point','hsw','honeycomb-storage-wall'], params: [
+        { key:'cols', label:'Connectors', min:1, max:4, step:1, def:4, unit:'' },
+      ]},
+      wallbin: { label: 'Wall Bin', cat: 'Workshop', tags: ['hsw','honeycomb-storage-wall','bin','parts','parametric'], params: [
+        { key:'width',     label:'Width',         min:50, max:200, step:2, def:100, unit:'mm' },
+        { key:'height',    label:'Back height',   min:20, max:90,  step:1, def:45,  unit:'mm' },
+        { key:'depth',     label:'Depth',         min:20, max:70,  step:1, def:35,  unit:'mm' },
+        { key:'sections',  label:'Compartments',  min:1,  max:6,   step:1, def:3,   unit:'' },
+        { key:'honeycomb', label:'Honeycomb walls', min:0, max:1,  step:1, def:1,   unit:'' },
+      ]},
+      walldock: { label: 'Wall Dock', cat: 'Gadgets', tags: ['hsw','honeycomb-storage-wall','phone','tablet','dock','parametric'], params: [
+        { key:'width',      label:'Width',        min:45, max:220, step:1,   def:82, unit:'mm' },
+        { key:'height',     label:'Back height',  min:45, max:170, step:1,   def:95, unit:'mm' },
+        { key:'shelfDepth', label:'Shelf depth',  min:15, max:90,  step:1,   def:38, unit:'mm' },
+        { key:'lip',        label:'Front lip',    min:3,  max:35,  step:1,   def:18, unit:'mm' },
+        { key:'slot',       label:'Charger slot', min:0,  max:50,  step:1,   def:18, unit:'mm' },
+        { key:'wall',       label:'Wall',         min:2,  max:5,   step:0.5, def:3,  unit:'mm' },
+      ]},
+    };
+    this.COLORS = [
+      { name:'Coral', hex:'#e0653f' }, { name:'Sage', hex:'#7d9b76' },
+      { name:'Sky', hex:'#5b8fb0' },   { name:'Mustard', hex:'#caa24a' },
+      { name:'Cream', hex:'#e7ddc6' }, { name:'Charcoal', hex:'#3a3a3a' },
+    ];
+    this.GALLERY = [
+      { name:'Hex Twist Planter', model:'vase', color:'#7d9b76', params:{ height:160, radius:52, sides:6, twist:150, bulge:28 } },
+      { name:'Tall Spiral Vase',  model:'vase', color:'#5b8fb0', params:{ height:225, radius:42, sides:9, twist:300, bulge:14 } },
+      { name:'3-Slot Desk Tray',  model:'organizer', color:'#e0653f', params:{ width:170, depth:95, height:50, wall:3, slots:3 } },
+      { name:'Pen & Clip Caddy',  model:'organizer', color:'#caa24a', params:{ width:118, depth:80, height:72, wall:3, slots:2 } },
+      { name:'Angled Phone Dock', model:'stand', color:'#3a3a3a', params:{ width:84, height:120, angle:62, baseDepth:95 } },
+      { name:'Mini Tablet Stand', model:'stand', color:'#5b8fb0', params:{ width:120, height:150, angle:66, baseDepth:112 } },
+      { name:'HSW Tool Holder',   model:'holder', color:'#5b8fb0', params:{ dia:32, depth:64, wall:3, tiles:2 } },
+      { name:'HSW Marker Cup',    model:'holder', color:'#7d9b76', params:{ dia:20, depth:92, wall:3, tiles:1 } },
+      { name:'HSW Utility Hook',  model:'hook', color:'#caa24a', params:{ rod:10, length:48, tip:24, tiles:1 } },
+      { name:'HSW Display Shelf', model:'shelf', color:'#e0653f', params:{ tiles:3, depth:72, lip:14 } },
+      { name:'Gridfinity 2\u00d71 Bin', model:'gridfinity', color:'#5b8fb0', params:{ gx:2, gy:1, height:6, compartments:1 } },
+      { name:'Gridfinity 3\u00d72 Tray', model:'gridfinity', color:'#7d9b76', params:{ gx:3, gy:2, height:3, compartments:3 } },
+      { name:'Gridfinity Baseplate', model:'baseplate', color:'#6b6356', params:{ gx:3, gy:2, magnets:0 } },
+      { name:'Rounded Parts Box', model:'box', color:'#5b8fb0', params:{ width:120, depth:80, height:45, wall:2.4, fillet:6 } },
+      { name:'Deep Storage Box',  model:'box', color:'#caa24a', params:{ width:90, depth:90, height:110, wall:2.4, fillet:3 } },
+      { name:'Hex Coaster',       model:'coaster', color:'#7d9b76', params:{ dia:100, thick:3, rim:4, sides:6 } },
+      { name:'Round Coaster',     model:'coaster', color:'#e0653f', params:{ dia:96, thick:3, rim:3, sides:64 } },
+      { name:'50mm L-Bracket',    model:'bracket', color:'#3a3a3a', params:{ legA:50, legB:50, width:30, thick:4, hole:4 } },
+      { name:'Wide Shelf Bracket',model:'bracket', color:'#5b8fb0', params:{ legA:80, legB:60, width:40, thick:6, hole:5 } },
+      { name:'3-Cable Clip',      model:'cableclip', color:'#3a3a3a', params:{ cables:3, dia:6, length:32, mount:1 } },
+      { name:'Fluted Control Knob',model:'knob', color:'#caa24a', params:{ dia:32, height:16, shaft:6, grips:14 } },
+      { name:'Aruba AP-515 Mount',  model:'apmount', color:'#3a4654', params:{ cols:4 } },
+      { name:'2×4 Brick',          model:'brick', color:'#c0392b', params:{ studsX:2, studsY:4, layers:3, studs:1 } },
+      { name:'1×2 Plate',          model:'brick', color:'#2e7d6b', params:{ studsX:1, studsY:2, layers:1, studs:1 } },
+      { name:'8×8 Tile',           model:'brick', color:'#5b8fb0', params:{ studsX:8, studsY:8, layers:1, studs:0 } },
+      { name:'Car Mug Adapter',    model:'cupadapter', color:'#3a3a3a', params:{ holder:74, mug:80, cradleH:70, plugH:35, handle:30, wall:3 } },
+      { name:'Travel Mug Adapter', model:'cupadapter', color:'#5b8fb0', params:{ holder:74, mug:90, cradleH:95, plugH:35, handle:40, openings:1, wall:3 } },
+      { name:'Vented Mug Adapter',  model:'cupadapter', color:'#7d9b76', params:{ holder:74, mug:80, cradleH:70, plugH:35, handle:26, openings:3, wall:3 } },
+      { name:'Kitchen Funnel',      model:'funnel',   color:'#5b8fb0', params:{ topDia:95, stemDia:16, height:60, stemLen:38, wall:1.6 } },
+      { name:'Ridged Soap Dish',    model:'soapdish', color:'#7d9b76', params:{ width:115, depth:88, height:18, ridges:7 } },
+      { name:'Pegboard Tool Hook',  model:'peghook',  color:'#caa24a', params:{ reach:50, rod:8, pitch:25.4, upturn:18 } },
+      { name:'Screw-Mount Hook',    model:'wallhook', color:'#3a3a3a', params:{ reach:45, rod:12, upturn:22, screws:2 } },
+      { name:'HSW Parts Bin',     model:'wallbin', color:'#5b8fb0', params:{ width:100, height:45, depth:35, sections:3, honeycomb:0 } },
+      { name:'HSW Honeycomb Bin', model:'wallbin', color:'#7d9b76', params:{ width:120, height:55, depth:40, sections:2, honeycomb:1 } },
+      { name:'HSW Phone Dock',    model:'walldock', color:'#3a3a3a', params:{ width:82, height:95, shelfDepth:38, lip:18, slot:18, wall:3 } },
+      { name:'HSW Tablet Dock',   model:'walldock', color:'#caa24a', params:{ width:185, height:140, shelfDepth:60, lip:24, slot:24, wall:3.5 } },
+    ];
+
+    const defs = {};
+    Object.keys(this.MODELS).forEach(k => { const o = {}; this.MODELS[k].params.forEach(p => o[p.key] = p.def); defs[k] = o; });
+    this.defs = defs;
+    const seed = {}; Object.keys(defs).forEach(k => seed[k] = { ...defs[k] });
+
+    this.state = {
+      flow: (props && props.defaultFlow) || 'guided',
+      screen: 'home',
+      hasGenerated: false,
+      inputMode: 'text',
+      prompt: '',
+      imageName: '', imageURL: '',
+      model: 'vase',
+      modelParams: seed,
+      color: '#e0653f',
+      recognized: true, lastPrompt: '', freeform: false, forceAI: false, sculptMode: false, genError: '', meshMode: false,
+      codeOpen: false,
+      codeText: this._code('vase', defs.vase),
+      publishOpen: false, publishState: 'form',
+      publishDesc: '',
+      tags: this.MODELS.vase.tags,
+      galleryOpen: false,
+      generating: false, genStatus: '',
+      title: 'Twisted Planter',
+      parametric: true,
+      toast: '',
+      rendering: false, renderError: '',
+      settingsOpen: false, settingsMsg: '', provider: 'anthropic', apiKey: '', baseUrl: '', modelChoice: 'claude-sonnet-4-6', hasKey: false,
+      meshProvider: 'meshy', meshKey: '', meshBase: '',
+    };
+    this._compileSeq = 0;
+    this._genSeq = 0;
+    this._codeDirty = false;
+    this._loadCad();
+  }
+
+  /* ---------- code generation (delegates to cad/scad-gen.js) ---------- */
+  _code(model, p) {
+    if (this._cad) {
+      try { return this._cad.generate(model, p).source; }
+      catch (e) { return '// ' + (e && e.message || e); }
+    }
+    return '// Loading OpenSCAD…';
+  }
+
+  /* ---------- prompt parsing lives in cad/interpret.js (keywordMatch/keywordPreset);
+     the agent drives generate(). No local copy here to avoid drift. ---------- */
+  _titleFor(model) { return ({ vase:'Twisted Planter', organizer:'Desk Organizer', stand:'Phone Stand', holder:'HSW Tool Holder', hook:'HSW Hook', shelf:'HSW Display Shelf', gridfinity:'Gridfinity Bin', baseplate:'Gridfinity Baseplate', box:'Box', coaster:'Coaster', bracket:'L-Bracket', cableclip:'Cable Clip', knob:'Knob', cupadapter:'Cupholder Adapter', funnel:'Funnel', soapdish:'Soap Dish', peghook:'Pegboard Hook', wallhook:'Wall Hook', brick:'Building Brick', apmount:'Aruba AP-515 HSW Mount', wallbin:'Wall Bin', walldock:'Wall Dock' })[model] || 'Model'; }
+
+  /* ---------- generation ---------- */
+  async generate(text) {
+    this._codeDirty = false;
+    const prompt = (text != null ? text : this.state.prompt) || '';
+    if (text != null) this.setState({ prompt: text });
+    this.setState({
+      hasGenerated: true, lastPrompt: prompt, renderError: '', genError: '', meshMode: false,
+      generating: true, genStatus: 'Reading your idea…',
+      screen: this.state.flow === 'guided' ? 'generating' : this.state.screen,
+    });
+    const gen = ++this._genSeq;   // identifies this generate run
+    this._compileSeq++;           // supersede any in-flight _rebuild (slider) so it can't overwrite us
+    let mod;
+    try { mod = await this._loadCad(); }
+    catch (e) { this.setState({ generating: false, screen: 'result', renderError: 'CAD engine failed to load' }); return; }
+    try {
+      const out = await this._agent.buildFromPrompt(prompt, {
+        compile: (req) => this._runner.compile(req),
+        onStatus: (s) => { if (gen === this._genSeq) this.setState({ genStatus: s }); },
+        maxRepairs: 3,
+        forceAI: this.state.forceAI,
+      });
+      if (gen !== this._genSeq) return;   // only a newer generate supersedes (it will reset `generating`)
+      this._lastStl = out.stl; this._lastFiles = out.files || [];
+      const patch = { generating: false, screen: 'result', renderError: '', codeText: out.source, recognized: out.recognized !== false, freeform: !out.system };
+      if (out.system) {
+        patch.model = out.system;
+        patch.modelParams = { ...this.state.modelParams, [out.system]: out.params };
+        patch.title = this._titleFor(out.system);
+        patch.tags = this.MODELS[out.system].tags;
+        this._codeDirty = false;
+        this._geomSig = out.system + '|' + JSON.stringify(out.params);
+        this._lastModel = out.system;
+      } else {
+        // freeform: no fixed parameters — you adjust it by editing the OpenSCAD, so open the editor
+        patch.title = 'Custom model';
+        patch.codeOpen = true;
+        this._codeDirty = true;                 // viewer follows the authored source
+        this._geomSig = this.state.model + '|code:' + out.source;
+      }
+      this.setState(patch);
+      this._applyMesh(out.stl, true);           // no-op until the canvas mounts; attachCanvas re-applies
+      if (out.route === 'freeform') this.showToast('Modeled from scratch · ' + out.attempts + (out.attempts > 1 ? ' tries' : ' try'));
+      else if (out.warnings && out.warnings.length) this.showToast('Heads up — ' + out.warnings[0]);
+      else if (out.spec && out.spec.warning) this.showToast(out.spec.warning);
+    } catch (err) {
+      // On failure, DON'T fall through to the result screen — its canvas would mount with
+      // no mesh and _rebuild would silently render the default model (a Twisted Planter),
+      // masking the real error. Stay on the input and surface the error clearly.
+      const back = this.state.flow === 'guided' ? 'home' : this.state.screen;
+      if (err && err.code === 'needs-key') { this.setState({ generating: false, screen: back }); this.openSettings('Freeform shapes need an API key — add one to design with AI.'); }
+      else { this.setState({ generating: false, screen: back, genError: (err && err.message) || 'generation failed' }); this.showToast('Couldn’t build that: ' + ((err && err.message) || 'generation failed')); }
+    }
+  }
+
+  loadGallery(item) {
+    this._codeDirty = false;
+    const params = { ...this.defs[item.model], ...item.params };
+    this.setState({
+      model: item.model, modelParams: { ...this.state.modelParams, [item.model]: params },
+      color: item.color || this.state.color, title: item.name, tags: (this.MODELS[item.model] || {}).tags || [],
+      codeText: this._code(item.model, params), hasGenerated: true,
+      galleryOpen: false, generating: false, screen: 'result', recognized: true, freeform: false, meshMode: false,
+    });
+  }
+  // ---------- AI mesh (text/image -> GLB, organic shapes OpenSCAD can't do) ----------
+  async sculptMesh(prompt, imageDataUrl) {
+    if (!prompt && !imageDataUrl) { this.showToast('Type what you want to sculpt first (e.g. “a frog”), then tap Sculpt'); return; }
+    try { await this._loadCad(); } catch (e) { return; }
+    if (!this._mesh || !this._mesh.hasMesh()) { this.openSettings('To Sculpt: under “AI mesh” pick a provider and paste your token (Meshy/Tripo, or Replicate), then Save. Replicate also needs the bridge running: node tools/replicate-bridge.mjs'); return; }
+    const gen = ++this._genSeq; this._compileSeq++;
+    this.setState({ hasGenerated: true, lastPrompt: prompt || 'image', screen: this.state.flow === 'guided' ? 'generating' : this.state.screen, generating: true, genStatus: 'Sculpting…', meshMode: true, freeform: true, genError: '', codeOpen: false });
+    try {
+      const out = await this._mesh.generateMesh({ prompt, imageDataUrl, onStatus: (s) => { if (gen === this._genSeq) this.setState({ genStatus: s }); } });
+      if (gen !== this._genSeq) return;
+      this._lastMeshGlb = out.glb;
+      this.setState({ generating: false, screen: 'result', title: 'AI Sculpt', meshMode: true, recognized: true });
+      this._reframeNext = true; this._meshPending = out.glb; this._tryLoadGlb();
+    } catch (e) {
+      if (gen !== this._genSeq) return;
+      this.setState({ generating: false, screen: this.state.flow === 'guided' ? 'home' : this.state.screen, meshMode: false, genError: (e && e.message) || 'mesh failed' });
+      this.showToast('Mesh failed: ' + ((e && e.message) || e));
+    }
+  }
+  _tryLoadGlb() {
+    // viewer may not be mounted yet; attachCanvas calls this again
+    if (this._meshPending && this.viewer && this.modelGroup) { const b = this._meshPending; this._meshPending = null; this._loadGlb(b); }
+  }
+  _loadGlb(buf) {
+    const T = this.THREE; if (!T || !window.GLTFLoader || !this.modelGroup) return;
+    const ab = buf.byteOffset !== undefined ? buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength) : buf;
+    new window.GLTFLoader().parse(ab, '', (gltf) => {
+      for (let i = this.modelGroup.children.length - 1; i >= 0; i--) { const ch = this.modelGroup.children[i]; this.modelGroup.remove(ch); ch.traverse && ch.traverse((o) => { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); }); if (ch.geometry) ch.geometry.dispose(); if (ch.material) ch.material.dispose(); }
+      gltf.scene.traverse((o) => { if (o.isMesh) { if (o.geometry && !(o.geometry.attributes && o.geometry.attributes.normal)) o.geometry.computeVertexNormals(); o.material = new T.MeshStandardMaterial({ color: new T.Color(this.state.color), roughness: 0.7, metalness: 0.05, side: T.DoubleSide }); o.castShadow = true; o.receiveShadow = true; } });
+      this.modelGroup.add(gltf.scene);
+      this.modelGroup.position.set(0, 0, 0);
+      const box = new T.Box3().setFromObject(this.modelGroup), ctr = box.getCenter(new T.Vector3()), size = box.getSize(new T.Vector3());
+      this.modelGroup.position.set(-ctr.x, -box.min.y, -ctr.z);   // sit on the floor (GLB is Y-up like the viewer)
+      const maxd = Math.max(size.x, size.y, size.z) || 50;
+      this.view.radius = maxd * 2 + 50; this.view.target.set(0, size.y * 0.45, 0); this.view.theta = 0.9; this.view.phi = 1.02;
+      this._meshObj = gltf.scene; this.setState({ rendering: false }); this._draw();
+    }, (err) => { this.setState({ rendering: false, genError: 'Could not load the mesh: ' + (err && err.message || err) }); });
+  }
+
+  loadCatalog(item) {
+    // fixed catalog design → load as editable code (freeform render path, no sliders)
+    this._codeDirty = true; this._reframeNext = true;   // reframe the camera to fit the new model
+    this.setState({
+      title: item.name, codeText: item.scad, color: item.color || this.state.color,
+      tags: [item.cat], hasGenerated: true, galleryOpen: false, generating: false,
+      screen: 'result', recognized: true, freeform: true, codeOpen: false, genError: '', meshMode: false,
+    });
+  }
+  switchType(key) {
+    this._codeDirty = false;
+    const params = this.state.modelParams[key];
+    this.setState({
+      model: key, title: this._titleFor(key), tags: this.MODELS[key].tags,
+      codeText: this._code(key, params), recognized: true, hasGenerated: true,
+      generating: false, screen: 'result', freeform: false, meshMode: false,
+    });
+  }
+
+  setParam(key, val) {
+    this._codeDirty = false;
+    const m = this.state.model;
+    const np = { ...this.state.modelParams[m], [key]: val };
+    this.setState({ modelParams: { ...this.state.modelParams, [m]: np }, codeText: this._code(m, np) });
+  }
+  setColor(hex) { this.setState({ color: hex }); }
+
+  /* ---------- navigation / ui ---------- */
+  goGuided() { this.setState({ flow: 'guided', screen: this.state.hasGenerated ? 'result' : 'home' }); }
+  goStudio() { this.setState({ flow: 'studio' }); }
+  setTextMode() { this.setState({ inputMode: 'text' }); }
+  setImageMode() { this.setState({ inputMode: 'image' }); }
+  onPromptInput(e) { this.setState({ prompt: e.target.value }); }
+  onTitleInput(e) { this.setState({ title: e.target.value }); }
+  onDescInput(e) { this.setState({ publishDesc: e.target.value }); }
+  onCodeInput(e) { this._codeDirty = true; this.setState({ codeText: e.target.value }); }
+  toggleCode() { this.setState({ codeOpen: !this.state.codeOpen }); }
+  toggleForceAI() { this.setState({ forceAI: !this.state.forceAI, sculptMode: false }); }
+  toggleSculptMode() { this.setState({ sculptMode: !this.state.sculptMode, forceAI: false }); }
+  toggleParametric() { this.setState({ parametric: !this.state.parametric }); }
+  newModel() {
+    if (this.state.flow === 'guided') this.setState({ screen: 'home', prompt: '', imageURL: '', imageName: '', inputMode: 'text' });
+    else this.loadGallery({ model: 'vase', color: '#e0653f', params: { ...this.defs.vase }, name: 'Twisted Planter' });
+  }
+  openGallery() { this.setState({ galleryOpen: true }); }
+  closeGallery() { this.setState({ galleryOpen: false }); }
+  stop(e) { e.stopPropagation(); }
+  openPublish() { const m = this.MODELS[this.state.model]; const what = this.state.freeform ? (this.state.title || 'model').toLowerCase() : (m ? m.label.toLowerCase() : 'model'); this.setState({ publishOpen: true, publishState: 'form', publishDesc: this.state.publishDesc || ('A 3D-printable ' + what + ' you can customize before printing.') }); }
+  closePublish() { this.setState({ publishOpen: false, publishState: 'form' }); }
+  doPublish() { this.setState({ publishState: 'success' }); }
+
+  /* ---------- settings (Anthropic API key for the interpret/freeform steps) ---------- */
+  async openSettings(msg) {
+    try { await this._loadCad(); } catch (e) {}
+    const L = this._llm;
+    this.setState({
+      settingsOpen: true, settingsMsg: msg || '',
+      provider: L ? L.getProvider() : 'anthropic',
+      apiKey: L ? L.getApiKey() : '',
+      baseUrl: L ? L.getBaseUrl() : '',
+      modelChoice: L ? L.getModel() : 'claude-sonnet-4-6',
+      hasKey: !!(L && L.isConfigured()),
+      meshProvider: this._mesh ? this._mesh.getMeshProvider() : 'meshy',
+      meshKey: this._mesh ? this._mesh.getMeshKey() : '',
+      meshBase: this._mesh ? this._mesh.getMeshBase() : '',
+    });
+  }
+  closeSettings() { this.setState({ settingsOpen: false, settingsMsg: '' }); }
+  onApiKeyInput(e) { this.setState({ apiKey: e.target.value }); }
+  onBaseUrlInput(e) { this.setState({ baseUrl: e.target.value }); }
+  onMeshKeyInput(e) { this.setState({ meshKey: e.target.value }); }
+  onMeshBaseInput(e) { this.setState({ meshBase: e.target.value }); }
+  setMeshProviderChoice(p) { const patch = { meshProvider: p }; if (p === 'custom' && !this.state.meshBase) patch.meshBase = 'http://localhost:8788/v1'; if (p === 'replicate' && !this.state.meshBase) patch.meshBase = 'http://localhost:8788'; this.setState(patch); }
+  onModelInput(e) { this.setState({ modelChoice: e.target.value }); }
+  setModelChoice(m) { this.setState({ modelChoice: m }); }
+  setProviderChoice(p) {
+    const def = (this._llm && this._llm.DEFAULT_MODEL[p]) || 'claude-sonnet-4-6';
+    const patch = { provider: p, modelChoice: def };
+    if (p === 'custom') { patch.modelChoice = 'sonnet'; if (!this.state.baseUrl) patch.baseUrl = 'http://localhost:8787/v1'; }
+    this.setState(patch);
+  }
+  saveSettings() {
+    const key = (this.state.apiKey || '').trim();
+    if (this._llm) {
+      this._llm.setProvider(this.state.provider);
+      this._llm.setApiKey(key);
+      this._llm.setBaseUrl(this.state.baseUrl);
+      this._llm.setModel(this.state.modelChoice);
+    }
+    if (this._mesh) {
+      this._mesh.setMeshProvider(this.state.meshProvider);
+      this._mesh.setMeshKey(this.state.meshKey);
+      this._mesh.setMeshBase(this.state.meshBase);
+    }
+    const configured = !!(this._llm && this._llm.isConfigured());
+    this.setState({ settingsOpen: false, settingsMsg: '', hasKey: configured });
+    this.showToast(configured ? 'Settings saved · AI enabled' : 'Saved · using keyword matching (no AI configured)');
+  }
+
+  triggerUpload() { if (this.fileEl) this.fileEl.click(); }
+  onFileChange(e) {
+    const f = e.target.files && e.target.files[0];
+    if (!f) return;
+    const url = URL.createObjectURL(f);
+    this.setState({ imageURL: url, imageName: f.name, inputMode: 'image' });
+    const fallback = () => { this.showToast('Image received \u2014 detecting shape\u2026'); clearTimeout(this._ut); this._ut = setTimeout(() => this.generate(f.name.toLowerCase().replace(/[._-]/g, ' ')), 650); };
+    // image -> 3D mesh when a mesh provider is configured (true image-to-3D); else keyword-guess from the filename
+    const reader = new FileReader();
+    reader.onload = () => {
+      this._loadCad().then(() => {
+        if (this._mesh && this._mesh.hasMesh()) { this.showToast('Image received \u2014 sculpting a 3D mesh\u2026'); this.sculptMesh(null, reader.result); }
+        else fallback();
+      }).catch(fallback);
+    };
+    reader.onerror = fallback;
+    reader.readAsDataURL(f);
+  }
+
+  showToast(msg) { this.setState({ toast: msg }); clearTimeout(this._tt); this._tt = setTimeout(() => this.setState({ toast: '' }), 2400); }
+
+  downloadSTL() {
+    // AI mesh: export the GLB scene as STL (rotate Y-up viewer space -> Z-up for printing)
+    if (this.state.meshMode && this._meshObj && window.STLExporter) {
+      const T = this.THREE;
+      const wrap = new T.Group(); const clone = this._meshObj.clone();
+      wrap.add(clone); wrap.rotateX(Math.PI / 2); wrap.updateMatrixWorld(true);
+      const ascii = new window.STLExporter().parse(wrap, { binary: false });
+      const blob = new Blob([ascii], { type: 'model/stl' });
+      const url = URL.createObjectURL(blob); const a = document.createElement('a');
+      a.href = url; a.download = (this.state.title || 'sculpt').replace(/\s+/g, '_') + '.stl';
+      document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 1500);
+      this.showToast('Downloaded ' + a.download + ' (mesh — check it is watertight before printing)');
+      return;
+    }
+    const stl = this._lastStl;
+    if (!stl) { this.showToast('Model not ready yet'); return; }
+    const blob = new Blob([stl], { type: 'model/stl' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = (this.state.title || 'model').replace(/\s+/g, '_') + '.stl';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1500);
+    const tris = new DataView(stl.buffer, stl.byteOffset, stl.byteLength).getUint32(80, true);
+    this.showToast('Downloaded ' + a.download + ' · ' + tris.toLocaleString() + ' triangles');
+  }
+
+  // The parametric OpenSCAD source — already in MakerWorld Customizer format
+  // (magic-comment sliders). Upload this .scad to MakerWorld for a "Customize" button.
+  downloadSCAD() {
+    const src = this.state.codeText;
+    if (!src) { this.showToast('Model not ready yet'); return; }
+    const blob = new Blob([src], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = (this.state.title || 'model').replace(/\s+/g, '_') + '.scad';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1500);
+    this.showToast('Downloaded ' + a.download + ' · upload to MakerWorld to make it customizable');
+  }
+
+  /* ---------- three.js viewer ---------- */
+  attachCanvas(el) {
+    if (!el) { this._disposeViewer(); this.canvasEl = null; return; }
+    if (el === this.canvasEl && this.viewer) return;
+    this.canvasEl = el;
+    this._whenThree(() => {
+      if (this.canvasEl !== el) return;
+      this._initViewer(el);
+      if (this._meshPending) this._tryLoadGlb();                // an AI mesh was waiting for the canvas
+      else if (this.state.meshMode && this._lastMeshGlb) this._loadGlb(this._lastMeshGlb);
+      else if (this._lastStl) this._applyMesh(this._lastStl, true);  // reuse the mesh we already compiled
+      else this._rebuild(true);
+    });
+  }
+  _whenThree(cb) {
+    if (window.THREE) return cb();
+    let n = 0;
+    const t = setInterval(() => { if (window.THREE || n++ > 120) { clearInterval(t); if (window.THREE) cb(); } }, 50);
+  }
+  _initViewer(canvas) {
+    this._disposeViewer();
+    const T = window.THREE; this.THREE = T;
+    const renderer = new T.WebGLRenderer({ canvas, antialias: true, alpha: true, preserveDrawingBuffer: true });
+    renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+    renderer.shadowMap.enabled = true; renderer.shadowMap.type = T.PCFSoftShadowMap;
+    const scene = new T.Scene();
+    const cam = new T.PerspectiveCamera(38, 1, 1, 6000);
+    scene.add(new T.HemisphereLight(0xffffff, 0xbfb29a, 0.78));
+    scene.add(new T.AmbientLight(0xffffff, 0.22));
+    const dir = new T.DirectionalLight(0xffffff, 1.15);
+    dir.position.set(140, 240, 150); dir.castShadow = true;
+    dir.shadow.mapSize.set(1024, 1024);
+    const d = 340, sc = dir.shadow.camera; sc.left = -d; sc.right = d; sc.top = d; sc.bottom = -d; sc.near = 10; sc.far = 1100;
+    dir.shadow.bias = -0.0006; scene.add(dir);
+    const ground = new T.Mesh(new T.PlaneGeometry(6000, 6000), new T.ShadowMaterial({ opacity: 0.16 }));
+    ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
+    const grp = new T.Group(); scene.add(grp);
+    this.viewer = { renderer, scene, cam }; this.modelGroup = grp;
+    this.view = { theta: 0.9, phi: 1.02, radius: 320, target: new T.Vector3(0, 50, 0) };
+
+    this._onDown = (e) => { this._dragging = true; this._px = e.clientX; this._py = e.clientY; try { canvas.setPointerCapture(e.pointerId); } catch (x) {} };
+    this._onMove = (e) => { if (!this._dragging) return; const dx = e.clientX - this._px, dy = e.clientY - this._py; this._px = e.clientX; this._py = e.clientY; this.view.theta -= dx * 0.008; this.view.phi = Math.max(0.22, Math.min(1.46, this.view.phi - dy * 0.006)); this._draw(); };
+    this._onUp = () => { this._dragging = false; };
+    this._onWheel = (e) => { e.preventDefault(); this.view.radius = Math.max(70, Math.min(1300, this.view.radius * (1 + (e.deltaY > 0 ? 0.1 : -0.1)))); this._draw(); };
+    canvas.addEventListener('pointerdown', this._onDown);
+    window.addEventListener('pointermove', this._onMove);
+    window.addEventListener('pointerup', this._onUp);
+    canvas.addEventListener('wheel', this._onWheel, { passive: false });
+    this._evtCanvas = canvas;
+
+    this._ro = new ResizeObserver(() => this._resize());
+    this._ro.observe(canvas.parentElement || canvas);
+    this._resize();
+
+    const loop = () => {
+      this._raf = requestAnimationFrame(loop);
+      if (!this._dragging && (this.props.autoRotate !== false)) this.view.theta += 0.0026;
+      this._applyCam(); renderer.render(scene, cam);
+    };
+    loop();
+  }
+  _draw() {
+    if (!this.viewer) return;
+    this._applyCam();
+    this.viewer.renderer.render(this.viewer.scene, this.viewer.cam);
+  }
+  _applyCam() {
+    if (!this.viewer) return;
+    const v = this.view, c = this.viewer.cam;
+    c.position.set(
+      v.target.x + v.radius * Math.sin(v.phi) * Math.cos(v.theta),
+      v.target.y + v.radius * Math.cos(v.phi),
+      v.target.z + v.radius * Math.sin(v.phi) * Math.sin(v.theta)
+    );
+    c.lookAt(v.target);
+  }
+  _resize() {
+    if (!this.viewer || !this.canvasEl) return;
+    const el = this.canvasEl, par = el.parentElement || el;
+    const w = par.clientWidth || el.clientWidth, h = par.clientHeight || el.clientHeight;
+    if (!w || !h) return;
+    this.viewer.renderer.setSize(w, h, false);
+    this.viewer.cam.aspect = w / h; this.viewer.cam.updateProjectionMatrix();
+    this._draw();
+  }
+  _disposeViewer() {
+    if (this._raf) cancelAnimationFrame(this._raf);
+    if (this._ro) { try { this._ro.disconnect(); } catch (x) {} this._ro = null; }
+    if (this._evtCanvas) {
+      this._evtCanvas.removeEventListener('pointerdown', this._onDown);
+      this._evtCanvas.removeEventListener('wheel', this._onWheel);
+      this._evtCanvas = null;
+    }
+    window.removeEventListener('pointermove', this._onMove);
+    window.removeEventListener('pointerup', this._onUp);
+    if (this.viewer) { try { this.viewer.renderer.dispose(); } catch (x) {} }
+    this.viewer = null; this.modelGroup = null; this._geomSig = null; this._lastModel = null;
+  }
+
+  /* ---------- CAD engine (real OpenSCAD → WASM → STL) ---------- */
+  _loadCad() {
+    if (this._cadPromise) return this._cadPromise;
+    this._cadPromise = Promise.all([
+      import('./cad/openscad-runner.js'),
+      import('./cad/agent.js'),
+      import('./cad/llm.js'),
+      import('./cad/catalog.js').catch(() => ({ CATALOG: [] })),
+      import('./cad/mesh.js').catch(() => null),
+    ]).then(([runner, agent, llm, catalog, mesh]) => {
+      this._cad = runner;
+      this._mesh = mesh;
+      this.CATALOG = (catalog && catalog.CATALOG) || [];
+      this._runner = runner.createRunner();
+      this._agent = agent;
+      this._llm = llm;
+      // scad-gen.js is the single source of truth for MODELS — adopt it at runtime so
+      // the UI schema can't silently drift from the generator's clamp/customizer ranges.
+      if (runner.MODELS) {
+        this.MODELS = runner.MODELS;
+        const d = {};
+        Object.keys(this.MODELS).forEach((k) => { const o = {}; this.MODELS[k].params.forEach((pm) => o[pm.key] = pm.def); d[k] = o; });
+        this.defs = d;
+      }
+      try { this.setState({ codeText: this._code(this.state.model, this.state.modelParams[this.state.model]) }); } catch (e) {}
+      return runner;
+    }).catch((err) => {
+      this._cadPromise = null;   // don't cache a failed load — allow retry on the next action
+      this.setState({ rendering: false, renderError: 'Failed to load CAD engine: ' + (err && err.message || err) });
+      throw err;
+    });
+    return this._cadPromise;
+  }
+  _scheduleRebuild(reframe) {
+    clearTimeout(this._rbt);
+    this._rbt = setTimeout(() => this._rebuild(reframe), 220);
+  }
+  async _rebuild(reframe) {
+    if (!this.viewer || !this.modelGroup) return;
+    const m = this.state.model;
+    const p = this.state.modelParams[m];
+    // lock the signature for the state we're about to render BEFORE any await, so a
+    // setState during _loadCad (e.g. codeText) can't make componentDidUpdate schedule
+    // a duplicate build (param changes mid-flight still supersede via _compileSeq).
+    this._lastModel = m;
+    this._geomSig = m + '|' + (this._codeDirty ? 'code:' + this.state.codeText : JSON.stringify(p));
+    let mod;
+    try { mod = await this._loadCad(); } catch (e) { return; }
+    let source, files;
+    if (this._codeDirty) {
+      if (!this.state.codeText || !this.state.codeText.trim()) { this.setState({ rendering: false, renderError: 'Code is empty' }); return; }
+      source = this.state.codeText; files = this._lastFiles || [];
+    } else {
+      let g;
+      try { g = mod.generate(m, p); }
+      catch (e) { this.setState({ rendering: false, renderError: e.message || String(e) }); return; }
+      source = g.source; files = g.files || []; this._lastFiles = files;
+      if (this.state.codeText !== source) this.setState({ codeText: source });
+    }
+    const reqId = ++this._compileSeq;
+    this.setState({ rendering: true, renderError: '' });
+    try {
+      const { stl } = await this._runner.compile({ source, files });
+      if (reqId !== this._compileSeq) return;        // a newer request superseded this one
+      this._lastStl = stl;
+      this._applyMesh(stl, reframe);
+      this.setState({ rendering: false, renderError: '' });
+    } catch (err) {
+      if (reqId !== this._compileSeq) return;
+      this.setState({ rendering: false, renderError: (err && err.message) || 'render failed' });
+    }
+  }
+  _applyMesh(stl, reframe) {
+    const T = this.THREE; if (!T || !this.modelGroup) return;
+    const geo = this._stlToGeometry(stl);
+    geo.rotateX(-Math.PI / 2);          // OpenSCAD is Z-up; the viewer is Y-up
+    geo.computeVertexNormals();
+    for (let i = this.modelGroup.children.length - 1; i >= 0; i--) {
+      const ch = this.modelGroup.children[i]; this.modelGroup.remove(ch);
+      if (ch.geometry) ch.geometry.dispose();
+      if (ch.material) ch.material.dispose();
+    }
+    const mat = new T.MeshStandardMaterial({ color: new T.Color(this.state.color), roughness: 0.72, metalness: 0.04, side: T.DoubleSide });
+    const mesh = new T.Mesh(geo, mat); mesh.castShadow = true; mesh.receiveShadow = true;
+    this.modelGroup.add(mesh);
+    this.modelGroup.position.set(0, 0, 0);
+    const box = new T.Box3().setFromObject(this.modelGroup);
+    const ctr = box.getCenter(new T.Vector3()), size = box.getSize(new T.Vector3());
+    this.modelGroup.position.set(-ctr.x, -box.min.y, -ctr.z);
+    if (reframe) {
+      const maxd = Math.max(size.x, size.y, size.z);
+      this.view.radius = maxd * 2.0 + 50; this.view.target.set(0, size.y * 0.45, 0);
+      this.view.theta = 0.9; this.view.phi = 1.02;
+    }
+    this._colorSig = this.state.color;
+    this._draw();
+  }
+  _stlToGeometry(stl) {
+    const T = this.THREE;
+    const dv = new DataView(stl.buffer, stl.byteOffset, stl.byteLength);
+    const tris = dv.getUint32(80, true);
+    const pos = new Float32Array(tris * 9);
+    let off = 84, pi = 0;
+    for (let t = 0; t < tris; t++) {
+      off += 12;                         // skip per-facet normal
+      for (let v = 0; v < 3; v++) {
+        pos[pi++] = dv.getFloat32(off, true);
+        pos[pi++] = dv.getFloat32(off + 4, true);
+        pos[pi++] = dv.getFloat32(off + 8, true);
+        off += 12;
+      }
+      off += 2;                          // attribute byte count
+    }
+    const g = new T.BufferGeometry();
+    g.setAttribute('position', new T.BufferAttribute(pos, 3));
+    return g;
+  }
+  _applyColor() {
+    if (!this.modelGroup || !this.THREE) return;
+    const c = new this.THREE.Color(this.state.color);
+    this.modelGroup.traverse((o) => { if (o.isMesh && o.material) o.material.color = c; });
+    this._draw();
+  }
+
+  resetView() {
+    if (!this.modelGroup || !this.THREE) return;
+    const T = this.THREE, box = new T.Box3().setFromObject(this.modelGroup), size = box.getSize(new T.Vector3());
+    const maxd = Math.max(size.x, size.y, size.z);
+    this.view.radius = maxd * 2.0 + 50; this.view.target.set(0, size.y * 0.45, 0);
+    this.view.theta = 0.9; this.view.phi = 1.02;
+  }
+
+  componentDidUpdate() {
+    if (!this.viewer) return;
+    if (this.state.meshMode) {   // AI mesh (GLB) is rendered directly — never recompile OpenSCAD over it
+      if (this.state.color !== this._colorSig) { this._colorSig = this.state.color; this._applyColor(); }
+      return;
+    }
+    const m = this.state.model;
+    const geomSig = m + '|' + (this._codeDirty ? 'code:' + this.state.codeText : JSON.stringify(this.state.modelParams[m]));
+    if (geomSig !== this._geomSig) {
+      const reframe = m !== this._lastModel || this._reframeNext;   // freeform/catalog keep the model key, so reframe on explicit load
+      this._reframeNext = false;
+      this._geomSig = geomSig; this._lastModel = m;
+      this._scheduleRebuild(reframe);
+    }
+    if (this.state.color !== this._colorSig) {
+      this._colorSig = this.state.color;
+      this._applyColor();
+    }
+  }
+  componentWillUnmount() {
+    clearTimeout(this._tt); clearTimeout(this._ut); clearTimeout(this._rbt);
+    if (this._runner) { try { this._runner.dispose(); } catch (e) {} }   // terminate the WASM worker
+    this._disposeViewer();
+  }
+
+  /* ---------- helpers for view ---------- */
+  _shade(hex, f) {
+    const n = parseInt(hex.slice(1), 16);
+    let r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+    r = Math.round(r * f); g = Math.round(g * f); b = Math.round(b * f);
+    return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+  }
+
+  renderVals() {
+    const s = this.state, M = this.MODELS[s.model] || this.MODELS.vase || { label: 'Model', cat: '', tags: [], params: [] };
+    const tabBase = 'padding:8px 18px;border:none;border-radius:8px;font-weight:700;font-size:14px;cursor:pointer;transition:all .15s;';
+    const tabOn = tabBase + 'background:#fff;color:#19222d;box-shadow:0 1px 3px rgba(0,0,0,.12);';
+    const tabOff = tabBase + 'background:transparent;color:#7d8a9a;';
+    const itabBase = 'padding:9px 18px;border:none;border-radius:10px 10px 0 0;font-weight:700;font-size:14.5px;cursor:pointer;';
+    const itabOn = itabBase + 'background:#fff;color:var(--accent,#ff5a1f);';
+    const itabOff = itabBase + 'background:transparent;color:#8e9bab;';
+
+    const paramList = s.freeform ? [] : M.params.map(pm => {
+      const val = s.modelParams[s.model][pm.key];
+      return {
+        key: pm.key, label: pm.label, min: pm.min, max: pm.max, step: pm.step, value: val,
+        display: pm.unit ? (val + ' ' + pm.unit) : ('' + val),
+        onInput: (e) => this.setParam(pm.key, +e.target.value),
+      };
+    });
+    const colorList = this.COLORS.map(c => ({
+      name: c.name, hex: c.hex, onClick: () => this.setColor(c.hex),
+      style: 'width:30px;height:30px;border-radius:50%;cursor:pointer;background:' + c.hex + ';' +
+        (s.color === c.hex ? 'box-shadow:0 0 0 2.5px #fff,0 0 0 5px var(--accent,#ff5a1f);' : 'box-shadow:0 0 0 1px rgba(0,0,0,.12);') + 'border:none;'
+    }));
+    const sl = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    // thumbnail (rendered preview) layered over the color gradient — gradient shows if the png is missing
+    const tile = (pfx, name, color) => "background-image:url('thumbs/" + pfx + '-' + sl(name) + ".png'),linear-gradient(140deg," + color + ',' + this._shade(color, 0.62) + ');background-size:cover;background-position:center;';
+    const galleryItems = this.GALLERY.map(g => ({
+      name: g.name, sub: (this.MODELS[g.model] || {}).label || g.name, onClick: () => this.loadGallery(g),
+      tile: tile('g', g.name, g.color)
+    }));
+    const catalogItems = (this.CATALOG || []).map(c => ({
+      name: c.name, sub: c.cat, onClick: () => this.loadCatalog(c),
+      tile: tile('c', c.name, c.color)
+    }));
+    const hasCatalog = catalogItems.length > 0;
+    const chips = ['HSW honeycomb tool holder','Desk organizer with 3 slots','Angled phone stand','A hexagonal twisted planter']
+      .map(label => ({ label, onClick: () => this.generate(label) }));
+
+    const tchip = 'padding:7px 13px;border-radius:99px;font-weight:600;font-size:13px;cursor:pointer;';
+    const typeList = [['vase','Vase'],['organizer','Organizer'],['box','Box'],['coaster','Coaster'],['bracket','L-bracket'],['cableclip','Cable clip'],['knob','Knob'],['cupadapter','Cupholder adapter'],['funnel','Funnel'],['soapdish','Soap dish'],['peghook','Pegboard hook'],['wallhook','Wall hook'],['brick','Building brick'],['stand','Phone stand'],['gridfinity','Gridfinity'],['baseplate','Baseplate'],['apmount','AP-515 mount'],['wallbin','Wall bin'],['walldock','Wall dock'],['holder','HSW cup'],['hook','HSW hook'],['shelf','HSW shelf']].map(([k, label]) => ({
+      key: k, label, onClick: () => this.switchType(k),
+      style: tchip + (!s.freeform && s.model === k
+        ? 'background:var(--accent,#ff5a1f);color:#fff;border:1.5px solid var(--accent,#ff5a1f);'
+        : 'background:#fff;color:#586575;border:1.5px solid #d0d8e2;')
+    }));
+
+    const slug = (s.title || 'model').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
+    return {
+      accent: this.props.accent || '#ff5a1f',
+      isGuided: s.flow === 'guided', isStudio: s.flow === 'studio',
+      isHome: s.screen === 'home', isGenerating: s.generating, isResult: s.screen === 'result' && !s.generating,
+      isTextMode: s.inputMode === 'text', isImageMode: s.inputMode === 'image',
+      hasImage: !!s.imageURL, noImage: !s.imageURL, imageURL: s.imageURL, imageName: s.imageName,
+      imagePreviewStyle: 'width:100%;height:150px;border-radius:12px;background:#eee no-repeat center/contain;' + (s.imageURL ? "background-image:url('" + s.imageURL + "');" : ''),
+      prompt: s.prompt, title: s.title, modelLabel: s.freeform ? 'Custom' : M.label, isFreeform: s.freeform, code: s.codeText, codeText: s.codeText,
+      genStatus: s.genStatus, toast: s.toast, hasToast: !!s.toast,
+      rendering: s.rendering, renderError: s.renderError, hasRenderError: !!s.renderError,
+      settingsOpen: s.settingsOpen, settingsMsg: s.settingsMsg, hasSettingsMsg: !!s.settingsMsg,
+      apiKey: s.apiKey, baseUrl: s.baseUrl, modelChoice: s.modelChoice,
+      hasKey: !!(this._llm && this._llm.hasApiKey()),
+      isCustomProvider: s.provider === 'custom', showModelCards: s.provider === 'anthropic', showModelText: s.provider !== 'anthropic',
+      keyLabel: s.provider === 'custom' ? 'API key (optional)' : s.provider === 'openrouter' ? 'OpenRouter API key' : 'Anthropic API key',
+      keyPlaceholder: s.provider === 'openrouter' ? 'sk-or-…' : s.provider === 'custom' ? 'leave blank if your endpoint needs none' : 'sk-ant-…',
+      modelPlaceholder: s.provider === 'openrouter' ? 'anthropic/claude-sonnet-4.6' : 'claude-sonnet-4-6',
+      providerNote: s.provider === 'openrouter'
+        ? 'Use any model on openrouter.ai with your OpenRouter key.'
+        : s.provider === 'custom'
+          ? 'For the Claude CLI: run “node tools/claude-bridge.mjs” in the project, then use http://localhost:8787/v1 with model “sonnet”. Any OpenAI-compatible endpoint works (LiteLLM, Ollama, LM Studio).'
+          : 'Used in your browser only; stored locally, sent only to Anthropic. Get a key at console.anthropic.com.',
+      providerList: [['anthropic', 'Anthropic'], ['openrouter', 'OpenRouter'], ['custom', 'Custom / Local']].map(([id, label]) => ({
+        id, label, onClick: () => this.setProviderChoice(id),
+        style: 'flex:1;text-align:center;padding:9px 6px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;border:1.5px solid ' + (s.provider === id ? 'var(--accent,#ff5a1f)' : '#d6dde6') + ';background:' + (s.provider === id ? 'rgba(255,90,31,.08)' : '#fff') + ';color:#19222d;',
+      })),
+      meshKey: s.meshKey, meshBase: s.meshBase, showMeshBase: s.meshProvider === 'custom' || s.meshProvider === 'replicate',
+      onMeshKeyInput: (e) => this.onMeshKeyInput(e), onMeshBaseInput: (e) => this.onMeshBaseInput(e),
+      meshProviderList: [['meshy', 'Meshy'], ['tripo', 'Tripo'], ['replicate', 'Replicate'], ['custom', 'Custom / bridge']].map(([id, label]) => ({
+        id, label, onClick: () => this.setMeshProviderChoice(id),
+        style: 'flex:1;text-align:center;padding:8px 6px;border-radius:10px;cursor:pointer;font-size:12.5px;font-weight:600;border:1.5px solid ' + (s.meshProvider === id ? 'var(--accent,#ff5a1f)' : '#d6dde6') + ';background:' + (s.meshProvider === id ? 'rgba(255,90,31,.08)' : '#fff') + ';color:#19222d;',
+      })),
+      modelList: [['claude-sonnet-4-6', 'Sonnet 4.6', 'balanced — recommended'], ['claude-opus-4-8', 'Opus 4.8', 'most capable'], ['claude-haiku-4-5-20251001', 'Haiku 4.5', 'fastest, cheapest']].map(([id, label, sub]) => ({
+        id, label, sub, onClick: () => this.setModelChoice(id),
+        style: 'display:flex;flex-direction:column;gap:2px;padding:10px 13px;border-radius:11px;cursor:pointer;text-align:left;border:1.5px solid ' + (s.modelChoice === id ? 'var(--accent,#ff5a1f)' : '#d6dde6') + ';background:' + (s.modelChoice === id ? 'rgba(255,90,31,.08)' : '#fff') + ';',
+      })),
+      codeOpen: s.codeOpen, codeToggleLabel: s.codeOpen ? 'Hide OpenSCAD code' : 'Show OpenSCAD code', codeChevron: s.codeOpen ? '\u2013' : '+',
+      publishOpen: s.publishOpen, isPublishForm: s.publishState === 'form', isPublishSuccess: s.publishState === 'success',
+      publishDesc: s.publishDesc, publishCategory: M.cat, publishUrl: 'makerworld.com/en/models/' + slug,
+      galleryOpen: s.galleryOpen, tags: s.tags,
+      paramList, colorList, galleryItems, catalogItems, hasCatalog, chips, typeList,
+      showUnrecognized: s.hasGenerated && !s.recognized,
+      unrecognizedText: 'Hmm \u2014 I can\u2019t model \u201c' + (s.lastPrompt || 'that') + '\u201d from scratch yet. I started you on the closest template. Pick the type you meant:',
+      tabGuidedStyle: s.flow === 'guided' ? tabOn : tabOff,
+      tabStudioStyle: s.flow === 'studio' ? tabOn : tabOff,
+      textTabStyle: s.inputMode === 'text' ? itabOn : itabOff,
+      imageTabStyle: s.inputMode === 'image' ? itabOn : itabOff,
+      paramToggleStyle: 'position:relative;width:46px;height:26px;border-radius:99px;border:none;cursor:pointer;transition:.2s;background:' + (s.parametric ? 'var(--accent,#ff5a1f)' : '#ccd4df') + ';',
+      paramKnobStyle: 'position:absolute;top:3px;left:' + (s.parametric ? '23px' : '3px') + ';width:20px;height:20px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 1px 2px rgba(0,0,0,.3);',
+      goGuided: () => this.goGuided(), goStudio: () => this.goStudio(),
+      setTextMode: () => this.setTextMode(), setImageMode: () => this.setImageMode(),
+      onPromptInput: (e) => this.onPromptInput(e), onTitleInput: (e) => this.onTitleInput(e),
+      onDescInput: (e) => this.onDescInput(e), onCodeInput: (e) => this.onCodeInput(e),
+      onGenerate: () => (this.state.sculptMode ? this.sculptMesh(this.state.prompt) : this.generate()), toggleCode: () => this.toggleCode(), toggleForceAI: () => this.toggleForceAI(), toggleSculptMode: () => this.toggleSculptMode(), onSculpt: () => this.sculptMesh(this.state.prompt),
+      forceAI: s.forceAI, sculptMode: s.sculptMode, genError: s.genError, hasGenError: !!s.genError, hasCode: !s.meshMode,
+      sculptStyle: 'display:inline-flex;align-items:center;gap:7px;padding:7px 12px;border-radius:99px;font-size:12.5px;font-weight:600;cursor:pointer;transition:.15s;' + (s.sculptMode ? 'background:rgba(255,90,31,.12);color:var(--accent,#ff5a1f);border:1.5px solid var(--accent,#ff5a1f);' : 'background:#fff;color:#586575;border:1.5px solid #d0d8e2;'),
+      generateLabel: s.sculptMode ? 'Sculpt with AI' : 'Generate model',
+      freeformNote: s.meshMode
+        ? 'AI-sculpted mesh — no code or sliders. Download the STL to print (organic meshes can need a repair/cleanup pass first).'
+        : 'No preset sliders — edit the OpenSCAD below to adjust it (the viewer updates as you type), or pick a template type above.',
+      forceAIStyle: 'display:inline-flex;align-items:center;gap:7px;padding:7px 12px;border-radius:99px;font-size:12.5px;font-weight:600;cursor:pointer;transition:.15s;' + (s.forceAI ? 'background:rgba(255,90,31,.12);color:var(--accent,#ff5a1f);border:1.5px solid var(--accent,#ff5a1f);' : 'background:#fff;color:#586575;border:1.5px solid #d0d8e2;'),
+      openGallery: () => this.openGallery(), closeGallery: () => this.closeGallery(), stop: (e) => this.stop(e),
+      openPublish: () => this.openPublish(), closePublish: () => this.closePublish(), doPublish: () => this.doPublish(),
+      toggleParametric: () => this.toggleParametric(),
+      resetView: () => this.resetView(), downloadSTL: () => this.downloadSTL(), downloadSCAD: () => this.downloadSCAD(), newModel: () => this.newModel(),
+      openSettings: () => this.openSettings(), closeSettings: () => this.closeSettings(),
+      onApiKeyInput: (e) => this.onApiKeyInput(e), onBaseUrlInput: (e) => this.onBaseUrlInput(e),
+      onModelInput: (e) => this.onModelInput(e), saveSettings: () => this.saveSettings(),
+      triggerUpload: () => this.triggerUpload(), onFileChange: (e) => this.onFileChange(e),
+      fileRef: this._fileRef || (this._fileRef = (el) => { this.fileEl = el; }),
+      setCanvas: this._setCanvasRef || (this._setCanvasRef = (el) => this.attachCanvas(el)),
+    };
+  }
+}
+</script>
+</body>
+</html>
