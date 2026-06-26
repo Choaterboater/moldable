@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter+Tight:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    body { margin: 0; background: #e8e0cf; }
+    * { box-sizing: border-box; }
+  </style>
+</helmet>
+
+<div style="width: 1380px; margin: 0 auto; background: #f1eadb; padding: 52px 56px 46px; font-family: 'Inter Tight', system-ui, sans-serif; color: #2c2a26;">
+
+  <!-- HEADER -->
+  <div style="display: flex; justify-content: space-between; align-items: flex-end; gap: 30px; border-bottom: 2px solid #2c2a26; padding-bottom: 22px; margin-bottom: 30px;">
+    <div>
+      <div style="display: flex; align-items: center; gap: 11px; margin-bottom: 14px;">
+        <div style="width: 30px; height: 30px; border-radius: 8px; background: #c2773a; display: flex; align-items: center; justify-content: center;">
+          <div style="width: 13px; height: 13px; border: 2.4px solid #fff; transform: rotate(45deg); border-radius: 2px;"></div>
+        </div>
+        <span style="font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 19px; letter-spacing: -0.01em;">Moldable</span>
+        <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.14em; color: #9a8f78; text-transform: uppercase; margin-left: 4px; padding-top: 3px;">System Map</span>
+      </div>
+      <h1 style="font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 40px; line-height: 1.04; letter-spacing: -0.025em; margin: 0; max-width: 760px;">The real generation pipeline</h1>
+      <p style="font-size: 16px; color: #6f6757; margin: 12px 0 0; max-width: 720px; line-height: 1.5;">How an LLM&nbsp;&rarr;&nbsp;OpenSCAD&nbsp;&rarr;&nbsp;STL backend replaces the prototype's hand-written JS geometry &mdash; reusing every slot the current UI already exposes.</p>
+    </div>
+    <div style="flex-shrink: 0; text-align: right; font-size: 12.5px; color: #8a8070; line-height: 1.7; padding-bottom: 4px;">
+      <div><span style="display:inline-block; width:9px; height:9px; border-radius:50%; background:#b8b0a0; margin-right:7px;"></span>Today &mdash; mock JS <code style="font-family:'Space Grotesk',sans-serif;">buildX()</code></div>
+      <div><span style="display:inline-block; width:9px; height:9px; border-radius:50%; background:#c2773a; margin-right:7px;"></span>Next &mdash; this pipeline</div>
+    </div>
+  </div>
+
+  <!-- BODY: pipeline (left) + annotations (right) -->
+  <div style="display: grid; grid-template-columns: 1fr 420px; gap: 38px; align-items: start;">
+
+    <!-- ===== LEFT: PIPELINE FLOW ===== -->
+    <div style="display: flex; flex-direction: column; gap: 0;">
+
+      <!-- STAGE 1 -->
+      <div style="display: flex; gap: 18px;">
+        <div style="display: flex; flex-direction: column; align-items: center; flex-shrink: 0;">
+          <div style="width: 40px; height: 40px; border-radius: 11px; background: #2c2a26; color: #f1eadb; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 18px; display: flex; align-items: center; justify-content: center;">1</div>
+          <div style="width: 2px; flex: 1; background: linear-gradient(#d8cfba, #d8cfba); margin: 6px 0;"></div>
+        </div>
+        <div style="background: #fbf7ef; border: 1px solid #e6ddca; border-radius: 16px; padding: 18px 22px; margin-bottom: 16px; flex: 1; box-shadow: 0 1px 2px rgba(0,0,0,.03);">
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:7px;">
+            <h3 style="font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:19px; margin:0; letter-spacing:-0.01em;">Capture</h3>
+            <span style="font-size:12px; color:#9a8f78;">intent in</span>
+          </div>
+          <p style="margin:0 0 12px; font-size:14.5px; line-height:1.5; color:#5e5648;">A natural-language prompt or a reference photo. No CAD vocabulary required &mdash; &ldquo;a 3&times;2 gridfinity bin with a label tab&rdquo; or &ldquo;a wall hook for pliers.&rdquo;</p>
+          <div style="display:flex; gap:7px; flex-wrap:wrap;">
+            <span style="font-size:12px; font-weight:600; background:#efe7d6; color:#8a5a22; padding:4px 10px; border-radius:7px;">UI&nbsp;&middot;&nbsp;prompt box + image drop</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- STAGE 2 -->
+      <div style="display: flex; gap: 18px;">
+        <div style="display: flex; flex-direction: column; align-items: center; flex-shrink: 0;">
+          <div style="width: 40px; height: 40px; border-radius: 11px; background: #2c2a26; color: #f1eadb; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 18px; display: flex; align-items: center; justify-content: center;">2</div>
+          <div style="width: 2px; flex: 1; background: #d8cfba; margin: 6px 0;"></div>
+        </div>
+        <div style="background: #fbf7ef; border: 1px solid #e6ddca; border-radius: 16px; padding: 18px 22px; margin-bottom: 16px; flex: 1; box-shadow: 0 1px 2px rgba(0,0,0,.03);">
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:7px;">
+            <h3 style="font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:19px; margin:0; letter-spacing:-0.01em;">Interpret</h3>
+            <span style="font-size:11px; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; color:#c2773a; background:#f6e7d6; padding:3px 8px; border-radius:6px;">Claude</span>
+          </div>
+          <p style="margin:0 0 12px; font-size:14.5px; line-height:1.5; color:#5e5648;">The model resolves the request into a structured <b>spec</b> &mdash; system, part type, dimensions, constraints &mdash; and asks a clarifying question when confidence is low.</p>
+          <div style="background:#2c2a26; color:#e9e2d2; font-family:'Space Grotesk',sans-serif; font-size:12.5px; border-radius:9px; padding:11px 13px; margin-bottom:12px; line-height:1.6; overflow:auto;">{ <span style="color:#e0a06a;">system</span>: "gridfinity", <span style="color:#e0a06a;">part</span>: "bin",<br>&nbsp;&nbsp;<span style="color:#e0a06a;">params</span>: { gx: 3, gy: 2, u: 6, labelTab: true },<br>&nbsp;&nbsp;<span style="color:#e0a06a;">constraints</span>: { bed: [256,256], material: "PLA" } }</div>
+          <div style="display:flex; gap:7px; flex-wrap:wrap;">
+            <span style="font-size:12px; font-weight:600; background:#efe7d6; color:#8a5a22; padding:4px 10px; border-radius:7px;">UI&nbsp;&middot;&nbsp;&ldquo;not sure&rdquo; banner + type switcher</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- STAGE 3 -->
+      <div style="display: flex; gap: 18px;">
+        <div style="display: flex; flex-direction: column; align-items: center; flex-shrink: 0;">
+          <div style="width: 40px; height: 40px; border-radius: 11px; background: #2c2a26; color: #f1eadb; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 18px; display: flex; align-items: center; justify-content: center;">3</div>
+          <div style="width: 2px; flex: 1; background: #d8cfba; margin: 6px 0;"></div>
+        </div>
+        <div style="flex: 1; margin-bottom: 16px;">
+          <div style="background: #fbf7ef; border: 1px solid #e6ddca; border-radius: 16px 16px 0 0; border-bottom: none; padding: 18px 22px 14px; box-shadow: 0 1px 2px rgba(0,0,0,.03);">
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:7px;">
+              <h3 style="font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:19px; margin:0; letter-spacing:-0.01em;">Author OpenSCAD</h3>
+              <span style="font-size:12px; color:#9a8f78;">spec &rarr; .scad source</span>
+            </div>
+            <p style="margin:0; font-size:14.5px; line-height:1.5; color:#5e5648;">The spec becomes real, parametric OpenSCAD &mdash; via one of two routes:</p>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:0; border:1px solid #e6ddca; border-top:none; border-radius:0 0 16px 16px; overflow:hidden;">
+            <div style="padding:15px 18px; background:#f3f6ef; border-right:1px solid #e6ddca;">
+              <div style="font-weight:700; font-size:14px; color:#3f6b48; margin-bottom:5px;">&#9679;&nbsp;Library route <span style="font-weight:500; color:#7a8a72;">&middot; default</span></div>
+              <p style="margin:0; font-size:13px; line-height:1.5; color:#5e6356;">Known systems call <b>vetted parametric libraries</b> with the params. Deterministic, fast, guaranteed-valid.</p>
+            </div>
+            <div style="padding:15px 18px; background:#f6f1ef;">
+              <div style="font-weight:700; font-size:14px; color:#9a5a3a; margin-bottom:5px;">&#9679;&nbsp;Freeform route <span style="font-weight:500; color:#a98a78;">&middot; novel shapes</span></div>
+              <p style="margin:0; font-size:13px; line-height:1.5; color:#63564e;">No library fits &rarr; Claude <b>writes original SCAD</b>, grounded on the OpenSCAD cheatsheet.</p>
+            </div>
+          </div>
+          <div style="display:flex; gap:7px; flex-wrap:wrap; margin-top:12px;">
+            <span style="font-size:12px; font-weight:600; background:#efe7d6; color:#8a5a22; padding:4px 10px; border-radius:7px;">UI&nbsp;&middot;&nbsp;OpenSCAD code panel (now live + editable)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- STAGE 4 -->
+      <div style="display: flex; gap: 18px;">
+        <div style="display: flex; flex-direction: column; align-items: center; flex-shrink: 0;">
+          <div style="width: 40px; height: 40px; border-radius: 11px; background: #2c2a26; color: #f1eadb; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 18px; display: flex; align-items: center; justify-content: center;">4</div>
+          <div style="width: 2px; flex: 1; background: #d8cfba; margin: 6px 0;"></div>
+        </div>
+        <div style="background: #fbf7ef; border: 1px solid #e6ddca; border-radius: 16px; padding: 18px 22px; margin-bottom: 16px; flex: 1; box-shadow: 0 1px 2px rgba(0,0,0,.03);">
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:7px;">
+            <h3 style="font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:19px; margin:0; letter-spacing:-0.01em;">Render</h3>
+            <span style="font-size:12px; color:#9a8f78;">.scad &rarr; mesh + STL</span>
+          </div>
+          <p style="margin:0 0 12px; font-size:14.5px; line-height:1.5; color:#5e5648;"><b>OpenSCAD-WASM</b> compiles in the browser: an F5 preview feeds the live Three.js viewer; F6 produces the manifold mesh exported as STL. Heavy parts can fall back to a server renderer.</p>
+          <div style="display:flex; gap:7px; flex-wrap:wrap;">
+            <span style="font-size:12px; font-weight:600; background:#efe7d6; color:#8a5a22; padding:4px 10px; border-radius:7px;">UI&nbsp;&middot;&nbsp;3D viewer</span>
+            <span style="font-size:12px; font-weight:600; background:#efe7d6; color:#8a5a22; padding:4px 10px; border-radius:7px;">UI&nbsp;&middot;&nbsp;Download&nbsp;STL</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- STAGE 5 -->
+      <div style="display: flex; gap: 18px;">
+        <div style="display: flex; flex-direction: column; align-items: center; flex-shrink: 0;">
+          <div style="width: 40px; height: 40px; border-radius: 11px; background: #c2773a; color: #fff; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 18px; display: flex; align-items: center; justify-content: center;">5</div>
+          <div style="width: 2px; flex: 1; background: #d8cfba; margin: 6px 0;"></div>
+        </div>
+        <div style="flex: 1; margin-bottom: 16px;">
+          <div style="background: #fbf3ea; border: 1px solid #ecd4ba; border-radius: 16px; padding: 18px 22px; box-shadow: 0 1px 2px rgba(0,0,0,.03);">
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:7px;">
+              <h3 style="font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:19px; margin:0; letter-spacing:-0.01em;">Validate &amp; self-correct</h3>
+              <span style="font-size:11px; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; color:#c2773a; background:#f6e1cc; padding:3px 8px; border-radius:6px;">agent loop</span>
+            </div>
+            <p style="margin:0 0 13px; font-size:14.5px; line-height:1.5; color:#5e5648;">Checks manifoldness, wall thickness, overhangs and bed fit. On a compile error or failed check, the diagnostics go <b>back to step&nbsp;3</b> &mdash; Claude patches the SCAD and re-renders until it passes.</p>
+            <div style="display:flex; align-items:center; gap:12px; background:#fff7ee; border:1px dashed #d99a5e; border-radius:11px; padding:11px 15px;">
+              <div style="font-size:22px; color:#c2773a;">&#8634;</div>
+              <div style="font-size:13px; color:#7a5530; line-height:1.45;"><b>repair loop</b> &mdash; <span style="font-family:'Space Grotesk',sans-serif;">render error / bad geometry</span> &rarr; re-author &rarr; re-render. Capped at N tries, then surfaces a fixable explanation.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STAGE 6 -->
+      <div style="display: flex; gap: 18px;">
+        <div style="display: flex; flex-direction: column; align-items: center; flex-shrink: 0;">
+          <div style="width: 40px; height: 40px; border-radius: 11px; background: #2c2a26; color: #f1eadb; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 18px; display: flex; align-items: center; justify-content: center;">6</div>
+        </div>
+        <div style="background: #fbf7ef; border: 1px solid #e6ddca; border-radius: 16px; padding: 18px 22px; flex: 1; box-shadow: 0 1px 2px rgba(0,0,0,.03);">
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:7px;">
+            <h3 style="font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:19px; margin:0; letter-spacing:-0.01em;">Deliver &amp; tune</h3>
+            <span style="font-size:12px; color:#9a8f78;">printable + adjustable</span>
+          </div>
+          <p style="margin:0 0 12px; font-size:14.5px; line-height:1.5; color:#5e5648;">Spec params become the parameter sliders &mdash; each change re-runs steps&nbsp;3&ndash;4 for a live re-render. The validated STL downloads or publishes to MakerWorld with its parametric source attached.</p>
+          <div style="display:flex; gap:7px; flex-wrap:wrap;">
+            <span style="font-size:12px; font-weight:600; background:#efe7d6; color:#8a5a22; padding:4px 10px; border-radius:7px;">UI&nbsp;&middot;&nbsp;parameter sliders</span>
+            <span style="font-size:12px; font-weight:600; background:#efe7d6; color:#8a5a22; padding:4px 10px; border-radius:7px;">UI&nbsp;&middot;&nbsp;Publish to MakerWorld</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ===== RIGHT: ANNOTATIONS ===== -->
+    <div style="display: flex; flex-direction: column; gap: 22px; position: sticky; top: 20px;">
+
+      <!-- The key swap -->
+      <div style="background: #2c2a26; color: #f1eadb; border-radius: 18px; padding: 22px 24px;">
+        <div style="font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:16px; margin-bottom:12px;">The one thing that changes</div>
+        <div style="display:flex; flex-direction:column; gap:10px; font-size:13.5px; line-height:1.5;">
+          <div style="opacity:.62;"><span style="color:#b8b0a0;">today &rarr;</span> keyword match picks a JS <code style="font-family:'Space Grotesk',sans-serif;">buildX()</code> that draws an approximate mesh; the &ldquo;STL&rdquo; and code panel are illustrative.</div>
+          <div style="height:1px; background:rgba(255,255,255,.13);"></div>
+          <div><span style="color:#e0a06a;">next &rarr;</span> the spec drives <b>real OpenSCAD</b>, rendered to an exact, manifold, print-ready STL. Everything else in the UI stays put.</div>
+        </div>
+      </div>
+
+      <!-- Lands in today's UI -->
+      <div style="background:#fbf7ef; border:1px solid #e6ddca; border-radius:18px; padding:20px 22px;">
+        <div style="font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:15px; margin-bottom:4px;">Lands in today&rsquo;s UI</div>
+        <div style="font-size:12.5px; color:#9a8f78; margin-bottom:14px;">the prototype already has every slot</div>
+        <div style="display:flex; flex-direction:column; gap:0;">
+          <div style="display:flex; justify-content:space-between; gap:12px; padding:9px 0; border-bottom:1px solid #ece4d3; font-size:13px;"><span style="color:#5e5648;">Prompt / image drop</span><span style="color:#c2773a; font-weight:600; white-space:nowrap;">1 Capture</span></div>
+          <div style="display:flex; justify-content:space-between; gap:12px; padding:9px 0; border-bottom:1px solid #ece4d3; font-size:13px;"><span style="color:#5e5648;">Type switcher + banner</span><span style="color:#c2773a; font-weight:600; white-space:nowrap;">2 Interpret</span></div>
+          <div style="display:flex; justify-content:space-between; gap:12px; padding:9px 0; border-bottom:1px solid #ece4d3; font-size:13px;"><span style="color:#5e5648;">OpenSCAD code panel</span><span style="color:#c2773a; font-weight:600; white-space:nowrap;">3 Author</span></div>
+          <div style="display:flex; justify-content:space-between; gap:12px; padding:9px 0; border-bottom:1px solid #ece4d3; font-size:13px;"><span style="color:#5e5648;">3D viewer + Download STL</span><span style="color:#c2773a; font-weight:600; white-space:nowrap;">4 Render</span></div>
+          <div style="display:flex; justify-content:space-between; gap:12px; padding:9px 0; border-bottom:1px solid #ece4d3; font-size:13px;"><span style="color:#5e5648;">Parameter sliders</span><span style="color:#c2773a; font-weight:600; white-space:nowrap;">6 Tune</span></div>
+          <div style="display:flex; justify-content:space-between; gap:12px; padding:9px 0; font-size:13px;"><span style="color:#5e5648;">Publish to MakerWorld</span><span style="color:#c2773a; font-weight:600; white-space:nowrap;">6 Deliver</span></div>
+        </div>
+      </div>
+
+      <!-- Source toolkit -->
+      <div style="background:#fbf7ef; border:1px solid #e6ddca; border-radius:18px; padding:20px 22px;">
+        <div style="font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:15px; margin-bottom:4px;">Source toolkit</div>
+        <div style="font-size:12.5px; color:#9a8f78; margin-bottom:14px;">what each repo provides</div>
+        <div style="display:flex; flex-direction:column; gap:11px;">
+          <div style="font-size:13px; line-height:1.45;"><b style="font-family:'Space Grotesk',sans-serif;">gridfinity_extended</b> <span style="color:#3f6b48; font-weight:600;">&middot; library route</span><br><span style="color:#7a7164;">vetted Gridfinity bins, trays, baseplates</span></div>
+          <div style="font-size:13px; line-height:1.45;"><b style="font-family:'Space Grotesk',sans-serif;">geru HSW clip / customizer</b> <span style="color:#3f6b48; font-weight:600;">&middot; library route</span><br><span style="color:#7a7164;">honeycomb-wall mounts &amp; connectors</span></div>
+          <div style="font-size:13px; line-height:1.45;"><b style="font-family:'Space Grotesk',sans-serif;">openscad-agent &middot; ClawdCAD</b> <span style="color:#9a5a3a; font-weight:600;">&middot; freeform route</span><br><span style="color:#7a7164;">prompt patterns for LLM-authored SCAD</span></div>
+          <div style="font-size:13px; line-height:1.45;"><b style="font-family:'Space Grotesk',sans-serif;">openscad-wasm</b> <span style="color:#9a8f78; font-weight:600;">&middot; render</span><br><span style="color:#7a7164;">in-browser compile &rarr; mesh + STL</span></div>
+          <div style="font-size:13px; line-height:1.45;"><b style="font-family:'Space Grotesk',sans-serif;">Kiln &middot; 3d-print-skill</b> <span style="color:#9a8f78; font-weight:600;">&middot; orchestration</span><br><span style="color:#7a7164;">agent loop &amp; printability checks</span></div>
+          <div style="font-size:13px; line-height:1.45;"><b style="font-family:'Space Grotesk',sans-serif;">OpenSCAD cheatsheet</b> <span style="color:#9a8f78; font-weight:600;">&middot; grounding</span><br><span style="color:#7a7164;">syntax context for the model</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- FOOTER: design decisions -->
+  <div style="margin-top: 34px; border-top: 2px solid #2c2a26; padding-top: 24px;">
+    <div style="font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:14px; letter-spacing:0.04em; text-transform:uppercase; color:#9a8f78; margin-bottom:16px;">Two decisions that shape the build</div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+      <div style="background:#fbf7ef; border:1px solid #e6ddca; border-left:4px solid #3f6b48; border-radius:12px; padding:16px 20px;">
+        <div style="font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:15.5px; margin-bottom:6px;">Library-first, freeform-fallback</div>
+        <p style="margin:0; font-size:13.5px; line-height:1.5; color:#5e5648;">Route to curated libraries whenever a system matches &mdash; they're safe, instant, and standards-compliant. Reserve LLM-authored SCAD for genuinely novel parts, where the repair loop earns its keep.</p>
+      </div>
+      <div style="background:#fbf7ef; border:1px solid #e6ddca; border-left:4px solid #2f6f97; border-radius:12px; padding:16px 20px;">
+        <div style="font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:15.5px; margin-bottom:6px;">WASM in-browser vs. server render</div>
+        <p style="margin:0; font-size:13.5px; line-height:1.5; color:#5e5648;">WASM keeps it instant, private and offline for typical parts; a server renderer handles heavy CSG, caches common library calls, and keeps the agent repair loop off the user's device.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- REFERENCES -->
+  <div style="margin-top: 30px; background: #2c2a26; color: #e9e2d2; border-radius: 16px; padding: 24px 28px;">
+    <div style="font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:14px; letter-spacing:0.04em; text-transform:uppercase; color:#e0a06a; margin-bottom:18px;">Reference repositories</div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:0 40px;">
+      <div style="padding:9px 0; border-bottom:1px solid rgba(255,255,255,.09);">
+        <div style="display:flex; align-items:baseline; gap:9px;"><span style="font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:13.5px;">gridfinity_extended_openscad</span><span style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:#7fbf8e;">library</span></div>
+        <div style="font-family:'Space Grotesk',sans-serif; font-size:11.5px; color:#a59c8a; margin-top:2px;">github.com/ostat/gridfinity_extended_openscad</div>
+      </div>
+      <div style="padding:9px 0; border-bottom:1px solid rgba(255,255,255,.09);">
+        <div style="display:flex; align-items:baseline; gap:9px;"><span style="font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:13.5px;">openscad-agent</span><span style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:#e0a06a;">freeform</span></div>
+        <div style="font-family:'Space Grotesk',sans-serif; font-size:11.5px; color:#a59c8a; margin-top:2px;">github.com/iancanderson/openscad-agent</div>
+      </div>
+      <div style="padding:9px 0; border-bottom:1px solid rgba(255,255,255,.09);">
+        <div style="display:flex; align-items:baseline; gap:9px;"><span style="font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:13.5px;">3d-scad-hsw-clip</span><span style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:#7fbf8e;">library</span></div>
+        <div style="font-family:'Space Grotesk',sans-serif; font-size:11.5px; color:#a59c8a; margin-top:2px;">github.com/geru/3d-scad-hsw-clip</div>
+      </div>
+      <div style="padding:9px 0; border-bottom:1px solid rgba(255,255,255,.09);">
+        <div style="display:flex; align-items:baseline; gap:9px;"><span style="font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:13.5px;">ClawdCAD</span><span style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:#e0a06a;">freeform</span></div>
+        <div style="font-family:'Space Grotesk',sans-serif; font-size:11.5px; color:#a59c8a; margin-top:2px;">github.com/BaLaurent/ClawdCAD</div>
+      </div>
+      <div style="padding:9px 0; border-bottom:1px solid rgba(255,255,255,.09);">
+        <div style="display:flex; align-items:baseline; gap:9px;"><span style="font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:13.5px;">3d-scad-hsw-customizable</span><span style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:#7fbf8e;">library</span></div>
+        <div style="font-family:'Space Grotesk',sans-serif; font-size:11.5px; color:#a59c8a; margin-top:2px;">github.com/geru/3d-scad-hsw-customizable</div>
+      </div>
+      <div style="padding:9px 0; border-bottom:1px solid rgba(255,255,255,.09);">
+        <div style="display:flex; align-items:baseline; gap:9px;"><span style="font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:13.5px;">openscad-skill</span><span style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:#e0a06a;">freeform</span></div>
+        <div style="font-family:'Space Grotesk',sans-serif; font-size:11.5px; color:#a59c8a; margin-top:2px;">github.com/swh/openscad-skill</div>
+      </div>
+      <div style="padding:9px 0; border-bottom:1px solid rgba(255,255,255,.09);">
+        <div style="display:flex; align-items:baseline; gap:9px;"><span style="font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:13.5px;">WallMounts</span><span style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:#7fbf8e;">library</span></div>
+        <div style="font-family:'Space Grotesk',sans-serif; font-size:11.5px; color:#a59c8a; margin-top:2px;">github.com/Chippen4713/WallMounts</div>
+      </div>
+      <div style="padding:9px 0; border-bottom:1px solid rgba(255,255,255,.09);">
+        <div style="display:flex; align-items:baseline; gap:9px;"><span style="font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:13.5px;">Kiln</span><span style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:#cdbf9a;">orchestration</span></div>
+        <div style="font-family:'Space Grotesk',sans-serif; font-size:11.5px; color:#a59c8a; margin-top:2px;">github.com/codeofaxel/Kiln</div>
+      </div>
+      <div style="padding:9px 0; border-bottom:1px solid rgba(255,255,255,.09);">
+        <div style="display:flex; align-items:baseline; gap:9px;"><span style="font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:13.5px;">openscad-wasm</span><span style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:#8fb4cf;">render</span></div>
+        <div style="font-family:'Space Grotesk',sans-serif; font-size:11.5px; color:#a59c8a; margin-top:2px;">github.com/openscad/openscad-wasm</div>
+      </div>
+      <div style="padding:9px 0; border-bottom:1px solid rgba(255,255,255,.09);">
+        <div style="display:flex; align-items:baseline; gap:9px;"><span style="font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:13.5px;">3d-print-skill</span><span style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:#cdbf9a;">orchestration</span></div>
+        <div style="font-family:'Space Grotesk',sans-serif; font-size:11.5px; color:#a59c8a; margin-top:2px;">github.com/EdwinjJ1/3d-print-skill</div>
+      </div>
+      <div style="padding:9px 0;">
+        <div style="display:flex; align-items:baseline; gap:9px;"><span style="font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:13.5px;">OpenSCAD cheatsheet</span><span style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:#8fb4cf;">grounding</span></div>
+        <div style="font-family:'Space Grotesk',sans-serif; font-size:11.5px; color:#a59c8a; margin-top:2px;">openscad.org/cheatsheet</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<template id="__bundler_thumbnail">
+  <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <rect width="100" height="100" fill="#c2773a"/>
+    <g fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round">
+      <circle cx="34" cy="32" r="9"/>
+      <circle cx="34" cy="66" r="9"/>
+      <circle cx="70" cy="49" r="9"/>
+      <path d="M43 32 H62 M43 64 L62 52 M34 41 V57"/>
+    </g>
+  </svg>
+</template>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1380, &quot;height&quot;: 1180}}"></script>
+</body>
+</html>
