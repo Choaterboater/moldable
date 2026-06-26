@@ -31,11 +31,25 @@ function findMeshUrl(o) {
 const json = (res, code, obj) => { res.writeHead(code, { ...CORS, 'content-type': 'application/json' }); res.end(JSON.stringify(obj)); };
 const log = (...a) => console.log('[replicate-bridge]', ...a);
 
+// Resolve the model's latest version once (the /v1/predictions endpoint works for ALL models,
+// unlike /v1/models/.../predictions which only works for Replicate's official models).
+let MODEL_VERSION = null;
+async function resolveVersion(token) {
+  if (MODEL_VERSION) return MODEL_VERSION;
+  const m = await fetch(`${REPL}/v1/models/${MODEL}`, { headers: { Authorization: `Bearer ${token}` } });
+  const info = await m.json();
+  if (!m.ok) throw new Error('model "' + MODEL + '" ' + m.status + ': ' + (info.detail || JSON.stringify(info).slice(0, 150)));
+  MODEL_VERSION = info.latest_version && info.latest_version.id;
+  if (!MODEL_VERSION) throw new Error('model "' + MODEL + '" has no runnable version');
+  return MODEL_VERSION;
+}
+
 async function startReplicate(token, input) {
-  const r = await fetch(`${REPL}/v1/models/${MODEL}/predictions`, {
+  const version = await resolveVersion(token);
+  const r = await fetch(`${REPL}/v1/predictions`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${token}`, 'content-type': 'application/json' },
-    body: JSON.stringify({ input }),
+    body: JSON.stringify({ version, input }),
   });
   const pred = await r.json();
   if (!r.ok) throw new Error('Replicate ' + r.status + ': ' + JSON.stringify(pred).slice(0, 200));
@@ -111,9 +125,9 @@ const server = http.createServer((req, res) => {
         const pred = await startReplicate(token, input);
         const id = 'rb' + (++seq);
         tasks.set(id, { id, token, pred, status: 'IN_PROGRESS', progress: 5 });
-        log('task', id, 'submitted to', MODEL, b.image_url ? '(image)' : JSON.stringify(b.prompt));
+        log('task', id, 'submitted to', MODEL, b.image_url ? '(image, ' + Math.round((b.image_url.length * 0.75) / 1024) + 'KB)' : JSON.stringify(b.prompt));
         json(res, 200, { result: id });
-      } catch (e) { json(res, 502, { error: String(e.message || e) }); }
+      } catch (e) { log('SUBMIT FAILED:', String(e.message || e).slice(0, 400)); json(res, 502, { error: String(e.message || e) }); }
     });
     return;
   }
