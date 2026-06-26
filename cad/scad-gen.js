@@ -253,7 +253,7 @@ const HSW_MOUNT = HSW_CONNECTOR + `
 // Real wall connector (test-print verified): 26w x 22.5h x 10.5deep. Aliases keep the
 // existing part formulas (which size off connector_size / hex_pitch) working.
 conn_depth = 10.5; conn_w = 26; conn_h = 22.5;
-connector_size = conn_h; connector_depth = conn_depth; hex_pitch = 52;   // 2 cells — leave a blank cell between connectors (honeycomb)
+connector_size = conn_h; connector_depth = conn_depth; hex_pitch = 40;   // one cell + clearance (confirm w/ test strip; 26=touching, 52=too far)
 // oriented so the flange sits at y=0 (backplate) and the barb projects -Y into the wall
 module hsw_post() rotate([-90, 0, 0]) translate([0, 0, -conn_depth]) hsw_connector();
 module hsw_backplate(pw, ph, t, rz) {
@@ -520,7 +520,7 @@ function wallbin(p) {
   // self-contained parts bin with the user's REAL wall connector (the hsw_bin library baked
   // in the wrong connector at top-level, with no disable flag, so we rebuild it cleanly).
   const source = customizerHeader('wallbin', p) + HSW_CONNECTOR + `$fn = 32; eps = 0.05;
-wall = 2.5; connector_size = 22.5; connector_depth = 10.5; hex_pitch = 52;   // 2 cells (blank between, honeycomb)
+wall = 2.5; connector_size = 22.5; connector_depth = 10.5; hex_pitch = 40;   // one cell + clearance (26=touching, 52=too far)
 module hsw_post() rotate([-90, 0, 0]) translate([0, 0, -connector_depth]) hsw_connector();   // flange y=0, barb -Y
 module connectors() {
   count = max(1, round(width / hex_pitch));
@@ -548,7 +548,7 @@ union() {
 function walldock(p) {
   const source = customizerHeader('walldock', p) + HSW_CONNECTOR + `$fn = 48; eps = 0.05;
 // --- real HSW wall connector (test-print verified): flange at y=0, barb projects -Y into the wall ---
-connector_size = 22.5; connector_depth = 10.5; hex_pitch = 52;   // 2 cells (blank between, honeycomb)
+connector_size = 22.5; connector_depth = 10.5; hex_pitch = 40;   // one cell + clearance (26=touching, 52=too far)
 module hsw_post() rotate([-90, 0, 0]) translate([0, 0, -connector_depth]) hsw_connector();
 module connectors() {
   count = max(1, round(width / hex_pitch));
@@ -697,7 +697,7 @@ function apmount(p) {
   const source = customizerHeader('apmount', p) + AP515_BRACKET + HSW_CONNECTOR + `
 $fn = 32;
 conn_depth = 10.5;   // real connector: tip (barb) at Z=0 -> into wall; flange at Z=conn_depth -> bonds to part
-pad_t = 4; pitch = 52;   // 2 cells — blank between connectors (honeycomb); confirm against your wall
+pad_t = 4; pitch = 40;   // one cell + clearance (26=touching, 52=too far); confirm against your wall
 ncx = min(cols, max(1, floor(120 / pitch) + 1));
 gx = (ncx - 1) * pitch;                                  // connector-row span (along the rail / X)
 // REAL wall connector (test-print verified). Bracket flat face sits on the flanges; V-rail up (AP slides on).
