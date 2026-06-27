@@ -1507,7 +1507,7 @@ class Component extends DCLogic {
       startSculpt: () => this.startSculpt(),
       sculptFromText: () => this.sculptFromText(), sculptFromImage: () => this.sculptFromImage(), onSculptTextInput: (e) => this.onSculptTextInput(e), sculptText: s.sculptText || '',
       forceAI: s.forceAI, genError: s.genError, hasGenError: !!s.genError, hasCode: !s.meshMode,
-      sculptStyle: 'display:inline-flex;align-items:center;gap:7px;padding:7px 12px;border-radius:99px;font-size:12.5px;font-weight:600;cursor:pointer;transition:.15s;' + ((s.meshMode || (s.prompt && s.prompt.trim())) ? 'background:rgba(255,90,31,.12);color:var(--accent,#ff5a1f);border:1.5px solid var(--accent,#ff5a1f);' : 'background:#fff;color:#586575;border:1.5px solid #d0d8e2;'),
+      sculptStyle: 'display:inline-flex;align-items:center;gap:7px;padding:7px 12px;border-radius:99px;font-size:12.5px;font-weight:600;cursor:pointer;transition:.15s;background:rgba(255,90,31,.12);color:var(--accent,#ff5a1f);border:1.5px solid var(--accent,#ff5a1f);',
       generateLabel: 'Generate model',
       meshQuality: mq, qualityDetailStyle: mq === 'detail' ? qon : qoff, qualityWatertightStyle: mq === 'watertight' ? qon : qoff,
       setQualityDetail: () => this.setMeshQuality('detail'), setQualityWatertight: () => this.setMeshQuality('watertight'),
