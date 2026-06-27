@@ -52,9 +52,11 @@ const DEFAULT_BASE = {
 // bridge providers speak the local Meshy-shaped bridge contract (replicate/local-mesh-bridge);
 // they accept the model/quality knobs and an optional text hint. Direct cloud APIs (meshy/tripo) don't.
 const isBridge = (p) => p === 'local' || p === 'replicate' || p === 'custom';
-// image-to-3D ONLY backends: the local Hunyuan bridge and Replicate's image models can't take text.
-// (Meshy/Tripo do real text-to-3D; a user "custom" bridge is assumed flexible.)
-const imageOnly = (p) => p === 'local' || p === 'replicate';
+// image-to-3D ONLY backends. The local Hunyuan bridge requires a photo, and Replicate's
+// Trellis is image-only — BUT Replicate's Hunyuan3D-3.1 accepts a typed prompt (text→3D),
+// which is what worked originally, so text is allowed there. (Meshy/Tripo do text-to-3D;
+// a user "custom" bridge is assumed flexible.)
+const imageOnly = (p) => p === 'local' || (p === 'replicate' && getMeshModel() === 'trellis');
 
 class MeshError extends Error { constructor(m, code) { super(m); this.code = code; } }
 
@@ -138,7 +140,7 @@ export async function generateMesh({ prompt, imageDataUrl, signal, onStatus, pol
   if (!prompt && !imageDataUrl) throw new MeshError('need a prompt or an image', 'bad-input');
   // image-to-3D backends can't turn words into a shape on their own — guide the user to a photo or a text-capable cloud provider.
   if (!imageDataUrl && imageOnly(provider))
-    throw new MeshError('This backend sculpts from a photo, not text. Easiest: turn OFF 🪑 Sculpt and press Generate to model it in OpenSCAD (free, no photo). Or upload a photo, or switch to Meshy/Tripo in Settings to sculpt from a typed description.', 'needs-photo');
+    throw new MeshError('This sculpt model builds from a photo. Switch the Model to Hunyuan3D (it accepts typed text), upload a photo, or turn OFF 🪑 Sculpt to build it in OpenSCAD.', 'needs-photo');
 
   const a = adapter(provider, base, key);
   onStatus && onStatus('Submitting to the mesh model…');
