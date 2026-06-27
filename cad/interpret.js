@@ -242,6 +242,20 @@ PROVEN PATTERNS (reach for these first):
     function path(t) = [Rbend*sin(arc*(t-0.5)), 0, Rbend*cos(arc*(t-0.5))];  // curve along an arc (or any [x,y,z] of t)
     for (i=[0:segs-1]) hull() for (k=[i,i+1]) { t=k/segs; translate(path(t)) scale([1,0.82,1]) sphere(r=prof(t)); }
   Vary prof(t) for thickness, path(t) for the bend; scale() the sphere for a non-round cross-section. Build several such swept limbs and union() them for a creature/figure (body + legs + head as separate sweeps that overlap).
+- STRUCTURES / BUILDINGS (house, cottage, shed, cabin, barn, garage, birdhouse, dollhouse, tower, or any boxy object with a roof): build a HOLLOW-SHELL body + a real PITCHED roof, then CUT door/window openings LAST. A house is NOT two stacked solid boxes — give it walls, a peaked roof, and openings, or it reads as a featureless block.
+    wall = 3; W = 90; D = 70; H = 70; roofH = 38;        // derive from the request (mm)
+    module walls() difference() {                         // four walls + floor, open top (the roof caps it)
+      cube([W, D, H]);
+      translate([wall, wall, wall]) cube([W - 2*wall, D - 2*wall, H]);   // hollow interior; floor stays z=0..wall
+    }
+    module roof() translate([0, D, H]) rotate([90, 0, 0])  // GABLE roof = a triangular prism spanning the depth
+      linear_extrude(D) polygon([[0, 0], [W, 0], [W/2, roofH]]);
+    difference() {
+      union() { walls(); roof(); }                         // additive first
+      translate([W/2 - 9, -1, 0]) cube([18, wall + 2, 36]);            // door — cut FULLY through the front wall
+      for (x = [W*0.16, W*0.64]) translate([x, -1, 40]) cube([16, wall + 2, 16]);  // windows
+    }
+  Always model the roof with this triangular-prism extrude (or two of them for a hip roof) — approximating a roof with a flat cube is exactly what makes a house come out looking like two stacked boxes. Add a chimney (a small cube) or a door step if the request implies it.
 - Countersunk hole: union(){ cylinder(d = hole, h = depth); translate([0,0,depth-cs]) cylinder(d1 = hole, d2 = head, h = cs); }
 - Repeated features: for (i = [0:n-1]) place by formula (rotate/translate); never copy-paste.
 

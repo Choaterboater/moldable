@@ -35,14 +35,26 @@ export function getMeshQuality() { return ls.get(K.quality) || 'detail'; }
 export function setMeshQuality(v) { ls.set(K.quality, v); }
 export function getMeshModel() { return ls.get(K.model) || 'hunyuan'; }
 export function setMeshModel(v) { ls.set(K.model, v); }
-export function hasMesh() { const p = getMeshProvider(); return p === 'custom' ? !!getMeshBase() : !!getMeshKey(); }
+export function hasMesh() {
+  const p = getMeshProvider();
+  if (p === 'local') return true;                 // free local bridge needs no token
+  return p === 'custom' ? !!getMeshBase() : !!getMeshKey();
+}
 
 const DEFAULT_BASE = {
   meshy: 'https://api.meshy.ai',
   tripo: 'https://api.tripo3d.ai',
   replicate: 'http://localhost:8788',   // the local replicate-bridge (Replicate -> mesh-print -> GLB)
+  local: 'http://localhost:8788',       // the local-mesh-bridge (your own GPU Hunyuan3D, no token)
   custom: '',
 };
+
+// bridge providers speak the local Meshy-shaped bridge contract (replicate/local-mesh-bridge);
+// they accept the model/quality knobs and an optional text hint. Direct cloud APIs (meshy/tripo) don't.
+const isBridge = (p) => p === 'local' || p === 'replicate' || p === 'custom';
+// image-to-3D ONLY backends: the local Hunyuan bridge and Replicate's image models can't take text.
+// (Meshy/Tripo do real text-to-3D; a user "custom" bridge is assumed flexible.)
+const imageOnly = (p) => p === 'local' || p === 'replicate';
 
 class MeshError extends Error { constructor(m, code) { super(m); this.code = code; } }
 
@@ -89,12 +101,16 @@ function adapter(provider, base, key) {
   // meshy (and custom, which mirrors meshy's shape)
   return {
     async submit({ prompt, imageDataUrl }) {
-      const quality = getMeshQuality(), model = getMeshModel();
+      // model/quality are bridge-only knobs (Trellis vs Hunyuan, detail vs watertight). Sending
+      // them to the real Meshy/Tripo API would be rejected, so only include them for bridges.
+      const extra = isBridge(provider) ? { quality: getMeshQuality(), model: getMeshModel() } : {};
       if (imageDataUrl) {
-        const d = await jpost(base + '/openapi/v1/image-to-3d', auth, { image_url: imageDataUrl, enable_pbr: false, quality, model });
+        const body = { image_url: imageDataUrl, enable_pbr: false, ...extra };
+        if (prompt) body.prompt = prompt;   // optional text hint alongside the photo (used where the backend supports it)
+        const d = await jpost(base + '/openapi/v1/image-to-3d', auth, body);
         return d.result;
       }
-      const d = await jpost(base + '/openapi/v2/text-to-3d', auth, { mode: 'preview', prompt, art_style: 'realistic', quality, model });
+      const d = await jpost(base + '/openapi/v2/text-to-3d', auth, { mode: 'preview', prompt, art_style: 'realistic', ...extra });
       return d.result;
     },
     async poll(id, imageMode) {
@@ -113,11 +129,14 @@ function adapter(provider, base, key) {
 // generateMesh({prompt?, imageDataUrl?, signal?, onStatus?, pollMs?, timeoutMs?}) -> { glb: Uint8Array }
 export async function generateMesh({ prompt, imageDataUrl, signal, onStatus, pollMs = 4000, timeoutMs = 600000 } = {}) {
   const provider = getMeshProvider();
-  const base = (((provider === 'custom' || provider === 'replicate') ? (getMeshBase() || DEFAULT_BASE[provider]) : DEFAULT_BASE[provider]) || '').replace(/\/+$/, '');
+  const base = ((isBridge(provider) ? (getMeshBase() || DEFAULT_BASE[provider]) : DEFAULT_BASE[provider]) || '').replace(/\/+$/, '');
   const key = getMeshKey();
   if (!base) throw new MeshError('mesh provider not configured', 'no-key');
-  if (provider !== 'custom' && !key) throw new MeshError('mesh provider not configured', 'no-key');
+  if (provider !== 'custom' && provider !== 'local' && !key) throw new MeshError('mesh provider not configured', 'no-key');
   if (!prompt && !imageDataUrl) throw new MeshError('need a prompt or an image', 'bad-input');
+  // image-to-3D backends can't turn words into a shape on their own — guide the user to a photo or a text-capable cloud provider.
+  if (!imageDataUrl && imageOnly(provider))
+    throw new MeshError('This sculpt backend builds from a photo. Upload a photo, or switch to Meshy/Tripo in Settings to sculpt from a typed description.', 'needs-photo');
 
   const a = adapter(provider, base, key);
   onStatus && onStatus('Submitting to the mesh model…');
@@ -149,7 +168,9 @@ export async function generateMesh({ prompt, imageDataUrl, signal, onStatus, pol
 function netGuard(e, provider, base) {
   if (e instanceof MeshError) return e;
   if (e && (e.name === 'TypeError' || /failed to fetch|networkerror|load failed|cors/i.test(e.message || ''))) {
-    const hint = provider === 'replicate'
+    const hint = provider === 'local'
+      ? 'Start the local bridge in a terminal — `node tools/local-mesh-bridge.mjs` (and your Hunyuan3D server) — then try again.'
+      : provider === 'replicate'
       ? 'Start the bridge in a terminal — `node tools/replicate-bridge.mjs` — then try again.'
       : 'It may block browser calls (CORS) — run `node tools/mesh-bridge.mjs` and pick the Custom provider.';
     return new MeshError("Couldn't reach the mesh service at " + base + '. ' + hint, 'network');
