@@ -145,7 +145,6 @@ export const MODELS = {
     { key: 'height', label: 'Back height', min: 20, max: 90, step: 1, def: 45, unit: 'mm' },
     { key: 'depth', label: 'Depth', min: 20, max: 70, step: 1, def: 35, unit: 'mm' },
     { key: 'sections', label: 'Compartments', min: 1, max: 6, step: 1, def: 3, unit: '' },
-    { key: 'honeycomb', label: 'Honeycomb walls', min: 0, max: 1, step: 1, def: 1, unit: '' },
   ] },
   walldock: { label: 'Wall Dock', cat: 'Gadgets', tags: ['hsw', 'honeycomb-storage-wall', 'phone', 'tablet', 'dock', 'parametric'], params: [
     { key: 'width', label: 'Width', min: 45, max: 220, step: 1, def: 82, unit: 'mm' },
