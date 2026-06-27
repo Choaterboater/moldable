@@ -101,4 +101,4 @@ const server = http.createServer((req, res) => {
   });
 });
 
-server.listen(PORT, () => console.log(`claude-bridge → OpenAI-compatible at http://localhost:${PORT}/v1  (using "${CLAUDE}")`));
+server.listen(PORT, '127.0.0.1', () => console.log(`claude-bridge → OpenAI-compatible at http://localhost:${PORT}/v1  (using "${CLAUDE}")`));   // loopback only — this runs your local CLI, never expose it to the LAN

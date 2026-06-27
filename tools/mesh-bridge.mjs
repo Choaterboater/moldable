@@ -43,4 +43,4 @@ const server = http.createServer((req, res) => {
     }
   });
 });
-server.listen(PORT, () => console.log(`mesh-bridge → proxying ${UPSTREAM} at http://localhost:${PORT}  (Meshy-shaped)`));
+server.listen(PORT, '127.0.0.1', () => console.log(`mesh-bridge → proxying ${UPSTREAM} at http://localhost:${PORT}  (Meshy-shaped)`));   // loopback only — it injects your API key, never expose it to the LAN

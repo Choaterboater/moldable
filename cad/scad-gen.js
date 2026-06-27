@@ -234,9 +234,9 @@ module stand() {
   union() {
     cube([base_d, thick, width]);                                   // base plate
     translate([3, 0, 0]) cube([lip_w, lip_h, width]);               // front lip
-    translate([base_d - thick, thick - 0.01, 0])
+    translate([base_d - thick, 0, 0])
       rotate([0, 0, 90 - recline])
-        cube([thick, back_h, width]);                               // reclined back
+        cube([thick, back_h, width]);                               // reclined back — anchored at the bed (Y=0) so it welds through the full base thickness, not a 0.01mm seam
   }
 }
 stand();
