@@ -873,6 +873,7 @@ class Component extends DCLogic {
       else if (out.warnings && out.warnings.length) this.showToast('Heads up — ' + out.warnings[0]);
       else if (out.spec && out.spec.warning) this.showToast(out.spec.warning);
     } catch (err) {
+      if (gen !== this._genSeq) return;   // a newer generate/sculpt superseded us — don't clobber its UI with our stale error
       // On failure, DON'T fall through to the result screen — its canvas would mount with
       // no mesh and _rebuild would silently render the default model (a Twisted Planter),
       // masking the real error. Stay on the input and surface the error clearly.
@@ -937,7 +938,7 @@ class Component extends DCLogic {
       const maxd = Math.max(size.x, size.y, size.z) || 50;
       this.view.radius = maxd * 2 + 50; this.view.target.set(0, size.y * 0.45, 0); this.view.theta = 0.9; this.view.phi = 1.02;
       this._meshObj = gltf.scene; this.setState({ rendering: false }); this._draw();
-    }, (err) => { this.setState({ rendering: false, genError: 'Could not load the mesh: ' + (err && err.message || err) }); });
+    }, (err) => { this.setState({ rendering: false, meshMode: false, renderError: 'Could not load the mesh: ' + (err && err.message || err) + ' — try a different photo or backend.' }); });   // renderError shows on the result/viewer screen; genError only shows on the home tabs (would be a silent blank viewer)
   }
 
   loadCatalog(item) {
@@ -989,14 +990,15 @@ class Component extends DCLogic {
   }
   // Sculpt from the uploaded photo, with the optional description as a hint.
   sculptFromImage() {
-    if (!this._imageDataUrl) { this.showToast('Upload a photo first'); return; }
+    if (!this._imageDataUrl || !this.state.imageURL) { this.showToast('Upload a photo first'); return; }   // require a VISIBLE preview, not just a cached blob
     this.sculptMesh((this.state.sculptText || '').trim(), this._imageDataUrl);
   }
   setMeshQuality(q) { try { localStorage.setItem('moldable_mesh_quality', q); } catch {} this.setState({ meshQuality: q }); this.showToast(q === 'watertight' ? 'Watertight: sealed solid mesh' : 'Detail: full detail, slicer auto-fixes holes'); }
   setMeshModelChoice(m) { try { localStorage.setItem('moldable_mesh_model', m); } catch {} this.setState({ meshModel: m }); this.showToast(m === 'hunyuan' ? 'Hunyuan3D — more detail (pricier ~20–30¢)' : 'Trellis — clean & cheap (~5–10¢)'); }
   toggleParametric() { this.setState({ parametric: !this.state.parametric }); }
   newModel() {
-    if (this.state.flow === 'guided') this.setState({ screen: 'home', prompt: '', imageURL: '', imageName: '', inputMode: 'text' });
+    this._imageDataUrl = null;   // drop the cached upload so "Sculpt this photo" can't re-run a no-longer-shown photo
+    if (this.state.flow === 'guided') this.setState({ screen: 'home', prompt: '', imageURL: '', imageName: '', sculptText: '', inputMode: 'text' });
     else this.loadGallery({ model: 'vase', color: '#e0653f', params: { ...this.defs.vase }, name: 'Twisted Planter' });
   }
   openGallery() { this.setState({ galleryOpen: true }); }

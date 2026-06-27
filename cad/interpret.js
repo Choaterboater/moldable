@@ -28,12 +28,12 @@ export function keywordMatch(t) {
   if (/car.?cup|cup.?holder.{0,8}adapter|cupholder.{0,8}adapter|(cup|mug|coffee).{0,14}adapter|adapter.{0,14}(cup|mug|coffee|cupholder)/.test(t)) return 'cupadapter';
   if (/(wall|hsw).{0,12}(dock|device|phone|tablet)|device (holder|dock|mount)/.test(t)) return 'walldock';
   if (/(wall|hsw).{0,10}bin|parts bin/.test(t)) return 'wallbin';
-  if (/(phone|dock|tablet|prop|cradle)/.test(t) || /\bstand\b/.test(t)) return 'stand'; // before shelf so "display stand" wins
+  if (/(phone|dock|tablet|\bprop\b|cradle)/.test(t) || /\bstand\b/.test(t)) return 'stand'; // before shelf so "display stand" wins (\bprop\b, not "propeller")
   if (/(display|shelf)/.test(t)) return 'shelf';
   if (/(hsw|honeycomb|multiboard|wall.?mount|tool.?holder|screwdriver|plier|drill|wall.?organi|peg)/.test(t)) return 'holder';
-  if (/(organ|tray|box|caddy|bin|slot|drawer|desk)/.test(t)) return 'organizer';
+  if (/(organi[sz]|\btray\b|\bbox\b|\bcaddy\b|\bbin\b|\bslot\b|\bdrawer\b|\bdesk\b)/.test(t)) return 'organizer'; // organi[sz] matches organize/organizer, NOT "organic"; \b… avoids cabinet/boxes mis-hits
   if (/(holder|cup|tube|vessel|brush|pencil)/.test(t)) return 'holder';
-  if (/(vase|planter|pot|plant|flower|spiral)/.test(t)) return 'vase';
+  if (/(vase|planter|\bpot\b|\bplant|flower|spiral)/.test(t)) return 'vase'; // \bpot\b (not "teapot"), \bplant (not "transplant")
   return null;
 }
 

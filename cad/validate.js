@@ -83,6 +83,12 @@ export function validate(stl, constraints = {}) {
   // triangle/face while tolerating a stray weld-precision edge.
   if (info.openEdges > 2)
     return { ok: false, reason: `the mesh is not watertight (${info.openEdges} open edges) — a face is missing or a 2D shape was left unextruded; wrap 2D in linear_extrude()/rotate_extrude().`, info };
+  // must rest ON the bed: any geometry below Z=0 (e.g. a freeform-authored centered sphere/
+  // cylinder) is clipped or errors in the slicer. Verified safe for the catalog — every template
+  // rests exactly on Z=0 — so this only ever fires on freeform, where it re-activates the
+  // 'below z' repair hint in interpret.js classifyDiagnostic().
+  if (info.min && info.min[2] < -0.05)
+    return { ok: false, reason: `geometry sits ${(-info.min[2]).toFixed(2)}mm below the build plate (Z=0) — translate the whole model up so its lowest point rests on Z=0.`, info };
 
   const warnings = [];
   const bed = constraints.bed;
