@@ -175,6 +175,23 @@
         <button onClick="{{ openGallery }}" style="background:none;border:none;color:#7d8a9a;font-size:14px;font-weight:600;cursor:pointer;text-decoration:underline;text-underline-offset:3px;">or start from a template in the gallery &rarr;</button>
       </div>
 
+      <sc-if value="{{ hasSavedDesigns }}" hint-placeholder-val="{{ false }}">
+      <div style="max-width:920px;margin:34px auto 0;">
+        <div style="font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#8e9bab;margin-bottom:12px;">&#128208; Your designs</div>
+        <div style="display:flex;gap:13px;overflow-x:auto;padding-bottom:8px;">
+          <sc-for list="{{ savedDesignItems }}" as="dg" hint-placeholder-count="6">
+            <div style="flex:0 0 auto;width:120px;">
+              <div style="position:relative;">
+                <button onClick="{{ dg.onOpen }}" title="{{ dg.title }}" style="width:120px;height:120px;border-radius:15px;border:1.5px solid #d6dde6;background:#eef2f6 no-repeat center/cover;cursor:pointer;display:flex;align-items:center;justify-content:center;overflow:hidden;{{ dg.bg }}"><span style="font-size:40px;opacity:.45;">{{ dg.icon }}</span></button>
+                <button onClick="{{ dg.onDelete }}" title="Delete" style="position:absolute;top:6px;right:6px;width:23px;height:23px;border-radius:50%;border:none;background:rgba(16,21,27,.74);color:#fff;font-size:14px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;">&times;</button>
+              </div>
+              <div style="font-size:12px;color:#586575;margin-top:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="{{ dg.title }}">{{ dg.title }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      </sc-if>
+
       <sc-if value="{{ hasSavedSculpts }}" hint-placeholder-val="{{ false }}">
       <div style="max-width:920px;margin:34px auto 0;">
         <div style="font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#8e9bab;margin-bottom:12px;">&#129501; Your sculpts</div>
@@ -303,7 +320,10 @@
         </sc-if>
       </div>
       <sc-if value="{{ hasCode }}" hint-placeholder-val="{{ true }}">
-        <button onClick="{{ shareLink }}" title="Copy a link that opens this exact model — no account, no upload" style="margin-top:12px;width:100%;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px;border-radius:12px;border:1.5px dashed #c6d0db;background:#fff;color:#586575;font-weight:600;font-size:14px;cursor:pointer;">&#128279; Copy share link</button>
+        <div style="display:flex;gap:10px;margin-top:12px;">
+          <button onClick="{{ saveDesign }}" title="Save this exact config to Your designs — reload it any time" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px;border-radius:12px;border:1.5px solid #d0d8e2;background:#fff;color:#586575;font-weight:600;font-size:14px;cursor:pointer;">&#128190; Save design</button>
+          <button onClick="{{ shareLink }}" title="Copy a link that opens this exact model — no account, no upload" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px;border-radius:12px;border:1.5px dashed #c6d0db;background:#fff;color:#586575;font-weight:600;font-size:14px;cursor:pointer;">&#128279; Copy link</button>
+        </div>
       </sc-if>
     </section>
     </sc-if>
@@ -861,6 +881,7 @@ class Component extends DCLogic {
       meshProvider: 'meshy', meshKey: '', meshBase: '', sculptText: '',
       savedSculpts: (() => { try { return JSON.parse(localStorage.getItem('moldable_sculpts') || '[]'); } catch { return []; } })(),
       bedSpec: (() => { try { return localStorage.getItem('moldable_bed') || '256x256'; } catch { return '256x256'; } })(),
+      savedDesigns: (() => { try { return JSON.parse(localStorage.getItem('moldable_designs') || '[]'); } catch { return []; } })(),
     };
     this._compileSeq = 0;
     this._genSeq = 0;
@@ -950,6 +971,45 @@ class Component extends DCLogic {
       codeText: this._code(item.model, params), hasGenerated: true,
       galleryOpen: false, generating: false, screen: 'result', recognized: true, freeform: false, meshMode: false,
     });
+  }
+  // ---------- "Your designs": persist parametric/freeform OpenSCAD models (small JSON + thumbnail
+  //            in localStorage — params/code are tiny) so a dialed-in config survives "+ New". ----------
+  _designMeta() { try { return JSON.parse(localStorage.getItem('moldable_designs') || '[]'); } catch { return []; } }
+  _writeDesignMeta(list) {
+    try { localStorage.setItem('moldable_designs', JSON.stringify(list)); }
+    catch (e) { try { localStorage.setItem('moldable_designs', JSON.stringify(list.map((m) => ({ ...m, thumb: '' })))); } catch {} }
+  }
+  saveDesign() {
+    const s = this.state;
+    if (s.meshMode) { this.showToast('AI meshes save to “Your sculpts” automatically'); return; }
+    const entry = s.freeform
+      ? { kind: 'free', code: s.codeText, c: s.color }
+      : { kind: 'param', m: s.model, p: s.modelParams[s.model], c: s.color };
+    const meta = this._designMeta();
+    meta.unshift({ id: 'dg' + Date.now(), title: (s.title || 'Design').slice(0, 60), thumb: this._captureThumb(), createdAt: Date.now(), ...entry });
+    const keep = meta.slice(0, 30);
+    this._writeDesignMeta(keep);
+    this.setState({ savedDesigns: keep });
+    this.showToast('Saved to Your designs ↓');
+  }
+  async loadDesign(id) {
+    const d = this._designMeta().find((x) => x.id === id);
+    if (!d) { this.showToast('That design is missing'); return; }
+    try { await this._loadCad(); } catch (e) {}
+    this._reframeNext = true;
+    if (d.kind === 'free' && d.code) {
+      this._codeDirty = true;
+      this.setState({ screen: 'result', hasGenerated: true, freeform: true, meshMode: false, recognized: true,
+        codeText: d.code, color: d.c || this.state.color, title: d.title, freeformParams: this._parseScadParams(d.code), codeOpen: false });
+    } else if (d.m && this.MODELS[d.m]) {
+      this.loadGallery({ model: d.m, params: { ...this.defs[d.m], ...(d.p || {}) }, color: d.c || this.state.color, name: d.title });
+    }
+  }
+  deleteDesign(id, e) {
+    if (e && e.stopPropagation) e.stopPropagation();
+    const keep = this._designMeta().filter((x) => x.id !== id);
+    this._writeDesignMeta(keep);
+    this.setState({ savedDesigns: keep });
   }
   // ---------- shareable links: the whole model state lives in the URL hash (no backend) ----------
   shareLink() {
@@ -1743,6 +1803,14 @@ class Component extends DCLogic {
         onOpen: () => this.loadSavedSculpt(it.id),
         onDelete: (e) => this.deleteSavedSculpt(it.id, e),
       })),
+      hasSavedDesigns: (s.savedDesigns || []).length > 0,
+      savedDesignItems: (s.savedDesigns || []).map((it) => ({
+        title: it.title || 'Design',
+        bg: it.thumb ? "background-image:url('" + it.thumb + "');" : '',
+        icon: it.thumb ? '' : String.fromCodePoint(128208),
+        onOpen: () => this.loadDesign(it.id),
+        onDelete: (e) => this.deleteDesign(it.id, e),
+      })),
       showUnrecognized: s.hasGenerated && !s.recognized,
       unrecognizedText: 'Hmm \u2014 I can\u2019t model \u201c' + (s.lastPrompt || 'that') + '\u201d from scratch yet. I started you on the closest template. Pick the type you meant:',
       tabGuidedStyle: s.flow === 'guided' ? tabOn : tabOff,
@@ -1775,7 +1843,7 @@ class Component extends DCLogic {
       openGallery: () => this.openGallery(), closeGallery: () => this.closeGallery(), stop: (e) => this.stop(e),
       openPublish: () => this.openPublish(), closePublish: () => this.closePublish(), doPublish: () => this.doPublish(),
       toggleParametric: () => this.toggleParametric(),
-      resetView: () => this.resetView(), downloadSTL: () => this.downloadSTL(), downloadSCAD: () => this.downloadSCAD(), shareLink: () => this.shareLink(), newModel: () => this.newModel(),
+      resetView: () => this.resetView(), downloadSTL: () => this.downloadSTL(), downloadSCAD: () => this.downloadSCAD(), shareLink: () => this.shareLink(), saveDesign: () => this.saveDesign(), newModel: () => this.newModel(),
       openSettings: () => this.openSettings(), closeSettings: () => this.closeSettings(),
       onApiKeyInput: (e) => this.onApiKeyInput(e), onBaseUrlInput: (e) => this.onBaseUrlInput(e),
       onModelInput: (e) => this.onModelInput(e), saveSettings: () => this.saveSettings(),
