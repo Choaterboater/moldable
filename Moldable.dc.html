@@ -939,7 +939,7 @@ class Component extends DCLogic {
       const maxd = Math.max(size.x, size.y, size.z) || 50;
       this.view.radius = maxd * 2 + 50; this.view.target.set(0, size.y * 0.45, 0); this.view.theta = 0.9; this.view.phi = 1.02;
       this._meshObj = gltf.scene; this.setState({ rendering: false }); this._draw();
-    }, (err) => { this.setState({ rendering: false, meshMode: false, renderError: 'Could not load the mesh: ' + (err && err.message || err) + ' — try a different photo or backend.' }); });   // renderError shows on the result/viewer screen; genError only shows on the home tabs (would be a silent blank viewer)
+    }, (err) => { this.setState({ rendering: false, meshMode: false, freeform: false, renderError: 'Could not load the mesh: ' + (err && err.message || err) + ' — try a different photo or backend.' }); });   // reset freeform too (L7) — match the L6 reset in the sculptMesh catch   // renderError shows on the result/viewer screen; genError only shows on the home tabs (would be a silent blank viewer)
   }
 
   loadCatalog(item) {
