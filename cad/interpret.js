@@ -345,3 +345,34 @@ export async function repairFreeform(source, diagnostic, attempt = 1, { signal }
   });
   return extractScad(reply);
 }
+
+// ---------- conversational refinement ("make the base wider", "add a keychain hole") ----------
+// Parametric: ask for a param delta (cheap, exact, always-valid — values are clamped to range).
+export async function refineParams(model, params, request, { signal } = {}) {
+  const m = MODELS[model];
+  if (!m) throw new Error('refineParams: unknown model ' + model);
+  const schema = m.params.map((p) => `- ${p.key}: ${p.label}${p.unit ? ' (' + p.unit + ')' : ''}, range ${p.min}..${p.max}, currently ${params[p.key]}`).join('\n');
+  const reply = await callClaude({
+    system: `You tune a 3D-printable ${m.label}'s parameters to satisfy a plain-language change request.\nReturn ONLY a JSON object containing the parameters to CHANGE — keys from the list, numeric values within range (booleans as 0 or 1). Omit anything the request doesn't touch. No prose.`,
+    messages: [{ role: 'user', content: `Parameters:\n${schema}\n\nChange request: "${request}"\n\nJSON of changed parameters:` }],
+    maxTokens: 400, signal,
+  });
+  const delta = extractJson(reply);
+  const out = {};   // keep only known keys, clamped to range
+  for (const p of m.params) {
+    if (delta[p.key] === undefined) continue;
+    const v = Number(delta[p.key]);
+    if (isFinite(v)) out[p.key] = Math.max(p.min, Math.min(p.max, v));
+  }
+  return out;
+}
+
+// Freeform: surgically edit the existing OpenSCAD program.
+export async function refineFreeform(source, request, { signal } = {}) {
+  const reply = await callClaude({
+    system: AUTHOR_SYSTEM + '\nYou are EDITING an existing OpenSCAD program to satisfy a change request. Keep everything that already works; change ONLY what the request asks (and keep the /* [Adjust] */ // [min:max] customizer comments so sliders keep working). Return ONLY the complete updated program.',
+    messages: [{ role: 'user', content: 'Current program:\n```\n' + source + '\n```\nChange request: "' + request + '"\nReturn the full updated OpenSCAD program.' }],
+    maxTokens: 8000, signal,
+  });
+  return extractScad(reply);
+}

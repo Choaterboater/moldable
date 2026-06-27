@@ -3,7 +3,7 @@
 // validate/self-repair loop for freeform. `compile` is injected (the worker
 // runner in the app; a direct call in tests) so this stays unit-testable.
 import { MODELS, generate as genLibrary } from './scad-gen.js';
-import { interpret, authorFreeform, repairFreeform } from './interpret.js';
+import { interpret, authorFreeform, repairFreeform, refineParams, refineFreeform } from './interpret.js';
 import { validate } from './validate.js';
 import { hasApiKey } from './llm.js';
 
@@ -60,4 +60,12 @@ export async function buildFromPrompt(prompt, { compile, onStatus, signal, maxRe
   const err = new Error('Could not produce a valid model after ' + (maxRepairs + 1) + ' tries: ' + lastDiag);
   err.code = 'repair-exhausted';
   throw err;
+}
+
+// refine(request, { current, signal }) — conversational tweak of an existing model.
+//   current = { freeform:true, source } | { freeform:false, model, params }
+// Returns { freeform, params? , source? } — the caller applies it and lets the viewer re-render.
+export async function refine(request, { current, signal } = {}) {
+  if (current && current.freeform) return { freeform: true, source: await refineFreeform(current.source, request, { signal }) };
+  return { freeform: false, params: await refineParams(current.model, current.params, request, { signal }) };
 }

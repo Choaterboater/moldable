@@ -263,8 +263,16 @@
         <div style="position:absolute;left:14px;bottom:14px;font-size:10.5px;color:#586575;font-family:'IBM Plex Mono',monospace;letter-spacing:.06em;text-transform:uppercase;background:rgba(255,255,255,.85);padding:5px 10px;border-radius:8px;font-weight:500;">drag to rotate &middot; scroll to zoom</div>
       </div>
 
+      <!-- refine -->
+      <sc-if value="{{ hasCode }}" hint-placeholder-val="{{ true }}">
+        <div style="margin-top:18px;display:flex;gap:10px;align-items:center;">
+          <input value="{{ refineText }}" onInput="{{ onRefineInput }}" placeholder="Refine with words — &ldquo;make the base wider&rdquo;, &ldquo;add a screw hole&rdquo;, &ldquo;20% taller&rdquo;" style="flex:1;border:1.5px solid #d6dde6;border-radius:12px;padding:12px 14px;font-size:14px;color:#19222d;background:#fff;" />
+          <button onClick="{{ refine }}" style="{{ refineBtnStyle }}">{{ refineLabel }}</button>
+        </div>
+      </sc-if>
+
       <!-- params -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px 30px;margin-top:24px;background:#f6f8fb;border:1px solid #dde3ea;border-radius:18px;padding:22px 24px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px 30px;margin-top:18px;background:#f6f8fb;border:1px solid #dde3ea;border-radius:18px;padding:22px 24px;">
         <div style="grid-column:1/-1;font-weight:700;font-size:15px;color:#2b3340;margin-bottom:-2px;">Adjust your model</div>
         <sc-if value="{{ isFreeform }}" hint-placeholder-val="{{ false }}">
           <div style="grid-column:1/-1;font-size:13px;color:#586575;line-height:1.5;">{{ freeformNote }}</div>
@@ -865,7 +873,7 @@ class Component extends DCLogic {
       model: 'vase',
       modelParams: seed,
       color: '#e0653f',
-      recognized: true, lastPrompt: '', freeform: false, freeformParams: [], forceAI: false, sculptMode: false, genError: '', meshMode: false, printEst: null,
+      recognized: true, lastPrompt: '', freeform: false, freeformParams: [], forceAI: false, sculptMode: false, genError: '', meshMode: false, printEst: null, refineText: '', refining: false,
       codeOpen: false,
       codeText: this._code('vase', defs.vase),
       publishOpen: false, publishState: 'form',
@@ -1042,6 +1050,37 @@ class Component extends DCLogic {
     } else if (obj.m && this.MODELS[obj.m]) {
       this._reframeNext = true;
       this.loadGallery({ model: obj.m, params: { ...this.defs[obj.m], ...(obj.p || {}) }, color: obj.c || this.state.color, name: this._titleFor(obj.m) });
+    }
+  }
+  // ---------- conversational refinement: "make the base wider", "add a hole" ----------
+  onRefineInput(e) { this.setState({ refineText: e.target.value }); }
+  async refine(textArg) {
+    const text = (textArg != null ? textArg : this.state.refineText || '').trim();
+    if (!text) { this.showToast('Type a change first — e.g. “make it 20% taller”'); return; }
+    if (this.state.meshMode) { this.showToast('Refining is for OpenSCAD models — re-sculpt a mesh with a new prompt instead'); return; }
+    try { await this._loadCad(); } catch (e) { return; }
+    if (!this._llm || !this._llm.isConfigured()) { this.openSettings('Refining with words needs an AI key — add one in Settings.'); return; }
+    const gen = ++this._genSeq;
+    this.setState({ refining: true, genError: '' });
+    try {
+      const cur = this.state.freeform
+        ? { freeform: true, source: this.state.codeText }
+        : { freeform: false, model: this.state.model, params: this.state.modelParams[this.state.model] };
+      const out = await this._agent.refine(text, { current: cur });
+      if (gen !== this._genSeq) { return; }
+      if (out.freeform) {
+        this._codeDirty = true; this._reframeNext = false;
+        this.setState({ refining: false, refineText: '', codeText: out.source, freeformParams: this._parseScadParams(out.source) });
+      } else {
+        const np = { ...this.state.modelParams[this.state.model], ...out.params };
+        this._codeDirty = false;
+        this.setState({ refining: false, refineText: '', modelParams: { ...this.state.modelParams, [this.state.model]: np }, codeText: this._code(this.state.model, np) });
+      }
+      this.showToast('Refined ✓');
+    } catch (e) {
+      if (gen !== this._genSeq) return;
+      this.setState({ refining: false });
+      this.showToast('Couldn’t refine: ' + ((e && e.message) || e));
     }
   }
   // ---------- AI mesh (text/image -> GLB, organic shapes OpenSCAD can't do) ----------
@@ -1844,6 +1883,9 @@ class Component extends DCLogic {
       openPublish: () => this.openPublish(), closePublish: () => this.closePublish(), doPublish: () => this.doPublish(),
       toggleParametric: () => this.toggleParametric(),
       resetView: () => this.resetView(), downloadSTL: () => this.downloadSTL(), downloadSCAD: () => this.downloadSCAD(), shareLink: () => this.shareLink(), saveDesign: () => this.saveDesign(), newModel: () => this.newModel(),
+      refine: () => this.refine(), onRefineInput: (e) => this.onRefineInput(e), refineText: s.refineText || '',
+      refineLabel: s.refining ? 'Refining…' : '✨ Refine',
+      refineBtnStyle: 'flex:0 0 auto;padding:12px 18px;border-radius:12px;border:none;font-weight:700;font-size:14px;white-space:nowrap;cursor:' + (s.refining ? 'default' : 'pointer') + ';background:' + (s.refining ? '#c6d0db' : 'var(--accent,#ff5a1f)') + ';color:#fff;',
       openSettings: () => this.openSettings(), closeSettings: () => this.closeSettings(),
       onApiKeyInput: (e) => this.onApiKeyInput(e), onBaseUrlInput: (e) => this.onBaseUrlInput(e),
       onModelInput: (e) => this.onModelInput(e), saveSettings: () => this.saveSettings(),
