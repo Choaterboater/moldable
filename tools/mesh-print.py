@@ -18,12 +18,13 @@ import trimesh
 
 
 def load_single(path):
-    obj = trimesh.load(path, force='scene')
-    geoms = list(obj.geometry.values()) if hasattr(obj, 'geometry') else [obj]
-    geoms = [g for g in geoms if isinstance(g, trimesh.Trimesh) and len(g.faces)]
-    if not geoms:
+    # force='mesh' bakes every scene-graph node transform and concatenates all geometry into a
+    # single Trimesh. Concatenating scene.geometry directly (the old force='scene' path) ignored
+    # those node transforms, mis-orienting/scrambling multi-part or up-axis-baked GLBs.
+    m = trimesh.load(path, force='mesh')
+    if not isinstance(m, trimesh.Trimesh) or len(m.faces) == 0:
         raise SystemExit('no mesh geometry found in ' + path)
-    return trimesh.util.concatenate(geoms)
+    return m
 
 
 def keep_largest(m):

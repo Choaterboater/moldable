@@ -113,7 +113,7 @@ const VARIANTS = {
   wallhook: [{}, { screws: 1 }, { reach: 90, rod: 22, upturn: 45 }],
   brick: [{}, { studsX: 1, studsY: 2, layers: 1 }, { studsX: 8, studsY: 8, layers: 1, studs: 0 }, { studsX: 6, studsY: 6, layers: 6 }],
   apmount: [{}, { cols: 2 }, { cols: 1 }],
-  wallbin: [{}, { sections: 6, honeycomb: 1 }, { width: 180, depth: 60 }],
+  wallbin: [{}, { sections: 6 }, { width: 180, depth: 60 }],
   walldock: [{}, { width: 185, height: 140, shelfDepth: 60, lip: 24 }, { slot: 0, width: 45, height: 45 }],
 };
 

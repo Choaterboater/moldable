@@ -723,7 +723,6 @@ class Component extends DCLogic {
         { key:'height',    label:'Back height',   min:20, max:90,  step:1, def:45,  unit:'mm' },
         { key:'depth',     label:'Depth',         min:20, max:70,  step:1, def:35,  unit:'mm' },
         { key:'sections',  label:'Compartments',  min:1,  max:6,   step:1, def:3,   unit:'' },
-        { key:'honeycomb', label:'Honeycomb walls', min:0, max:1,  step:1, def:1,   unit:'' },
       ]},
       walldock: { label: 'Wall Dock', cat: 'Gadgets', tags: ['hsw','honeycomb-storage-wall','phone','tablet','dock','parametric'], params: [
         { key:'width',      label:'Width',        min:45, max:220, step:1,   def:82, unit:'mm' },
@@ -912,11 +911,13 @@ class Component extends DCLogic {
       const back = this.state.flow === 'guided' ? 'home' : this.state.screen;
       // 'needs-photo' is guidance, not a failure: keep the user where they are (do NOT yank them to
       // the photo tab — that surprise switch is exactly what we removed) and show a persistent message.
+      // reset freeform too — a failed sculpt set it true (line ~901); leaving it on makes goGuided()
+      // land on a bogus "Custom" freeform result with no model.
       if (e && e.code === 'needs-photo') {
-        this.setState({ generating: false, screen: back, meshMode: false, genError: msg });
+        this.setState({ generating: false, screen: back, meshMode: false, freeform: false, genError: msg });
         this.showToast(msg);
       } else {
-        this.setState({ generating: false, screen: back, meshMode: false, genError: msg });
+        this.setState({ generating: false, screen: back, meshMode: false, freeform: false, genError: msg });
         this.showToast('Mesh failed: ' + msg);
       }
     }
@@ -998,6 +999,7 @@ class Component extends DCLogic {
   toggleParametric() { this.setState({ parametric: !this.state.parametric }); }
   newModel() {
     this._imageDataUrl = null;   // drop the cached upload so "Sculpt this photo" can't re-run a no-longer-shown photo
+    if (this._previewUrl) { URL.revokeObjectURL(this._previewUrl); this._previewUrl = null; }   // free the preview blob
     if (this.state.flow === 'guided') this.setState({ screen: 'home', prompt: '', imageURL: '', imageName: '', sculptText: '', inputMode: 'text' });
     else this.loadGallery({ model: 'vase', color: '#e0653f', params: { ...this.defs.vase }, name: 'Twisted Planter' });
   }
@@ -1060,7 +1062,8 @@ class Component extends DCLogic {
   onFileChange(e) {
     const f = e.target.files && e.target.files[0];
     if (!f) return;
-    const url = URL.createObjectURL(f);
+    if (this._previewUrl) URL.revokeObjectURL(this._previewUrl);   // free the previous preview blob (no leak on re-upload)
+    const url = URL.createObjectURL(f); this._previewUrl = url;
     this.setState({ imageURL: url, imageName: f.name, inputMode: 'image', genError: '' });
     // Read the bytes now so the Sculpt button can use them. In the GUIDED flow we DON'T
     // auto-sculpt \u2014 the image tab shows a description box + Sculpt button, so the user can
@@ -1078,8 +1081,12 @@ class Component extends DCLogic {
   showToast(msg) { this.setState({ toast: msg }); clearTimeout(this._tt); this._tt = setTimeout(() => this.setState({ toast: '' }), 2400); }
 
   downloadSTL() {
-    // AI mesh: export the GLB scene as STL (rotate Y-up viewer space -> Z-up for printing)
-    if (this.state.meshMode && this._meshObj && window.STLExporter) {
+    // AI mesh: export the GLB scene as STL (rotate Y-up viewer space -> Z-up for printing).
+    // While meshMode is on, NEVER fall through to the OpenSCAD STL — during the async mesh-load
+    // window _meshObj isn't set yet, and falling through would export the previous model under
+    // the sculpt's name with a false "success" toast.
+    if (this.state.meshMode) {
+      if (!this._meshObj || !window.STLExporter) { this.showToast('Mesh still loading — try the download again in a moment'); return; }
       const T = this.THREE;
       const wrap = new T.Group(); const clone = this._meshObj.clone();
       wrap.add(clone); wrap.rotateX(Math.PI / 2); wrap.updateMatrixWorld(true);

@@ -92,7 +92,6 @@ export function keywordPreset(model, t) {
     if (/smooth|plain/.test(t)) p.grips = 0;
   } else if (model === 'wallbin') {
     const sm = t.match(/(\d+)\s*(section|compartment|slot|division)/); if (sm) p.sections = clamp(+sm[1], 1, 6);
-    if (/honeycomb|hex/.test(t)) p.honeycomb = 1;
     if (/wide/.test(t)) p.width = 160; if (/deep/.test(t)) p.depth = 55;
   } else if (model === 'walldock') {
     if (/tablet|ipad/.test(t)) { p.width = 185; p.height = 140; p.shelfDepth = 60; p.lip = 24; }
