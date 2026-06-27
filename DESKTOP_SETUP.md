@@ -24,6 +24,14 @@ and is where almost all of the effort and all of the VRAM go.
 > and CPU offload / low-VRAM mode. A **12 GB** 3080/3080-Ti is the comfortable floor for
 > shape-only. The bridge defaults (texture off, octree 256) are already tuned for this;
 > on a 10 GB card drop octree further if you hit OOM.
+>
+> **System RAM matters too — it's not just the GPU.** The GPU does the math, but the model
+> weights and (especially) any **CPU-offload / low-VRAM mode** live in system RAM. The
+> tradeoff: the more you offload to fit a 10 GB card, the more RAM you need. Budget **≥16 GB
+> RAM minimum, 32 GB comfortable**; the WinPortable `mmgp` build that drops VRAM to ~3 GB
+> explicitly needs **≥24 GB system RAM**. Add a one-time **~5–10 GB disk** download for the
+> weights (HuggingFace cache; set `HF_HOME` to relocate). The Node bridge + `mesh-print.py`
+> are light (CPU, a few hundred MB).
 
 ---
 
