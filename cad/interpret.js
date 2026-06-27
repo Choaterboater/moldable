@@ -367,6 +367,21 @@ export async function refineParams(model, params, request, { signal } = {}) {
   return out;
 }
 
+// Expand a terse request ("a bracket") into a precise, buildable one-paragraph spec so the
+// freeform author has dimensions + parts to work from. ~one short call; used by the forceAI path
+// (the normal interpret() path already returns an enriched `description`).
+export async function expandPrompt(text, { signal } = {}) {
+  try {
+    const reply = await callClaude({
+      system: `Rewrite a maker's short request into ONE precise, buildable paragraph describing a single 3D-printable object: name its parts, give key dimensions in mm (pick sensible real defaults), say how the parts connect, and list functional features (holes, walls, lip, slot). No preamble or markdown — just the description.`,
+      messages: [{ role: 'user', content: 'Request: ' + text }],
+      maxTokens: 350, signal,
+    });
+    const out = (reply || '').trim();
+    return out.length > text.length ? out : text;   // never return something shorter/empty than the input
+  } catch (e) { return text; }                       // any failure → fall back to the raw prompt
+}
+
 // Freeform: surgically edit the existing OpenSCAD program.
 export async function refineFreeform(source, request, { signal } = {}) {
   const reply = await callClaude({
