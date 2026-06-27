@@ -292,6 +292,9 @@
       <sc-if value="{{ hasPrintEst }}" hint-placeholder-val="{{ false }}">
         <div style="margin-top:22px;display:inline-flex;align-items:center;gap:9px;font-size:13px;font-weight:600;color:#41505f;background:#f6f8fb;border:1px solid #dde3ea;border-radius:11px;padding:9px 14px;">&#128424; {{ printEstText }} <span style="font-weight:400;color:#9aa7b6;">&middot; rough estimate</span></div>
       </sc-if>
+      <sc-if value="{{ hasPrintFit }}" hint-placeholder-val="{{ false }}">
+        <div style="margin-top:10px;display:flex;align-items:flex-start;gap:8px;font-size:13px;font-weight:600;color:#8a5a22;background:#fbeede;border:1px solid #f0d9b8;border-radius:11px;padding:10px 14px;">{{ printFit }}</div>
+      </sc-if>
       <div style="display:flex;gap:12px;margin-top:16px;">
         <button onClick="{{ downloadSTL }}" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:15px;border-radius:14px;border:1.5px solid #d0d8e2;background:#fff;color:#19222d;font-weight:700;font-size:15px;cursor:pointer;">&darr; STL</button>
         <sc-if value="{{ hasCode }}" hint-placeholder-val="{{ true }}">
@@ -611,6 +614,15 @@
           </sc-if>
           <div style="font-size:11.5px;color:#7d8a9a;margin-top:7px;line-height:1.5;">{{ meshProviderHint }} Mesh output may need a cleanup pass before printing.</div>
         </div>
+        <div style="border-top:1px dashed #dde3ea;padding-top:16px;">
+          <label style="display:block;font-size:13px;font-weight:600;color:#3a4654;margin-bottom:8px;">&#128424; Printer build plate</label>
+          <div style="display:flex;gap:6px;">
+            <sc-for list="{{ printerList }}" as="pr" hint-placeholder-count="5">
+              <button onClick="{{ pr.onClick }}" style="{{ pr.style }}">{{ pr.name }}</button>
+            </sc-for>
+          </div>
+          <div style="font-size:11.5px;color:#7d8a9a;margin-top:7px;line-height:1.5;">Sets the bed-fit check &amp; size warning on the result screen.</div>
+        </div>
       </div>
       <div style="display:flex;gap:12px;padding:16px 24px;border-top:1px solid #dde3ea;">
         <button onClick="{{ closeSettings }}" style="flex:1;padding:13px;border-radius:12px;border:1.5px solid #d0d8e2;background:#fff;color:#19222d;font-weight:700;font-size:15px;cursor:pointer;">Cancel</button>
@@ -848,6 +860,7 @@ class Component extends DCLogic {
       settingsOpen: false, settingsMsg: '', provider: 'anthropic', apiKey: '', baseUrl: '', modelChoice: 'claude-sonnet-4-6', hasKey: false,
       meshProvider: 'meshy', meshKey: '', meshBase: '', sculptText: '',
       savedSculpts: (() => { try { return JSON.parse(localStorage.getItem('moldable_sculpts') || '[]'); } catch { return []; } })(),
+      bedSpec: (() => { try { return localStorage.getItem('moldable_bed') || '256x256'; } catch { return '256x256'; } })(),
     };
     this._compileSeq = 0;
     this._genSeq = 0;
@@ -1477,6 +1490,8 @@ class Component extends DCLogic {
       this.setState({ rendering: false, renderError: (err && err.message) || 'render failed' });
     }
   }
+  _bedSize() { try { const v = (localStorage.getItem('moldable_bed') || '256x256').split('x'); const x = +v[0], y = +v[1]; return [x > 0 ? x : 256, y > 0 ? y : 256]; } catch { return [256, 256]; } }
+  setPrinter(spec, name) { try { localStorage.setItem('moldable_bed', spec); } catch {} this.setState({ bedSpec: spec, printEst: this._lastStl ? this._printEstimate(this._lastStl) : this.state.printEst }); this.showToast('Printer: ' + name); }
   // Rough filament + time estimate from the compiled STL (no slicer, no deps) — answers the
   // two questions everyone asks before printing. Solid volume ≈ printed plastic for Moldable's
   // mostly-hollow parts; a genuinely-solid part prints lighter (infill), so treat as a ballpark.
@@ -1487,6 +1502,8 @@ class Component extends DCLogic {
       const tris = dv.getUint32(80, true);
       if (stl.length !== 84 + tris * 50) return null;
       let vol6 = 0, off = 84;
+      const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
+      const bump = (x, y, z) => { if (x < lo[0]) lo[0] = x; if (x > hi[0]) hi[0] = x; if (y < lo[1]) lo[1] = y; if (y > hi[1]) hi[1] = y; if (z < lo[2]) lo[2] = z; if (z > hi[2]) hi[2] = z; };
       for (let t = 0; t < tris; t++) {
         off += 12;
         const ax = dv.getFloat32(off, true), ay = dv.getFloat32(off + 4, true), az = dv.getFloat32(off + 8, true);
@@ -1494,12 +1511,16 @@ class Component extends DCLogic {
         const cx = dv.getFloat32(off + 24, true), cy = dv.getFloat32(off + 28, true), cz = dv.getFloat32(off + 32, true);
         off += 36 + 2;
         vol6 += ax * (by * cz - bz * cy) - ay * (bx * cz - bz * cx) + az * (bx * cy - by * cx);
+        bump(ax, ay, az); bump(bx, by, bz); bump(cx, cy, cz);
       }
       const volCm3 = Math.abs(vol6) / 6 / 1000;
       const grams = volCm3 * 1.24;                          // PLA density
       const cost = grams / 1000 * 22;                       // ~$22/kg PLA
       const minHigh = (volCm3 * 1000) / (11 * 60);          // rough volumetric time (~11 mm³/s incl. overhead)
-      return { grams, cost, timeLow: Math.max(1, Math.round(minHigh * 0.7)), timeHigh: Math.max(2, Math.round(minHigh)) };
+      const dims = [hi[0] - lo[0], hi[1] - lo[1], hi[2] - lo[2]].map((d) => (isFinite(d) ? d : 0));
+      const bed = this._bedSize();                          // [x,y] mm
+      const fits = (dims[0] <= bed[0] && dims[1] <= bed[1]) || (dims[0] <= bed[1] && dims[1] <= bed[0]);
+      return { grams, cost, timeLow: Math.max(1, Math.round(minHigh * 0.7)), timeHigh: Math.max(2, Math.round(minHigh)), dims, fits, bed };
     } catch { return null; }
   }
   _applyMesh(stl, reframe) {
@@ -1707,7 +1728,13 @@ class Component extends DCLogic {
       galleryOpen: s.galleryOpen, tags: s.tags,
       paramList, colorList, galleryItems, catalogItems, hasCatalog, chips, typeList,
       hasPrintEst: !s.meshMode && !!s.printEst,
-      printEstText: s.printEst ? ('≈ ' + (s.printEst.grams < 10 ? s.printEst.grams.toFixed(1) : Math.round(s.printEst.grams)) + ' g PLA  ·  ≈ $' + s.printEst.cost.toFixed(2) + '  ·  ≈ ' + s.printEst.timeLow + '–' + s.printEst.timeHigh + ' min print') : '',
+      printEstText: s.printEst ? ('≈ ' + (s.printEst.grams < 10 ? s.printEst.grams.toFixed(1) : Math.round(s.printEst.grams)) + ' g PLA  ·  ≈ $' + s.printEst.cost.toFixed(2) + '  ·  ≈ ' + s.printEst.timeLow + '–' + s.printEst.timeHigh + ' min  ·  ' + (s.printEst.dims || [0,0,0]).map(d => Math.round(d)).join('×') + ' mm') : '',
+      hasPrintFit: !!(s.printEst && s.printEst.fits === false && !s.meshMode),
+      printFit: (s.printEst && s.printEst.fits === false) ? ('⚠ ' + (s.printEst.dims || []).slice(0, 2).map(d => Math.round(d)).join('×') + 'mm exceeds your ' + (s.printEst.bed || [256,256]).join('×') + 'mm bed — scale it down or split it') : '',
+      printerList: [['Bambu A1/P1/X1','256x256'],['A1 mini','180x180'],['Prusa MK4','250x210'],['Ender 3','220x220'],['Large 350','350x350']].map(([name, spec]) => ({
+        name, spec, onClick: () => this.setPrinter(spec, name),
+        style: 'flex:1;text-align:center;padding:8px 4px;border-radius:9px;cursor:pointer;font-size:11px;font-weight:600;border:1.5px solid ' + (s.bedSpec === spec ? 'var(--accent,#ff5a1f)' : '#d6dde6') + ';background:' + (s.bedSpec === spec ? 'rgba(255,90,31,.08)' : '#fff') + ';color:#19222d;',
+      })),
       hasSavedSculpts: (s.savedSculpts || []).length > 0,
       savedSculptItems: (s.savedSculpts || []).map((it) => ({
         title: it.title || 'Sculpt',
