@@ -174,6 +174,23 @@
       <div style="text-align:center;margin-top:22px;">
         <button onClick="{{ openGallery }}" style="background:none;border:none;color:#7d8a9a;font-size:14px;font-weight:600;cursor:pointer;text-decoration:underline;text-underline-offset:3px;">or start from a template in the gallery &rarr;</button>
       </div>
+
+      <sc-if value="{{ hasSavedSculpts }}" hint-placeholder-val="{{ false }}">
+      <div style="max-width:920px;margin:34px auto 0;">
+        <div style="font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#8e9bab;margin-bottom:12px;">&#129501; Your sculpts</div>
+        <div style="display:flex;gap:13px;overflow-x:auto;padding-bottom:8px;">
+          <sc-for list="{{ savedSculptItems }}" as="sc" hint-placeholder-count="6">
+            <div style="flex:0 0 auto;width:120px;">
+              <div style="position:relative;">
+                <button onClick="{{ sc.onOpen }}" title="{{ sc.title }}" style="width:120px;height:120px;border-radius:15px;border:1.5px solid #d6dde6;background:#eef2f6 no-repeat center/cover;cursor:pointer;display:flex;align-items:center;justify-content:center;overflow:hidden;{{ sc.bg }}"><span style="font-size:40px;opacity:.45;">{{ sc.icon }}</span></button>
+                <button onClick="{{ sc.onDelete }}" title="Delete" style="position:absolute;top:6px;right:6px;width:23px;height:23px;border-radius:50%;border:none;background:rgba(16,21,27,.74);color:#fff;font-size:14px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;">&times;</button>
+              </div>
+              <div style="font-size:12px;color:#586575;margin-top:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="{{ sc.title }}">{{ sc.title }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      </sc-if>
     </section>
     </sc-if>
 
@@ -821,6 +838,7 @@ class Component extends DCLogic {
       rendering: false, renderError: '',
       settingsOpen: false, settingsMsg: '', provider: 'anthropic', apiKey: '', baseUrl: '', modelChoice: 'claude-sonnet-4-6', hasKey: false,
       meshProvider: 'meshy', meshKey: '', meshBase: '', sculptText: '',
+      savedSculpts: (() => { try { return JSON.parse(localStorage.getItem('moldable_sculpts') || '[]'); } catch { return []; } })(),
     };
     this._compileSeq = 0;
     this._genSeq = 0;
@@ -918,7 +936,9 @@ class Component extends DCLogic {
       const out = await this._mesh.generateMesh({ prompt, imageDataUrl, onStatus: (s) => { if (gen === this._genSeq) this.setState({ genStatus: s }); } });
       if (gen !== this._genSeq) return;
       this._lastMeshGlb = out.glb;
-      this.setState({ generating: false, screen: 'result', title: 'AI Sculpt', meshMode: true, recognized: true });
+      const sctitle = (prompt && prompt.trim()) || 'AI Sculpt';
+      this._pendingSave = { glb: out.glb, title: sctitle };   // auto-save to "Your sculpts" once it renders (so we can snapshot a thumbnail)
+      this.setState({ generating: false, screen: 'result', title: sctitle, meshMode: true, recognized: true });
       this._reframeNext = true; this._meshPending = out.glb; this._tryLoadGlb();
     } catch (e) {
       if (gen !== this._genSeq) return;
@@ -954,7 +974,69 @@ class Component extends DCLogic {
       const maxd = Math.max(size.x, size.y, size.z) || 50;
       this.view.radius = maxd * 2 + 50; this.view.target.set(0, size.y * 0.45, 0); this.view.theta = 0.9; this.view.phi = 1.02;
       this._meshObj = gltf.scene; this.setState({ rendering: false }); this._draw();
+      // a fresh sculpt (not a recall) auto-saves to "Your sculpts" with a thumbnail snapped from the rendered canvas
+      if (this._pendingSave) { const ps = this._pendingSave; this._pendingSave = null; this._saveSculpt(ps.glb, ps.title, this._captureThumb()); }
     }, (err) => { this.setState({ rendering: false, meshMode: false, freeform: false, renderError: 'Could not load the mesh: ' + (err && err.message || err) + ' — try a different photo or backend.' }); });   // reset freeform too (L7) — match the L6 reset in the sculptMesh catch   // renderError shows on the result/viewer screen; genError only shows on the home tabs (would be a silent blank viewer)
+  }
+
+  /* ---------- "Your sculpts": persist organic sculpts (GLB in IndexedDB, small metadata+thumb in
+     localStorage) so they can be recalled any time. GLBs are ~20-30MB → far past localStorage. ---------- */
+  _sculptMeta() { try { return JSON.parse(localStorage.getItem('moldable_sculpts') || '[]'); } catch { return []; } }
+  _writeSculptMeta(list) {
+    try { localStorage.setItem('moldable_sculpts', JSON.stringify(list)); }
+    catch (e) { try { localStorage.setItem('moldable_sculpts', JSON.stringify(list.map((m) => ({ ...m, thumb: '' })))); } catch {} }  // thumbs overflowed quota → keep names only
+  }
+  _db() {
+    if (!this._dbPromise) this._dbPromise = new Promise((resolve, reject) => {
+      let req; try { req = indexedDB.open('moldable_sculpts', 1); } catch (e) { return reject(e); }
+      req.onupgradeneeded = () => { const db = req.result; if (!db.objectStoreNames.contains('glb')) db.createObjectStore('glb'); };
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+    return this._dbPromise;
+  }
+  async _idbPut(id, glb) { const db = await this._db(); return new Promise((res, rej) => { const tx = db.transaction('glb', 'readwrite'); tx.objectStore('glb').put(glb, id); tx.oncomplete = () => res(); tx.onerror = () => rej(tx.error); }); }
+  async _idbGet(id) { const db = await this._db(); return new Promise((res, rej) => { const tx = db.transaction('glb', 'readonly'); const rq = tx.objectStore('glb').get(id); rq.onsuccess = () => res(rq.result); rq.onerror = () => rej(rq.error); }); }
+  async _idbDel(id) { try { const db = await this._db(); await new Promise((res) => { const tx = db.transaction('glb', 'readwrite'); tx.objectStore('glb').delete(id); tx.oncomplete = () => res(); tx.onerror = () => res(); }); } catch {} }
+  _captureThumb() {
+    try {
+      const c = this.canvasEl; if (!c || !c.width) return '';
+      const t = document.createElement('canvas'); t.width = t.height = 160;
+      const ctx = t.getContext('2d'); ctx.fillStyle = '#eef2f6'; ctx.fillRect(0, 0, 160, 160);
+      const s = Math.min(c.width, c.height);
+      ctx.drawImage(c, (c.width - s) / 2, (c.height - s) / 2, s, s, 0, 0, 160, 160);   // centre-crop the live viewer (preserveDrawingBuffer is on, so this captures the frame)
+      return t.toDataURL('image/jpeg', 0.62);
+    } catch { return ''; }
+  }
+  async _saveSculpt(glb, title, thumb) {
+    try {
+      const id = 'sc' + Date.now();
+      await this._idbPut(id, glb);
+      const meta = this._sculptMeta();
+      meta.unshift({ id, title: (title || 'Sculpt').slice(0, 60), thumb: thumb || '', createdAt: Date.now() });
+      const keep = meta.slice(0, 50);                          // cap at 50; prune oldest GLBs so we can't fill the disk
+      for (const old of meta.slice(50)) this._idbDel(old.id);
+      this._writeSculptMeta(keep);
+      this.setState({ savedSculpts: keep });
+      this.showToast('Saved to Your sculpts ↓');
+    } catch (e) { /* IndexedDB unavailable (private mode) — sculpt still usable, just not saved */ }
+  }
+  async loadSavedSculpt(id) {
+    const meta = this._sculptMeta().find((s) => s.id === id);
+    try { await this._loadCad(); } catch (e) {}
+    let glb; try { glb = await this._idbGet(id); } catch (e) {}
+    if (!glb) { this.showToast('That sculpt could not be found'); return; }
+    const gen = ++this._genSeq; this._compileSeq++;
+    this._lastMeshGlb = glb; this._pendingSave = null;        // recall: do NOT re-save
+    this.setState({ hasGenerated: true, screen: 'result', meshMode: true, freeform: true, recognized: true, generating: false, genError: '', renderError: '', rendering: true, title: (meta && meta.title) || 'Sculpt' });
+    this._reframeNext = true; this._meshPending = glb; this._tryLoadGlb();
+  }
+  deleteSavedSculpt(id, e) {
+    if (e && e.stopPropagation) e.stopPropagation();
+    this._idbDel(id);
+    const keep = this._sculptMeta().filter((s) => s.id !== id);
+    this._writeSculptMeta(keep);
+    this.setState({ savedSculpts: keep });
   }
 
   loadCatalog(item) {
@@ -1510,6 +1592,14 @@ class Component extends DCLogic {
       publishDesc: s.publishDesc, publishCategory: M.cat, publishUrl: 'makerworld.com/en/models/' + slug,
       galleryOpen: s.galleryOpen, tags: s.tags,
       paramList, colorList, galleryItems, catalogItems, hasCatalog, chips, typeList,
+      hasSavedSculpts: (s.savedSculpts || []).length > 0,
+      savedSculptItems: (s.savedSculpts || []).map((it) => ({
+        title: it.title || 'Sculpt',
+        bg: it.thumb ? "background-image:url('" + it.thumb + "');" : '',
+        icon: it.thumb ? '' : String.fromCodePoint(129501),
+        onOpen: () => this.loadSavedSculpt(it.id),
+        onDelete: (e) => this.deleteSavedSculpt(it.id, e),
+      })),
       showUnrecognized: s.hasGenerated && !s.recognized,
       unrecognizedText: 'Hmm \u2014 I can\u2019t model \u201c' + (s.lastPrompt || 'that') + '\u201d from scratch yet. I started you on the closest template. Pick the type you meant:',
       tabGuidedStyle: s.flow === 'guided' ? tabOn : tabOff,
