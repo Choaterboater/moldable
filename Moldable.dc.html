@@ -289,7 +289,10 @@
       </sc-if>
 
       <!-- actions -->
-      <div style="display:flex;gap:12px;margin-top:24px;">
+      <sc-if value="{{ hasPrintEst }}" hint-placeholder-val="{{ false }}">
+        <div style="margin-top:22px;display:inline-flex;align-items:center;gap:9px;font-size:13px;font-weight:600;color:#41505f;background:#f6f8fb;border:1px solid #dde3ea;border-radius:11px;padding:9px 14px;">&#128424; {{ printEstText }} <span style="font-weight:400;color:#9aa7b6;">&middot; rough estimate</span></div>
+      </sc-if>
+      <div style="display:flex;gap:12px;margin-top:16px;">
         <button onClick="{{ downloadSTL }}" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:15px;border-radius:14px;border:1.5px solid #d0d8e2;background:#fff;color:#19222d;font-weight:700;font-size:15px;cursor:pointer;">&darr; STL</button>
         <sc-if value="{{ hasCode }}" hint-placeholder-val="{{ true }}">
         <button onClick="{{ downloadSCAD }}" title="Parametric OpenSCAD — MakerWorld customizable" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:15px;border-radius:14px;border:1.5px solid #d0d8e2;background:#fff;color:#19222d;font-weight:700;font-size:15px;cursor:pointer;">&darr; .scad</button>
@@ -406,6 +409,9 @@
         </sc-if>
       </div>
 
+      <sc-if value="{{ hasPrintEst }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:0 0 auto;padding:10px 16px 0;font-size:12px;font-weight:600;color:#586575;">&#128424; {{ printEstText }} <span style="font-weight:400;color:#9aa7b6;">&middot; rough estimate</span></div>
+      </sc-if>
       <div style="flex:0 0 auto;border-top:1px solid #dde3ea;padding:14px 16px;display:flex;gap:10px;">
         <button onClick="{{ downloadSTL }}" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:13px;border-radius:12px;border:1.5px solid #d0d8e2;background:#fff;color:#19222d;font-weight:700;font-size:14px;cursor:pointer;">&darr; STL</button>
         <sc-if value="{{ hasCode }}" hint-placeholder-val="{{ true }}">
@@ -824,7 +830,7 @@ class Component extends DCLogic {
       model: 'vase',
       modelParams: seed,
       color: '#e0653f',
-      recognized: true, lastPrompt: '', freeform: false, freeformParams: [], forceAI: false, sculptMode: false, genError: '', meshMode: false,
+      recognized: true, lastPrompt: '', freeform: false, freeformParams: [], forceAI: false, sculptMode: false, genError: '', meshMode: false, printEst: null,
       codeOpen: false,
       codeText: this._code('vase', defs.vase),
       publishOpen: false, publishState: 'form',
@@ -1434,8 +1440,34 @@ class Component extends DCLogic {
       this.setState({ rendering: false, renderError: (err && err.message) || 'render failed' });
     }
   }
+  // Rough filament + time estimate from the compiled STL (no slicer, no deps) — answers the
+  // two questions everyone asks before printing. Solid volume ≈ printed plastic for Moldable's
+  // mostly-hollow parts; a genuinely-solid part prints lighter (infill), so treat as a ballpark.
+  _printEstimate(stl) {
+    try {
+      if (!stl || stl.length < 84) return null;
+      const dv = new DataView(stl.buffer, stl.byteOffset, stl.byteLength);
+      const tris = dv.getUint32(80, true);
+      if (stl.length !== 84 + tris * 50) return null;
+      let vol6 = 0, off = 84;
+      for (let t = 0; t < tris; t++) {
+        off += 12;
+        const ax = dv.getFloat32(off, true), ay = dv.getFloat32(off + 4, true), az = dv.getFloat32(off + 8, true);
+        const bx = dv.getFloat32(off + 12, true), by = dv.getFloat32(off + 16, true), bz = dv.getFloat32(off + 20, true);
+        const cx = dv.getFloat32(off + 24, true), cy = dv.getFloat32(off + 28, true), cz = dv.getFloat32(off + 32, true);
+        off += 36 + 2;
+        vol6 += ax * (by * cz - bz * cy) - ay * (bx * cz - bz * cx) + az * (bx * cy - by * cx);
+      }
+      const volCm3 = Math.abs(vol6) / 6 / 1000;
+      const grams = volCm3 * 1.24;                          // PLA density
+      const cost = grams / 1000 * 22;                       // ~$22/kg PLA
+      const minHigh = (volCm3 * 1000) / (11 * 60);          // rough volumetric time (~11 mm³/s incl. overhead)
+      return { grams, cost, timeLow: Math.max(1, Math.round(minHigh * 0.7)), timeHigh: Math.max(2, Math.round(minHigh)) };
+    } catch { return null; }
+  }
   _applyMesh(stl, reframe) {
     const T = this.THREE; if (!T || !this.modelGroup) return;
+    this.setState({ printEst: this._printEstimate(stl) });
     const geo = this._stlToGeometry(stl);
     geo.rotateX(-Math.PI / 2);          // OpenSCAD is Z-up; the viewer is Y-up
     geo.computeVertexNormals();
@@ -1637,6 +1669,8 @@ class Component extends DCLogic {
       publishDesc: s.publishDesc, publishCategory: M.cat, publishUrl: 'makerworld.com/en/models/' + slug,
       galleryOpen: s.galleryOpen, tags: s.tags,
       paramList, colorList, galleryItems, catalogItems, hasCatalog, chips, typeList,
+      hasPrintEst: !s.meshMode && !!s.printEst,
+      printEstText: s.printEst ? ('≈ ' + (s.printEst.grams < 10 ? s.printEst.grams.toFixed(1) : Math.round(s.printEst.grams)) + ' g PLA  ·  ≈ $' + s.printEst.cost.toFixed(2) + '  ·  ≈ ' + s.printEst.timeLow + '–' + s.printEst.timeHigh + ' min print') : '',
       hasSavedSculpts: (s.savedSculpts || []).length > 0,
       savedSculptItems: (s.savedSculpts || []).map((it) => ({
         title: it.title || 'Sculpt',
