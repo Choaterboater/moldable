@@ -824,7 +824,7 @@ class Component extends DCLogic {
       model: 'vase',
       modelParams: seed,
       color: '#e0653f',
-      recognized: true, lastPrompt: '', freeform: false, forceAI: false, sculptMode: false, genError: '', meshMode: false,
+      recognized: true, lastPrompt: '', freeform: false, freeformParams: [], forceAI: false, sculptMode: false, genError: '', meshMode: false,
       codeOpen: false,
       codeText: this._code('vase', defs.vase),
       publishOpen: false, publishState: 'form',
@@ -889,13 +889,16 @@ class Component extends DCLogic {
         patch.modelParams = { ...this.state.modelParams, [out.system]: out.params };
         patch.title = this._titleFor(out.system);
         patch.tags = this.MODELS[out.system].tags;
+        patch.freeformParams = [];
         this._codeDirty = false;
         this._geomSig = out.system + '|' + JSON.stringify(out.params);
         this._lastModel = out.system;
       } else {
-        // freeform: no fixed parameters — you adjust it by editing the OpenSCAD, so open the editor
+        // freeform: parse the // [min:max] customizer comments the AI already emits into LIVE SLIDERS,
+        // so an AI-authored part is adjustable like a template (no extra LLM call). Editor still available.
         patch.title = 'Custom model';
-        patch.codeOpen = true;
+        patch.freeformParams = this._parseScadParams(out.source);
+        patch.codeOpen = patch.freeformParams.length === 0;   // sliders present → keep code tucked away; none → open the editor
         this._codeDirty = true;                 // viewer follows the authored source
         this._geomSig = this.state.model + '|code:' + out.source;
       }
@@ -1063,6 +1066,42 @@ class Component extends DCLogic {
     const m = this.state.model;
     const np = { ...this.state.modelParams[m], [key]: val };
     this.setState({ modelParams: { ...this.state.modelParams, [m]: np }, codeText: this._code(m, np) });
+  }
+  // ---- live sliders for AI-authored (freeform) parts ----
+  // The AI already emits MakerWorld customizer comments ("name = 3; // [1:10]" or "// [1:0.5:10]").
+  // Parse them into slider descriptors so a from-scratch part is adjustable like a template — no extra LLM call.
+  // Numeric ranges only; string dropdowns ("// [a,b,c]") stay editable in the code panel.
+  _parseScadParams(src) {
+    const out = [];
+    if (!src) return out;
+    const lines = src.split('\n');
+    for (let i = 0; i < lines.length && out.length < 12; i++) {
+      const m = lines[i].match(/^\s*([A-Za-z_]\w*)\s*=\s*(-?\d*\.?\d+)\s*;\s*\/\/\s*\[([^\]]+)\]/);
+      if (!m) continue;
+      const parts = m[3].split(':').map((s) => s.trim());
+      if (parts.length < 2 || parts.length > 3) continue;            // [min:max] or [min:step:max] only
+      const min = +parts[0], max = +parts[parts.length - 1];
+      if (!isFinite(min) || !isFinite(max) || max <= min) continue;
+      let step;
+      if (parts.length === 3 && isFinite(+parts[1]) && +parts[1] > 0) step = +parts[1];
+      else {   // [min:max]: customizer convention is integer step 1, unless the values are clearly fractional
+        const frac = !Number.isInteger(min) || !Number.isInteger(max) || !Number.isInteger(+m[2]);
+        step = frac ? ((max - min) <= 4 ? 0.05 : 0.1) : 1;
+      }
+      let label = m[1].replace(/_/g, ' ');
+      const lm = (lines[i - 1] || '').trim().match(/^\/\/\s*([^[].*)$/);  // label = the plain // comment above, if any
+      if (lm && !/Hidden|Adjust/i.test(lm[1])) label = lm[1].replace(/\s*\(.*?\)\s*$/, '').trim() || label;
+      out.push({ key: m[1], label, min, max, step, value: +m[2] });
+    }
+    return out;
+  }
+  setFreeformParam(key, val) {
+    // patch the value in the source and recompile through the normal code path (componentDidUpdate sees _codeDirty)
+    const re = new RegExp('^(\\s*' + key.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\$&') + '\\s*=\\s*)(-?\\d*\\.?\\d+)(\\s*;)', 'm');
+    const src = this.state.codeText.replace(re, (_m, a, _old, c) => a + val + c);
+    const fp = (this.state.freeformParams || []).map((p) => (p.key === key ? { ...p, value: val } : p));
+    this._codeDirty = true;
+    this.setState({ codeText: src, freeformParams: fp });
   }
   setColor(hex) { this.setState({ color: hex }); }
 
@@ -1502,14 +1541,20 @@ class Component extends DCLogic {
     const itabOn = itabBase + 'background:#fff;color:var(--accent,#ff5a1f);';
     const itabOff = itabBase + 'background:transparent;color:#8e9bab;';
 
-    const paramList = s.freeform ? [] : M.params.map(pm => {
-      const val = s.modelParams[s.model][pm.key];
-      return {
-        key: pm.key, label: pm.label, min: pm.min, max: pm.max, step: pm.step, value: val,
-        display: pm.unit ? (val + ' ' + pm.unit) : ('' + val),
-        onInput: (e) => this.setParam(pm.key, +e.target.value),
-      };
-    });
+    const paramList = s.freeform
+      ? (s.freeformParams || []).map(pm => ({
+          key: pm.key, label: pm.label, min: pm.min, max: pm.max, step: pm.step, value: pm.value,
+          display: '' + pm.value,
+          onInput: (e) => this.setFreeformParam(pm.key, +e.target.value),
+        }))
+      : M.params.map(pm => {
+          const val = s.modelParams[s.model][pm.key];
+          return {
+            key: pm.key, label: pm.label, min: pm.min, max: pm.max, step: pm.step, value: val,
+            display: pm.unit ? (val + ' ' + pm.unit) : ('' + val),
+            onInput: (e) => this.setParam(pm.key, +e.target.value),
+          };
+        });
     const colorList = this.COLORS.map(c => ({
       name: c.name, hex: c.hex, onClick: () => this.setColor(c.hex),
       style: 'width:30px;height:30px;border-radius:50%;cursor:pointer;background:' + c.hex + ';' +
@@ -1625,7 +1670,9 @@ class Component extends DCLogic {
       setModelTrellis: () => this.setMeshModelChoice('trellis'), setModelHunyuan: () => this.setMeshModelChoice('hunyuan'),
       freeformNote: s.meshMode
         ? 'AI-sculpted mesh — no code or sliders. Download the STL to print (organic meshes can need a repair/cleanup pass first).'
-        : 'No preset sliders — edit the OpenSCAD below to adjust it (the viewer updates as you type), or pick a template type above.',
+        : ((s.freeformParams || []).length
+            ? 'AI-authored part — drag the sliders to adjust it (the viewer re-renders live), or open the code below for full control.'
+            : 'No preset sliders — edit the OpenSCAD below to adjust it (the viewer updates as you type), or pick a template type above.'),
       forceAIStyle: 'display:inline-flex;align-items:center;gap:7px;padding:7px 12px;border-radius:99px;font-size:12.5px;font-weight:600;cursor:pointer;transition:.15s;' + (s.forceAI ? 'background:rgba(255,90,31,.12);color:var(--accent,#ff5a1f);border:1.5px solid var(--accent,#ff5a1f);' : 'background:#fff;color:#586575;border:1.5px solid #d0d8e2;'),
       openGallery: () => this.openGallery(), closeGallery: () => this.closeGallery(), stop: (e) => this.stop(e),
       openPublish: () => this.openPublish(), closePublish: () => this.closePublish(), doPublish: () => this.doPublish(),
