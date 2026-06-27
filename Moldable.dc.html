@@ -299,6 +299,9 @@
         <button onClick="{{ openPublish }}" style="flex:1.5;display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:15px;border-radius:14px;border:none;background:var(--accent,#ff5a1f);color:#fff;font-weight:700;font-size:15px;cursor:pointer;box-shadow:0 4px 14px -4px rgba(255,90,31,.7);">Publish to MakerWorld &rarr;</button>
         </sc-if>
       </div>
+      <sc-if value="{{ hasCode }}" hint-placeholder-val="{{ true }}">
+        <button onClick="{{ shareLink }}" title="Copy a link that opens this exact model — no account, no upload" style="margin-top:12px;width:100%;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px;border-radius:12px;border:1.5px dashed #c6d0db;background:#fff;color:#586575;font-weight:600;font-size:14px;cursor:pointer;">&#128279; Copy share link</button>
+      </sc-if>
     </section>
     </sc-if>
 
@@ -850,6 +853,7 @@ class Component extends DCLogic {
     this._genSeq = 0;
     this._codeDirty = false;
     this._loadCad();
+    this._restoreFromHash();   // open a shared #m=... link straight into the model
   }
 
   /* ---------- code generation (delegates to cad/scad-gen.js) ---------- */
@@ -933,6 +937,39 @@ class Component extends DCLogic {
       codeText: this._code(item.model, params), hasGenerated: true,
       galleryOpen: false, generating: false, screen: 'result', recognized: true, freeform: false, meshMode: false,
     });
+  }
+  // ---------- shareable links: the whole model state lives in the URL hash (no backend) ----------
+  shareLink() {
+    try {
+      const s = this.state;
+      if (s.meshMode) { this.showToast('AI meshes are too big to share as a link — download the STL to share'); return; }
+      const obj = s.freeform ? { f: 1, code: s.codeText, c: s.color, t: s.title } : { m: s.model, p: s.modelParams[s.model], c: s.color };
+      const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(obj))));
+      const frag = '#m=' + b64;
+      try { history.replaceState(null, '', frag); } catch {}
+      const url = location.origin + location.pathname + frag;
+      const ok = () => this.showToast('Link copied — opens this exact model (no account needed)');
+      const fallback = () => this.showToast('Link is in your address bar — copy it to share');
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(ok, fallback); else fallback();
+    } catch (e) { this.showToast('Could not make a link'); }
+  }
+  async _restoreFromHash() {
+    let obj;
+    try {
+      const m = (location.hash || '').match(/[#&]m=([^&]+)/);
+      if (!m) return;
+      obj = JSON.parse(decodeURIComponent(escape(atob(m[1]))));
+    } catch (e) { return; }
+    try { await this._loadCad(); } catch (e) {}
+    if (obj.f && obj.code) {
+      this._codeDirty = true; this._reframeNext = true;
+      this.setState({ screen: 'result', hasGenerated: true, freeform: true, meshMode: false, recognized: true,
+        codeText: obj.code, color: obj.c || this.state.color, title: obj.t || 'Shared model',
+        freeformParams: this._parseScadParams(obj.code), codeOpen: false });
+    } else if (obj.m && this.MODELS[obj.m]) {
+      this._reframeNext = true;
+      this.loadGallery({ model: obj.m, params: { ...this.defs[obj.m], ...(obj.p || {}) }, color: obj.c || this.state.color, name: this._titleFor(obj.m) });
+    }
   }
   // ---------- AI mesh (text/image -> GLB, organic shapes OpenSCAD can't do) ----------
   async sculptMesh(prompt, imageDataUrl) {
@@ -1711,7 +1748,7 @@ class Component extends DCLogic {
       openGallery: () => this.openGallery(), closeGallery: () => this.closeGallery(), stop: (e) => this.stop(e),
       openPublish: () => this.openPublish(), closePublish: () => this.closePublish(), doPublish: () => this.doPublish(),
       toggleParametric: () => this.toggleParametric(),
-      resetView: () => this.resetView(), downloadSTL: () => this.downloadSTL(), downloadSCAD: () => this.downloadSCAD(), newModel: () => this.newModel(),
+      resetView: () => this.resetView(), downloadSTL: () => this.downloadSTL(), downloadSCAD: () => this.downloadSCAD(), shareLink: () => this.shareLink(), newModel: () => this.newModel(),
       openSettings: () => this.openSettings(), closeSettings: () => this.closeSettings(),
       onApiKeyInput: (e) => this.onApiKeyInput(e), onBaseUrlInput: (e) => this.onBaseUrlInput(e),
       onModelInput: (e) => this.onModelInput(e), saveSettings: () => this.saveSettings(),
