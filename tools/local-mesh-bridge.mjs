@@ -168,7 +168,7 @@ const server = http.createServer((req, res) => {
   }
   json(res, 404, { error: 'not found' });
 });
-server.listen(PORT, () => {
+server.listen(PORT, '127.0.0.1', () => {   // loopback only — runs GPU jobs with no token, never expose it to the LAN
   log(`ready on http://localhost:${PORT}  -> Hunyuan3D ${HY} (${MODE}) -> mesh-print -> GLB`);
   if (!existsSync('tools/mesh-print.py')) log('WARNING: tools/mesh-print.py not found in cwd — launch this from the Moldable repo root, or remesh is skipped (raw mesh served).');
 });

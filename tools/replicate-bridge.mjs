@@ -155,4 +155,4 @@ const server = http.createServer((req, res) => {
   }
   json(res, 404, { error: 'not found' });
 });
-server.listen(PORT, () => log(`ready on http://localhost:${PORT}  -> Replicate ${MODEL} -> mesh-print -> GLB`));
+server.listen(PORT, '127.0.0.1', () => log(`ready on http://localhost:${PORT}  -> Replicate ${MODEL} -> mesh-print -> GLB`));   // loopback only — it forwards your Replicate token, never expose it to the LAN

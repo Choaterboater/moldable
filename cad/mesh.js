@@ -106,7 +106,9 @@ function adapter(provider, base, key) {
       const extra = isBridge(provider) ? { quality: getMeshQuality(), model: getMeshModel() } : {};
       if (imageDataUrl) {
         const body = { image_url: imageDataUrl, enable_pbr: false, ...extra };
-        if (prompt) body.prompt = prompt;   // optional text hint alongside the photo (used where the backend supports it)
+        // optional text hint alongside the photo — only to bridge providers (the real Meshy/Tripo
+        // image-to-3D APIs have no such field and may 400 on an unknown key).
+        if (prompt && isBridge(provider)) body.prompt = prompt;
         const d = await jpost(base + '/openapi/v1/image-to-3d', auth, body);
         return d.result;
       }
