@@ -111,8 +111,8 @@
         <div style="padding:14px 14px 16px;">
           <textarea value="{{ prompt }}" onInput="{{ onPromptInput }}" placeholder="e.g. a hexagonal twisted plant pot about 15cm tall" style="width:100%;min-height:96px;resize:none;border:1.5px solid #d6dde6;border-radius:14px;padding:15px 16px;font-size:16px;line-height:1.45;color:#19222d;background:#fff;"></textarea>
           <div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:14px;">
-            <button onClick="{{ toggleForceAI }}" title="Author a fully custom OpenSCAD model with AI instead of matching a template (needs an API key)" style="{{ forceAIStyle }}">&#10024; Design with AI</button>
-            <button onClick="{{ startSculpt }}" title="Sculpt an organic shape from a photo (characters, figurines). Switches to photo upload — the AI mesh path is image-to-3D." style="{{ sculptStyle }}">&#129501; Sculpt from photo</button>
+            <button onClick="{{ toggleForceAI }}" title="Author an exact, printable OpenSCAD part with AI instead of matching a template — mechanical shapes (needs an API key)" style="{{ forceAIStyle }}">&#10024; Design with AI</button>
+            <button onClick="{{ sculptFromText }}" title="Sculpt an organic AI mesh from this description — characters, figurines, creatures. Needs an AI-mesh backend in Settings; on the free/Replicate backends, upload a photo instead." style="{{ sculptStyle }}">&#129501; Sculpt this</button>
             <sc-if value="{{ forceAI }}" hint-placeholder-val="{{ false }}"><span style="font-size:11.5px;color:#7d8a9a;">every prompt → custom AI build</span></sc-if>
           </div>
           <div style="display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 4px;">
@@ -154,6 +154,11 @@
             <button onClick="{{ setQualityWatertight }}" title="Sealed solid mesh — guaranteed watertight, slightly softer detail" style="{{ qualityWatertightStyle }}">Watertight</button>
             <span style="font-size:11px;color:#9aa7b6;">both print-ready</span>
           </div>
+          <textarea value="{{ sculptText }}" onInput="{{ onSculptTextInput }}" placeholder="Add a description (optional) — e.g. &ldquo;a sitting frog&rdquo;. Some models use it as a hint." style="width:100%;margin-top:12px;min-height:52px;resize:none;border:1.5px solid #d6dde6;border-radius:12px;padding:11px 13px;font-size:14px;line-height:1.4;color:#19222d;background:#fff;"></textarea>
+          <button onClick="{{ sculptFromImage }}" style="width:100%;margin-top:10px;display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:14px;border:none;border-radius:14px;background:var(--accent,#ff5a1f);color:#fff;font-weight:700;font-size:16px;cursor:pointer;box-shadow:0 4px 14px -4px rgba(255,90,31,.7);"><span style="font-size:17px;">&#129501;</span> Sculpt this photo</button>
+          <sc-if value="{{ hasGenError }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:12px;display:flex;gap:9px;align-items:flex-start;background:rgba(176,0,32,.06);border:1px solid rgba(176,0,32,.3);border-radius:12px;padding:11px 13px;color:#b00020;font-size:13px;line-height:1.45;"><span style="font-size:15px;line-height:1;">&#9888;</span><span>{{ genError }}</span></div>
+          </sc-if>
         </div>
         </sc-if>
       </div>
@@ -557,11 +562,13 @@
               <button onClick="{{ mp.onClick }}" style="{{ mp.style }}">{{ mp.label }}</button>
             </sc-for>
           </div>
-          <input value="{{ meshKey }}" onInput="{{ onMeshKeyInput }}" type="password" placeholder="Meshy / Tripo / Replicate API token" spellcheck="false" style="width:100%;border:1.5px solid #d6dde6;border-radius:11px;padding:11px 13px;font-size:13px;font-family:'IBM Plex Mono',monospace;background:#fff;color:#19222d;" />
+          <sc-if value="{{ meshNeedsToken }}" hint-placeholder-val="{{ true }}">
+            <input value="{{ meshKey }}" onInput="{{ onMeshKeyInput }}" type="password" placeholder="{{ meshKeyPlaceholder }}" spellcheck="false" style="width:100%;border:1.5px solid #d6dde6;border-radius:11px;padding:11px 13px;font-size:13px;font-family:'IBM Plex Mono',monospace;background:#fff;color:#19222d;" />
+          </sc-if>
           <sc-if value="{{ showMeshBase }}" hint-placeholder-val="{{ false }}">
             <input value="{{ meshBase }}" onInput="{{ onMeshBaseInput }}" placeholder="http://localhost:8788 (bridge)" spellcheck="false" style="width:100%;margin-top:8px;border:1.5px solid #d6dde6;border-radius:11px;padding:11px 13px;font-size:13px;font-family:'IBM Plex Mono',monospace;background:#fff;color:#19222d;" />
           </sc-if>
-          <div style="font-size:11.5px;color:#7d8a9a;margin-top:7px;line-height:1.5;">Makes characters/figurines OpenSCAD can't. Browser calls are often CORS-blocked &mdash; run <code>node tools/mesh-bridge.mjs</code> and pick Custom. Mesh output may need cleanup before printing.</div>
+          <div style="font-size:11.5px;color:#7d8a9a;margin-top:7px;line-height:1.5;">{{ meshProviderHint }} Mesh output may need a cleanup pass before printing.</div>
         </div>
       </div>
       <div style="display:flex;gap:12px;padding:16px 24px;border-top:1px solid #dde3ea;">
@@ -799,7 +806,7 @@ class Component extends DCLogic {
       toast: '',
       rendering: false, renderError: '',
       settingsOpen: false, settingsMsg: '', provider: 'anthropic', apiKey: '', baseUrl: '', modelChoice: 'claude-sonnet-4-6', hasKey: false,
-      meshProvider: 'meshy', meshKey: '', meshBase: '',
+      meshProvider: 'meshy', meshKey: '', meshBase: '', sculptText: '',
     };
     this._compileSeq = 0;
     this._genSeq = 0;
@@ -889,7 +896,7 @@ class Component extends DCLogic {
   async sculptMesh(prompt, imageDataUrl) {
     if (!prompt && !imageDataUrl) { this.showToast('Type what you want to sculpt first (e.g. “a frog”), then tap Sculpt'); return; }
     try { await this._loadCad(); } catch (e) { return; }
-    if (!this._mesh || !this._mesh.hasMesh()) { this.openSettings('To Sculpt: under “AI mesh” pick a provider and paste your token (Meshy/Tripo, or Replicate), then Save. Replicate also needs the bridge running: node tools/replicate-bridge.mjs'); return; }
+    if (!this._mesh || !this._mesh.hasMesh()) { this.openSettings('To Sculpt: open Settings → “AI mesh” and pick a backend. Local (free, your GPU) or Replicate need their bridge running in a terminal; Meshy/Tripo need a token.'); return; }
     const gen = ++this._genSeq; this._compileSeq++;
     this.setState({ hasGenerated: true, lastPrompt: prompt || 'image', screen: this.state.flow === 'guided' ? 'generating' : this.state.screen, generating: true, genStatus: 'Sculpting…', meshMode: true, freeform: true, genError: '', codeOpen: false });
     try {
@@ -900,8 +907,17 @@ class Component extends DCLogic {
       this._reframeNext = true; this._meshPending = out.glb; this._tryLoadGlb();
     } catch (e) {
       if (gen !== this._genSeq) return;
-      this.setState({ generating: false, screen: this.state.flow === 'guided' ? 'home' : this.state.screen, meshMode: false, genError: (e && e.message) || 'mesh failed' });
-      this.showToast('Mesh failed: ' + ((e && e.message) || e));
+      const msg = (e && e.message) || 'mesh failed';
+      const back = this.state.flow === 'guided' ? 'home' : this.state.screen;
+      // 'needs-photo' is guidance, not a failure: keep the user where they are (do NOT yank them to
+      // the photo tab — that surprise switch is exactly what we removed) and show a persistent message.
+      if (e && e.code === 'needs-photo') {
+        this.setState({ generating: false, screen: back, meshMode: false, genError: msg });
+        this.showToast(msg);
+      } else {
+        this.setState({ generating: false, screen: back, meshMode: false, genError: msg });
+        this.showToast('Mesh failed: ' + msg);
+      }
     }
   }
   _tryLoadGlb() {
@@ -963,6 +979,19 @@ class Component extends DCLogic {
   toggleCode() { this.setState({ codeOpen: !this.state.codeOpen }); }
   toggleForceAI() { this.setState({ forceAI: !this.state.forceAI }); }
   startSculpt() { this.setImageMode(); this.showToast('Drop a photo — the AI sculpts the main object (background removed automatically)'); }
+  onSculptTextInput(e) { this.setState({ sculptText: e.target.value }); }
+  // Sculpt an organic mesh from the typed prompt (text -> 3D). On image-only backends
+  // (local/Replicate) mesh.js surfaces a clear "upload a photo / switch provider" message.
+  sculptFromText() {
+    const p = (this.state.prompt || '').trim();
+    if (!p) { this.showToast('Type what you want to sculpt first (e.g. “a frog”)'); return; }
+    this.sculptMesh(p, null);
+  }
+  // Sculpt from the uploaded photo, with the optional description as a hint.
+  sculptFromImage() {
+    if (!this._imageDataUrl) { this.showToast('Upload a photo first'); return; }
+    this.sculptMesh((this.state.sculptText || '').trim(), this._imageDataUrl);
+  }
   setMeshQuality(q) { try { localStorage.setItem('moldable_mesh_quality', q); } catch {} this.setState({ meshQuality: q }); this.showToast(q === 'watertight' ? 'Watertight: sealed solid mesh' : 'Detail: full detail, slicer auto-fixes holes'); }
   setMeshModelChoice(m) { try { localStorage.setItem('moldable_mesh_model', m); } catch {} this.setState({ meshModel: m }); this.showToast(m === 'hunyuan' ? 'Hunyuan3D — more detail (pricier ~20–30¢)' : 'Trellis — clean & cheap (~5–10¢)'); }
   toggleParametric() { this.setState({ parametric: !this.state.parametric }); }
@@ -998,7 +1027,7 @@ class Component extends DCLogic {
   onBaseUrlInput(e) { this.setState({ baseUrl: e.target.value }); }
   onMeshKeyInput(e) { this.setState({ meshKey: e.target.value }); }
   onMeshBaseInput(e) { this.setState({ meshBase: e.target.value }); }
-  setMeshProviderChoice(p) { const patch = { meshProvider: p }; if (p === 'custom' && !this.state.meshBase) patch.meshBase = 'http://localhost:8788/v1'; if (p === 'replicate' && !this.state.meshBase) patch.meshBase = 'http://localhost:8788'; this.setState(patch); }
+  setMeshProviderChoice(p) { const patch = { meshProvider: p }; if ((p === 'local' || p === 'replicate') && !this.state.meshBase) patch.meshBase = 'http://localhost:8788'; if (p === 'custom' && !this.state.meshBase) patch.meshBase = 'http://localhost:8788/v1'; this.setState(patch); }
   onModelInput(e) { this.setState({ modelChoice: e.target.value }); }
   setModelChoice(m) { this.setState({ modelChoice: m }); }
   setProviderChoice(p) {
@@ -1030,17 +1059,17 @@ class Component extends DCLogic {
     const f = e.target.files && e.target.files[0];
     if (!f) return;
     const url = URL.createObjectURL(f);
-    this.setState({ imageURL: url, imageName: f.name, inputMode: 'image' });
-    const fallback = () => { this.showToast('Image received \u2014 detecting shape\u2026'); clearTimeout(this._ut); this._ut = setTimeout(() => this.generate(f.name.toLowerCase().replace(/[._-]/g, ' ')), 650); };
-    // image -> 3D mesh when a mesh provider is configured (true image-to-3D); else keyword-guess from the filename
+    this.setState({ imageURL: url, imageName: f.name, inputMode: 'image', genError: '' });
+    // Read the bytes now so the Sculpt button can use them. In the GUIDED flow we DON'T
+    // auto-sculpt \u2014 the image tab shows a description box + Sculpt button, so the user can
+    // add a hint first. The STUDIO rail has no such button, so there we sculpt immediately.
     const reader = new FileReader();
     reader.onload = () => {
-      this._loadCad().then(() => {
-        if (this._mesh && this._mesh.hasMesh()) { this.showToast('Image received \u2014 sculpting a 3D mesh\u2026'); this.sculptMesh(null, reader.result); }
-        else fallback();
-      }).catch(fallback);
+      this._imageDataUrl = reader.result;
+      if (this.state.flow === 'studio') this.sculptFromImage();
+      else this.showToast('Photo ready \u2014 add a description (optional), then tap Sculpt');
     };
-    reader.onerror = fallback;
+    reader.onerror = () => { this._imageDataUrl = null; this.showToast('Couldn\u2019t read that image \u2014 try another'); };
     reader.readAsDataURL(f);
   }
 
@@ -1428,9 +1457,19 @@ class Component extends DCLogic {
         id, label, onClick: () => this.setProviderChoice(id),
         style: 'flex:1;text-align:center;padding:9px 6px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;border:1.5px solid ' + (s.provider === id ? 'var(--accent,#ff5a1f)' : '#d6dde6') + ';background:' + (s.provider === id ? 'rgba(255,90,31,.08)' : '#fff') + ';color:#19222d;',
       })),
-      meshKey: s.meshKey, meshBase: s.meshBase, showMeshBase: s.meshProvider === 'custom' || s.meshProvider === 'replicate',
+      meshKey: s.meshKey, meshBase: s.meshBase,
+      showMeshBase: ['local', 'replicate', 'custom'].includes(s.meshProvider),
+      meshNeedsToken: ['replicate', 'meshy', 'tripo'].includes(s.meshProvider),
+      meshKeyPlaceholder: s.meshProvider === 'replicate' ? 'Replicate API token' : s.meshProvider === 'tripo' ? 'Tripo API token' : 'Meshy API token',
+      meshProviderHint: {
+        local: 'Free — runs on your own GPU, no token. First start the bridge in a terminal: node tools/local-mesh-bridge.mjs (see DESKTOP_SETUP.md). Builds from a photo only.',
+        replicate: 'Cloud (~5–30¢/sculpt). Start the bridge: node tools/replicate-bridge.mjs, then paste your Replicate token. Builds from a photo only.',
+        meshy: 'Cloud (paid). Paste your Meshy token. Works from a photo OR a typed description. If your browser blocks it (CORS), run node tools/mesh-bridge.mjs and use Custom.',
+        tripo: 'Cloud (paid). Paste your Tripo token. Works from a photo OR a typed description. If your browser blocks it (CORS), run node tools/mesh-bridge.mjs and use Custom.',
+        custom: 'Advanced — any Meshy-shaped bridge. Set its base URL below.',
+      }[s.meshProvider] || '',
       onMeshKeyInput: (e) => this.onMeshKeyInput(e), onMeshBaseInput: (e) => this.onMeshBaseInput(e),
-      meshProviderList: [['meshy', 'Meshy'], ['tripo', 'Tripo'], ['replicate', 'Replicate'], ['custom', 'Custom / bridge']].map(([id, label]) => ({
+      meshProviderList: [['local', 'Local · free'], ['replicate', 'Replicate'], ['meshy', 'Meshy'], ['tripo', 'Tripo']].map(([id, label]) => ({
         id, label, onClick: () => this.setMeshProviderChoice(id),
         style: 'flex:1;text-align:center;padding:8px 6px;border-radius:10px;cursor:pointer;font-size:12.5px;font-weight:600;border:1.5px solid ' + (s.meshProvider === id ? 'var(--accent,#ff5a1f)' : '#d6dde6') + ';background:' + (s.meshProvider === id ? 'rgba(255,90,31,.08)' : '#fff') + ';color:#19222d;',
       })),
@@ -1455,9 +1494,11 @@ class Component extends DCLogic {
       setTextMode: () => this.setTextMode(), setImageMode: () => this.setImageMode(),
       onPromptInput: (e) => this.onPromptInput(e), onTitleInput: (e) => this.onTitleInput(e),
       onDescInput: (e) => this.onDescInput(e), onCodeInput: (e) => this.onCodeInput(e),
-      onGenerate: () => this.generate(), toggleCode: () => this.toggleCode(), toggleForceAI: () => this.toggleForceAI(), startSculpt: () => this.startSculpt(), onSculpt: () => this.sculptMesh(this.state.prompt),
+      onGenerate: () => this.generate(), toggleCode: () => this.toggleCode(), toggleForceAI: () => this.toggleForceAI(),
+      startSculpt: () => this.startSculpt(),
+      sculptFromText: () => this.sculptFromText(), sculptFromImage: () => this.sculptFromImage(), onSculptTextInput: (e) => this.onSculptTextInput(e), sculptText: s.sculptText || '',
       forceAI: s.forceAI, genError: s.genError, hasGenError: !!s.genError, hasCode: !s.meshMode,
-      sculptStyle: 'display:inline-flex;align-items:center;gap:7px;padding:7px 12px;border-radius:99px;font-size:12.5px;font-weight:600;cursor:pointer;transition:.15s;' + (s.inputMode === 'image' ? 'background:rgba(255,90,31,.12);color:var(--accent,#ff5a1f);border:1.5px solid var(--accent,#ff5a1f);' : 'background:#fff;color:#586575;border:1.5px solid #d0d8e2;'),
+      sculptStyle: 'display:inline-flex;align-items:center;gap:7px;padding:7px 12px;border-radius:99px;font-size:12.5px;font-weight:600;cursor:pointer;transition:.15s;background:#fff;color:#586575;border:1.5px solid #d0d8e2;',
       generateLabel: 'Generate model',
       meshQuality: mq, qualityDetailStyle: mq === 'detail' ? qon : qoff, qualityWatertightStyle: mq === 'watertight' ? qon : qoff,
       setQualityDetail: () => this.setMeshQuality('detail'), setQualityWatertight: () => this.setMeshQuality('watertight'),
