@@ -112,8 +112,9 @@
           <textarea value="{{ prompt }}" onInput="{{ onPromptInput }}" placeholder="e.g. a hexagonal twisted plant pot about 15cm tall" style="width:100%;min-height:96px;resize:none;border:1.5px solid #d6dde6;border-radius:14px;padding:15px 16px;font-size:16px;line-height:1.45;color:#19222d;background:#fff;"></textarea>
           <div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:14px;">
             <button onClick="{{ toggleForceAI }}" title="Author an exact, printable OpenSCAD part with AI instead of matching a template — mechanical shapes (needs an API key)" style="{{ forceAIStyle }}">&#10024; Design with AI</button>
-            <button onClick="{{ sculptFromText }}" title="Sculpt an organic AI mesh from this description — characters, figurines, creatures. Needs an AI-mesh backend in Settings; on the free/Replicate backends, upload a photo instead." style="{{ sculptStyle }}">&#129501; Sculpt this</button>
-            <sc-if value="{{ forceAI }}" hint-placeholder-val="{{ false }}"><span style="font-size:11.5px;color:#7d8a9a;">every prompt → custom AI build</span></sc-if>
+            <button onClick="{{ toggleSculptMode }}" title="Organic mode — the build button sculpts an AI mesh (characters, figurines, creatures) instead of OpenSCAD. Needs an AI-mesh backend in Settings. Click again to turn off." style="{{ sculptStyle }}">&#129501; Sculpt this</button>
+            <sc-if value="{{ forceAI }}" hint-placeholder-val="{{ false }}"><span style="font-size:11.5px;color:#7d8a9a;">every prompt → custom OpenSCAD build</span></sc-if>
+            <sc-if value="{{ sculptMode }}" hint-placeholder-val="{{ false }}"><span style="font-size:11.5px;color:#7d8a9a;">organic mode → AI mesh (not OpenSCAD)</span></sc-if>
           </div>
           <div style="display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 4px;">
             <sc-for list="{{ chips }}" as="chip" hint-placeholder-count="4">
@@ -799,7 +800,7 @@ class Component extends DCLogic {
       model: 'vase',
       modelParams: seed,
       color: '#e0653f',
-      recognized: true, lastPrompt: '', freeform: false, forceAI: false, genError: '', meshMode: false,
+      recognized: true, lastPrompt: '', freeform: false, forceAI: false, sculptMode: false, genError: '', meshMode: false,
       codeOpen: false,
       codeText: this._code('vase', defs.vase),
       publishOpen: false, publishState: 'form',
@@ -978,7 +979,7 @@ class Component extends DCLogic {
 
   /* ---------- navigation / ui ---------- */
   goGuided() { this.setState({ flow: 'guided', screen: this.state.hasGenerated ? 'result' : 'home' }); }
-  goStudio() { this.setState({ flow: 'studio' }); }
+  goStudio() { this.setState({ flow: 'studio', sculptMode: false }); }   // studio rail is OpenSCAD-only; don't carry sculpt mode in
   setTextMode() { this.setState({ inputMode: 'text' }); }
   setImageMode() { this.setState({ inputMode: 'image' }); }
   onPromptInput(e) { this.setState({ prompt: e.target.value }); }
@@ -986,7 +987,10 @@ class Component extends DCLogic {
   onDescInput(e) { this.setState({ publishDesc: e.target.value }); }
   onCodeInput(e) { this._codeDirty = true; this.setState({ codeText: e.target.value }); }
   toggleCode() { this.setState({ codeOpen: !this.state.codeOpen }); }
-  toggleForceAI() { this.setState({ forceAI: !this.state.forceAI }); }
+  // "Design with AI" (OpenSCAD) and "Sculpt" (organic mesh) are mutually-exclusive modes —
+  // selecting one deselects the other. The big build button then runs whichever is selected.
+  toggleForceAI() { const on = !this.state.forceAI; this.setState({ forceAI: on, sculptMode: on ? false : this.state.sculptMode }); }
+  toggleSculptMode() { const on = !this.state.sculptMode; this.setState({ sculptMode: on, forceAI: on ? false : this.state.forceAI }); }
   startSculpt() { this.setImageMode(); this.showToast('Drop a photo — the AI sculpts the main object (background removed automatically)'); }
   onSculptTextInput(e) { this.setState({ sculptText: e.target.value }); }
   // Sculpt an organic mesh from the typed prompt (text -> 3D). On image-only backends
@@ -1511,12 +1515,13 @@ class Component extends DCLogic {
       setTextMode: () => this.setTextMode(), setImageMode: () => this.setImageMode(),
       onPromptInput: (e) => this.onPromptInput(e), onTitleInput: (e) => this.onTitleInput(e),
       onDescInput: (e) => this.onDescInput(e), onCodeInput: (e) => this.onCodeInput(e),
-      onGenerate: () => this.generate(), toggleCode: () => this.toggleCode(), toggleForceAI: () => this.toggleForceAI(),
+      onGenerate: () => this.state.sculptMode ? this.sculptFromText() : this.generate(),   // the build button runs the selected mode
+      toggleCode: () => this.toggleCode(), toggleForceAI: () => this.toggleForceAI(), toggleSculptMode: () => this.toggleSculptMode(),
       startSculpt: () => this.startSculpt(),
-      sculptFromText: () => this.sculptFromText(), sculptFromImage: () => this.sculptFromImage(), onSculptTextInput: (e) => this.onSculptTextInput(e), sculptText: s.sculptText || '',
-      forceAI: s.forceAI, genError: s.genError, hasGenError: !!s.genError, hasCode: !s.meshMode,
-      sculptStyle: 'display:inline-flex;align-items:center;gap:7px;padding:7px 12px;border-radius:99px;font-size:12.5px;font-weight:600;cursor:pointer;transition:.15s;background:rgba(255,90,31,.12);color:var(--accent,#ff5a1f);border:1.5px solid var(--accent,#ff5a1f);',
-      generateLabel: 'Generate model',
+      sculptFromImage: () => this.sculptFromImage(), onSculptTextInput: (e) => this.onSculptTextInput(e), sculptText: s.sculptText || '',
+      forceAI: s.forceAI, sculptMode: s.sculptMode, genError: s.genError, hasGenError: !!s.genError, hasCode: !s.meshMode,
+      sculptStyle: 'display:inline-flex;align-items:center;gap:7px;padding:7px 12px;border-radius:99px;font-size:12.5px;font-weight:600;cursor:pointer;transition:.15s;' + (s.sculptMode ? 'background:rgba(255,90,31,.12);color:var(--accent,#ff5a1f);border:1.5px solid var(--accent,#ff5a1f);' : 'background:#fff;color:#586575;border:1.5px solid #d0d8e2;'),
+      generateLabel: s.sculptMode ? 'Sculpt model' : 'Generate model',
       meshQuality: mq, qualityDetailStyle: mq === 'detail' ? qon : qoff, qualityWatertightStyle: mq === 'watertight' ? qon : qoff,
       setQualityDetail: () => this.setMeshQuality('detail'), setQualityWatertight: () => this.setMeshQuality('watertight'),
       meshModel: mmodel, modelTrellisStyle: mmodel === 'trellis' ? qon : qoff, modelHunyuanStyle: mmodel === 'hunyuan' ? qon : qoff,
