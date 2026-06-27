@@ -33,7 +33,7 @@ export function getMeshBase() { return ls.get(K.base); }
 export function setMeshBase(v) { ls.set(K.base, (v || '').trim()); }
 export function getMeshQuality() { return ls.get(K.quality) || 'detail'; }
 export function setMeshQuality(v) { ls.set(K.quality, v); }
-export function getMeshModel() { return ls.get(K.model) || 'trellis'; }
+export function getMeshModel() { return ls.get(K.model) || 'hunyuan'; }
 export function setMeshModel(v) { ls.set(K.model, v); }
 export function hasMesh() { const p = getMeshProvider(); return p === 'custom' ? !!getMeshBase() : !!getMeshKey(); }
 
