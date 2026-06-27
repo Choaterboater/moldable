@@ -138,7 +138,7 @@ export async function generateMesh({ prompt, imageDataUrl, signal, onStatus, pol
   if (!prompt && !imageDataUrl) throw new MeshError('need a prompt or an image', 'bad-input');
   // image-to-3D backends can't turn words into a shape on their own — guide the user to a photo or a text-capable cloud provider.
   if (!imageDataUrl && imageOnly(provider))
-    throw new MeshError('This sculpt backend builds from a photo. Upload a photo, or switch to Meshy/Tripo in Settings to sculpt from a typed description.', 'needs-photo');
+    throw new MeshError('This backend sculpts from a photo, not text. Easiest: turn OFF 🪑 Sculpt and press Generate to model it in OpenSCAD (free, no photo). Or upload a photo, or switch to Meshy/Tripo in Settings to sculpt from a typed description.', 'needs-photo');
 
   const a = adapter(provider, base, key);
   onStatus && onStatus('Submitting to the mesh model…');
