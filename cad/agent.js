@@ -3,7 +3,7 @@
 // validate/self-repair loop for freeform. `compile` is injected (the worker
 // runner in the app; a direct call in tests) so this stays unit-testable.
 import { MODELS, generate as genLibrary } from './scad-gen.js';
-import { interpret, authorFreeform, repairFreeform, refineParams, refineFreeform } from './interpret.js';
+import { interpret, authorFreeform, repairFreeform, refineParams, refineFreeform, expandPrompt } from './interpret.js';
 import { validate } from './validate.js';
 import { hasApiKey } from './llm.js';
 
@@ -12,10 +12,16 @@ import { hasApiKey } from './llm.js';
 // returns { route, system?, params?, source, files, stl, spec, attempts, warnings, recognized }
 export async function buildFromPrompt(prompt, { compile, onStatus, signal, maxRepairs = 3, forceAI = false } = {}) {
   onStatus && onStatus('Interpreting your idea…');
-  // forceAI ("Design with AI") bypasses keyword/template routing → straight to freeform authoring
-  const spec = forceAI
-    ? { freeform: true, description: prompt, constraints: { bed: [256, 256], material: 'PLA' }, recognized: true, source: 'forced' }
-    : await interpret(prompt, { signal });
+  // forceAI ("Design with AI") bypasses keyword/template routing → straight to freeform authoring,
+  // but first expand the (often terse) prompt into a buildable spec so the author has real dimensions.
+  let spec;
+  if (forceAI) {
+    onStatus && onStatus('Expanding your idea…');
+    const description = await expandPrompt(prompt, { signal });
+    spec = { freeform: true, description, constraints: { bed: [256, 256], material: 'PLA' }, recognized: true, source: 'forced' };
+  } else {
+    spec = await interpret(prompt, { signal });
+  }
 
   // ---- known / library route ----
   if (!spec.freeform && spec.system && MODELS[spec.system]) {
