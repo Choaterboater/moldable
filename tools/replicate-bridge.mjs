@@ -22,7 +22,7 @@ const REPL = (process.env.REPLICATE_API_BASE || 'https://api.replicate.com').rep
 const SIZE = process.env.MESH_SIZE || '80';
 // Trellis detail knobs — firtoz defaults (mesh_simplify 0.95, 12 steps) give a low-poly blob.
 const TRELLIS_SIMPLIFY = Number(process.env.TRELLIS_SIMPLIFY || 0.9);  // lower = denser mesh (0.7–0.95)
-const TRELLIS_STEPS = Number(process.env.TRELLIS_STEPS || 25);          // more sampling steps = more detail (+cost)
+const TRELLIS_STEPS = Number(process.env.TRELLIS_STEPS || 38);          // sampling steps (max useful ~50); higher = sharper shape (+cost)
 const TMP = process.env.TMPDIR || '/tmp';
 const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-methods': 'POST, GET, OPTIONS', 'access-control-allow-headers': 'authorization, content-type' };
 const tasks = new Map();

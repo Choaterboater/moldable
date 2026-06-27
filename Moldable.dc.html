@@ -1353,7 +1353,7 @@ class Component extends DCLogic {
   renderVals() {
     const s = this.state, M = this.MODELS[s.model] || this.MODELS.vase || { label: 'Model', cat: '', tags: [], params: [] };
     const mq = (() => { try { return localStorage.getItem('moldable_mesh_quality') || 'detail'; } catch { return 'detail'; } })();
-    const mmodel = (() => { try { return localStorage.getItem('moldable_mesh_model') || 'trellis'; } catch { return 'trellis'; } })();
+    const mmodel = (() => { try { return localStorage.getItem('moldable_mesh_model') || 'hunyuan'; } catch { return 'hunyuan'; } })();
     const qpill = 'padding:6px 13px;border-radius:99px;font-size:12px;font-weight:700;cursor:pointer;transition:.15s;';
     const qon = qpill + 'background:rgba(255,90,31,.12);color:var(--accent,#ff5a1f);border:1.5px solid var(--accent,#ff5a1f);';
     const qoff = qpill + 'background:#fff;color:#586575;border:1.5px solid #d0d8e2;';
