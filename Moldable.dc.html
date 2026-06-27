@@ -568,6 +568,13 @@
           <sc-if value="{{ showMeshBase }}" hint-placeholder-val="{{ false }}">
             <input value="{{ meshBase }}" onInput="{{ onMeshBaseInput }}" placeholder="http://localhost:8788 (bridge)" spellcheck="false" style="width:100%;margin-top:8px;border:1.5px solid #d6dde6;border-radius:11px;padding:11px 13px;font-size:13px;font-family:'IBM Plex Mono',monospace;background:#fff;color:#19222d;" />
           </sc-if>
+          <sc-if value="{{ showMeshModel }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap;">
+              <span style="font-size:12px;color:#7d8a9a;font-weight:600;">Model:</span>
+              <button onClick="{{ setModelTrellis }}" title="Trellis — clean low-poly, fast (~5–10¢)" style="{{ modelTrellisStyle }}">Trellis</button>
+              <button onClick="{{ setModelHunyuan }}" title="Hunyuan3D — denser/higher detail (~20–30¢)" style="{{ modelHunyuanStyle }}">Hunyuan3D</button>
+            </div>
+          </sc-if>
           <div style="font-size:11.5px;color:#7d8a9a;margin-top:7px;line-height:1.5;">{{ meshProviderHint }} Mesh output may need a cleanup pass before printing.</div>
         </div>
       </div>
@@ -1468,6 +1475,7 @@ class Component extends DCLogic {
       })),
       meshKey: s.meshKey, meshBase: s.meshBase,
       showMeshBase: ['local', 'replicate', 'custom'].includes(s.meshProvider),
+      showMeshModel: ['replicate', 'custom'].includes(s.meshProvider),   // Trellis vs Hunyuan only routes on Replicate/custom; Local uses your one Hunyuan server, Meshy/Tripo have their own
       meshNeedsToken: ['replicate', 'meshy', 'tripo'].includes(s.meshProvider),
       meshKeyPlaceholder: s.meshProvider === 'replicate' ? 'Replicate API token' : s.meshProvider === 'tripo' ? 'Tripo API token' : 'Meshy API token',
       meshProviderHint: {
