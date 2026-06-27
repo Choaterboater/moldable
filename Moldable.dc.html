@@ -116,6 +116,13 @@
             <sc-if value="{{ forceAI }}" hint-placeholder-val="{{ false }}"><span style="font-size:11.5px;color:#7d8a9a;">every prompt → custom OpenSCAD build</span></sc-if>
             <sc-if value="{{ sculptMode }}" hint-placeholder-val="{{ false }}"><span style="font-size:11.5px;color:#7d8a9a;">organic mode → AI mesh (not OpenSCAD)</span></sc-if>
           </div>
+          <sc-if value="{{ sculptMode }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap;">
+              <span style="font-size:12px;color:#7d8a9a;font-weight:600;">Print style:</span>
+              <button onClick="{{ setQualityDetail }}" title="Keep all the detail; your slicer auto-fixes any minor holes" style="{{ qualityDetailStyle }}">Detail</button>
+              <button onClick="{{ setQualityWatertight }}" title="Sealed solid mesh — guaranteed watertight, slightly softer detail" style="{{ qualityWatertightStyle }}">Watertight</button>
+            </div>
+          </sc-if>
           <div style="display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 4px;">
             <sc-for list="{{ chips }}" as="chip" hint-placeholder-count="4">
               <button onClick="{{ chip.onClick }}" style="font-size:13px;font-weight:600;color:#586575;background:#e6ebf1;border:1px solid #d6dde6;padding:8px 13px;border-radius:99px;cursor:pointer;">{{ chip.label }}</button>
