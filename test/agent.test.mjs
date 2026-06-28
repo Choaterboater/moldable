@@ -73,26 +73,29 @@ const ok = (name, cond, extra = '') => { if (cond) { pass++; console.log('PASS',
   ok('caller small bed flags oversize', small.warnings.some((w) => /exceeds/.test(w)), small.warnings.join('; ') || '(no warnings — bed ignored!)');
 }
 
-// ---- freeform route with mocked Claude (bad -> repair -> good) ----
+// ---- freeform route via JSON-IR (invalid IR -> repairIR -> valid IR -> real compile) ----
 {
   store.clear();
   setApiKey('sk-test');
   const realFetch = globalThis.fetch;
+  let authorModel = null;
   globalThis.fetch = async (_url, opts) => {
-    const sys = JSON.parse(opts.body).system || '';
+    const body = JSON.parse(opts.body); const sys = body.system || '';
     let text;
-    if (/fixing a failing/.test(sys)) text = 'cube([20,20,20]);';        // repair -> valid
-    else if (/expert OpenSCAD author/.test(sys)) text = 'cube(0);';      // author -> empty (fails)
-    else text = '{"system":null,"params":{},"freeform":true,"description":"a tiny dragon, ~40mm","confidence":0.6}';
+    if (/FIXING an IR/.test(sys)) text = '{"name":"Box","units":"mm","params":[{"key":"s","label":"Size","min":10,"max":40,"value":20,"step":1}],"root":{"type":"box","size":["s","s","s"]}}';  // repair -> valid IR
+    else if (/STRUCTURED JSON tree/.test(sys)) { authorModel = body.model; text = '{"name":"Bad","params":[],"root":{"type":"frobnicate"}}'; }  // author -> invalid IR (triggers repair)
+    else text = '{"system":null,"params":{},"freeform":true,"description":"a tiny box ~20mm","confidence":0.6}';  // interpret
     return { ok: true, json: async () => ({ content: [{ type: 'text', text }] }) };
   };
   try {
     const r = await buildFromPrompt('a tiny dragon figurine', { compile, maxRepairs: 2 });
-    ok('freeform route', r.route === 'freeform', r.route);
-    ok('freeform self-repaired', r.attempts === 2, 'attempts=' + r.attempts);
-    ok('freeform produced STL', r.stl && r.stl.length > 84, (r.stl ? r.stl.length : 0) + ' bytes');
+    ok('freeform route (IR)', r.route === 'freeform', r.route);
+    ok('IR self-repaired', r.attempts === 2, 'attempts=' + r.attempts);
+    ok('IR produced STL', r.stl && r.stl.length > 84, (r.stl ? r.stl.length : 0) + ' bytes');
+    ok('result carries ir + irParams (live sliders)', !!r.ir && Array.isArray(r.irParams) && r.irParams.length === 1, JSON.stringify(r.irParams));
+    ok('authoring threaded the profile model', authorModel === 'claude-sonnet-4-6', authorModel);
   } catch (e) {
-    fail += 3; console.log('FAIL freeform route threw:', e.message);
+    fail += 5; console.log('FAIL freeform IR route threw:', e.message);
   } finally { globalThis.fetch = realFetch; }
 }
 

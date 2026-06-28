@@ -319,12 +319,12 @@ module part() {
 }
 part();`;
 
-export async function authorFreeform(prompt, spec, { signal } = {}) {
+export async function authorFreeform(prompt, spec, opts = {}) {
   const desc = (spec && spec.description) || prompt;
   const reply = await callClaude({
     system: AUTHOR_SYSTEM,
     messages: [{ role: 'user', content: 'Design this and output OpenSCAD only:\n' + desc }],
-    maxTokens: 8000, signal,
+    maxTokens: opts.maxTokens || 8000, signal: opts.signal, provider: opts.provider, model: opts.model,
   });
   return extractScad(reply);
 }
@@ -351,13 +351,13 @@ function classifyDiagnostic(diag) {
   return null;
 }
 
-export async function repairFreeform(source, diagnostic, attempt = 1, { signal } = {}) {
+export async function repairFreeform(source, diagnostic, attempt = 1, opts = {}) {
   const hint = classifyDiagnostic(diagnostic);
   const escalate = attempt > 1 ? `\nThis is repair attempt ${attempt}; the previous fix did not work — try a fundamentally different approach.` : '';
   const reply = await callClaude({
     system: AUTHOR_SYSTEM + '\nYou are fixing a failing OpenSCAD program. Return ONLY the corrected complete program.' + escalate,
     messages: [{ role: 'user', content: 'This program failed:\n```\n' + source + '\n```\nDiagnostic:\n' + diagnostic + '\n' + (hint ? 'Likely root cause and fix: ' + hint + '\n' : '') + 'Return a corrected, complete OpenSCAD program.' }],
-    maxTokens: 8000, signal,
+    maxTokens: opts.maxTokens || 8000, signal: opts.signal, provider: opts.provider, model: opts.model,
   });
   return extractScad(reply);
 }
@@ -399,11 +399,91 @@ export async function expandPrompt(text, { signal } = {}) {
 }
 
 // Freeform: surgically edit the existing OpenSCAD program.
-export async function refineFreeform(source, request, { signal } = {}) {
+export async function refineFreeform(source, request, opts = {}) {
   const reply = await callClaude({
     system: AUTHOR_SYSTEM + '\nYou are EDITING an existing OpenSCAD program to satisfy a change request. Keep everything that already works; change ONLY what the request asks (and keep the /* [Adjust] */ // [min:max] customizer comments so sliders keep working). Return ONLY the complete updated program.',
     messages: [{ role: 'user', content: 'Current program:\n```\n' + source + '\n```\nChange request: "' + request + '"\nReturn the full updated OpenSCAD program.' }],
-    maxTokens: 8000, signal,
+    maxTokens: opts.maxTokens || 8000, signal: opts.signal, provider: opts.provider, model: opts.model,
   });
   return extractScad(reply);
+}
+
+// ========================= JSON-IR authoring (the new freeform path) =========================
+// The LLM emits a structured IR; cad/ir.js transpiles it to manifold OpenSCAD. The prompt is
+// short because the transpiler OWNS epsilon/Z≥0/manifold/module-call — the model only describes
+// geometry as nodes. Few-shot examples are the lever the research found most effective.
+const AUTHOR_IR_SYSTEM = `You design 3D-printable parts as a STRUCTURED JSON tree (an "IR"). A transpiler turns your JSON into correct, watertight OpenSCAD — so you do NOT write OpenSCAD and do NOT worry about epsilon overlaps, manifoldness, resting on Z=0, or calling a module. You ONLY describe geometry as nodes.
+
+Output ONLY a JSON object — no prose, no markdown fences, no <think>.
+
+SCHEMA:
+{ "name": "<short title>", "units": "mm",
+  "params": [ { "key": "<scad_var>", "label": "<UI label>", "min": <n>, "max": <n>, "value": <n>, "step": <n?> } ],
+  "root": <node> }
+Every numeric field of a node is a NUMBER or a STRING expression over param keys (e.g. "dia - 2*wall", "height*0.5"). Put each user-adjustable dimension in params and reference it by key — that gives the user live sliders.
+
+3D NODES:
+  {"type":"box","size":[w,d,h],"round":<r?>}             // centered in XY, rests on Z=0
+  {"type":"cylinder","h":,"d":}  or  {"d1":,"d2":}        // rests on Z=0
+  {"type":"sphere","d":}                                   // centered (transpiler lifts it onto Z=0)
+  {"type":"regular_prism","sides":,"d":,"h":}
+  {"type":"linear_extrude","height":,"twist"?,"scale"?,"child":<2D>}
+  {"type":"rotate_extrude","angle"?:360,"child":<2D>}      // child profile in +X; X=radius, Y=height
+  {"type":"text","text":"","size":,"height":}
+2D NODES (only as an extrude child): {"type":"square","size":[w,h],"round"?}, {"type":"circle","d":}, {"type":"polygon","points":[[x,y],...]}
+OPS: union/intersection/hull {"children":[...]}; difference {"children":[<solid>, <cutter>, ...]} — child[0] is KEPT, the rest are SUBTRACTED (make cutters pass fully through, or inset them so material remains); translate {"v":[x,y,z],"child"}; rotate {"a":[x,y,z] in degrees,"child"}; mirror/scale {"v":,"child"}; pattern {"kind":"linear","count":,"spacing":[dx,dy,dz],"child"} or {"kind":"polar","count":,"radius":,"child"}.
+ESCAPE for organic/swept/odd shapes the nodes can't express: {"type":"raw","scad":"<openscad statements>"} as a node, or a top-level {"name","units","params","raw":"<full program body>"}. Prefer real nodes; use raw only when needed.
+
+DESIGN RULES:
+- Design for FUNCTION → real dimensions: a peg that inserts into a hole is SMALLER (≈0.4mm clearance/side); a socket/cradle/sleeve is LARGER. Walls 1.6–3mm. Honor any stated sizes.
+- Build the REQUESTED object (not a generic box/cup). Use difference to hollow and to cut holes/slots/pockets.
+
+EXAMPLES:
+Vented pencil cup → {"name":"Pencil Cup","units":"mm","params":[{"key":"dia","label":"Outer ⌀","min":50,"max":110,"value":74,"step":1},{"key":"height","label":"Height","min":60,"max":160,"value":100,"step":1},{"key":"wall","label":"Wall","min":1.6,"max":4,"value":2.4,"step":0.2}],"root":{"type":"difference","children":[{"type":"cylinder","d":"dia","h":"height"},{"type":"translate","v":[0,0,"wall"],"child":{"type":"cylinder","d":"dia - 2*wall","h":"height"}}]}}
+L mounting bracket with 2 screw holes → {"name":"L Bracket","units":"mm","params":[{"key":"w","label":"Width","min":30,"max":100,"value":50,"step":1},{"key":"leg","label":"Leg","min":30,"max":100,"value":60,"step":1},{"key":"t","label":"Thickness","min":3,"max":8,"value":5,"step":0.5},{"key":"hole","label":"Screw ⌀","min":3,"max":8,"value":4.5,"step":0.5}],"root":{"type":"difference","children":[{"type":"union","children":[{"type":"translate","v":["t/2",0,0],"child":{"type":"box","size":["t","w","leg"],"round":2}},{"type":"translate","v":["leg/2",0,0],"child":{"type":"box","size":["leg","w","t"],"round":2}}]},{"type":"translate","v":["-1",0,"leg*0.55"],"child":{"type":"rotate","a":[0,90,0],"child":{"type":"cylinder","d":"hole","h":"t*2"}}}]}}`;
+
+export async function authorIR(prompt, spec, opts = {}) {
+  const desc = (spec && spec.description) || prompt;
+  const reply = await callClaude({
+    system: AUTHOR_IR_SYSTEM,
+    messages: [{ role: 'user', content: 'Design this as an IR JSON object:\n' + desc }],
+    maxTokens: opts.maxTokens || 8000, signal: opts.signal, provider: opts.provider, model: opts.model,
+  });
+  return extractJson(reply);
+}
+
+// map a compile/validate/IR diagnostic to an IR-STRUCTURAL hint (the transpiler owns the SCAD-level rules)
+function classifyIRDiagnostic(diag) {
+  const d = (diag || '').toLowerCase();
+  if (/sliver|removed almost all|fills only/.test(d)) return 'A difference cutter (a child after child[0]) is as large as the kept solid in a dimension you need — shrink the cutter’s size expression (inset by the wall), or make sure child[0] is the solid and the rest are cutters.';
+  if (/inside-out|inverted|negative volume/.test(d)) return 'In your difference node, child[0] must be the outer solid and the remaining children the cutters — reorder them.';
+  if (/manifold|watertight|open edge/.test(d)) return 'Two solids share a coplanar face. Nudge one with a small translate, or for a hole make it a child of a difference node (cutters auto-extend) rather than a union.';
+  if (/below z|z=0|rest flat|base sits/.test(d)) return 'Geometry sits below Z=0 — rest primitives on Z=0 or add a translate with positive z (spheres are centered, so translate them up by their radius).';
+  if (/bed|footprint|exceeds/.test(d)) return 'The part is larger than the print bed — reduce the size params so the footprint fits.';
+  if (/empty|no geometry|degenerate|0 triangles/.test(d)) return 'The result is empty — a difference removed all material (cutter too big or wrong child order). Ensure child[0] of every difference is the kept solid.';
+  if (/2d|unextruded|not a 3d/.test(d)) return 'A 2D shape (square/circle/polygon) is used as a 3D node — wrap it in a linear_extrude or rotate_extrude.';
+  if (/ir invalid|undeclared|unknown type|missing|2d_in_3d|3d_in_2d|bad_param/.test(d)) return 'The JSON did not match the IR schema — fix the node type/fields, declare every param you reference, and keep difference children as [solid, ...cutters].';
+  return 'Adjust the IR so the kept solid survives all cutters and the result is a single watertight part.';
+}
+
+export async function repairIR(ir, diagnostic, attempt = 1, opts = {}) {
+  const hint = classifyIRDiagnostic(diagnostic);
+  const escalate = attempt > 1 ? '\nThis is repair attempt ' + attempt + '; the previous fix did not work — try a different structure.' : '';
+  const reply = await callClaude({
+    system: AUTHOR_IR_SYSTEM + '\nYou are FIXING an IR that produced a bad result. Return ONLY a corrected IR JSON object.' + escalate,
+    messages: [{ role: 'user', content: 'This IR failed:\n```json\n' + JSON.stringify(ir) + '\n```\nProblem: ' + diagnostic + '\nLikely fix: ' + hint + '\nReturn the corrected IR JSON.' }],
+    maxTokens: opts.maxTokens || 8000, signal: opts.signal, provider: opts.provider, model: opts.model,
+  });
+  return extractJson(reply);
+}
+
+// refineIR: conversational tweak → a JSON delta applied by ir.applyIRDelta (param change, add cutter/part, rename).
+export async function refineIR(ir, request, opts = {}) {
+  const params = (ir.params || []).map((p) => `- ${p.key}: ${p.label || p.key}, ${p.min}..${p.max}, now ${p.value}`).join('\n');
+  const reply = await callClaude({
+    system: 'You refine a 3D-printable part described as an IR JSON tree. Return ONLY a JSON DELTA describing the change:\n{"params": {"<key>": <newValue>}} to change slider values; {"addCutter": <node>} to subtract a feature (e.g. a hole); {"addPart": <node>} to add material; {"name": "<new name>"}. Use the param keys for dimensions; omit anything not requested. No prose.',
+    messages: [{ role: 'user', content: 'Params:\n' + params + '\n\nIR:\n```json\n' + JSON.stringify(ir) + '\n```\nChange request: "' + request + '"\nReturn the JSON delta:' }],
+    maxTokens: opts.maxTokens || 1500, signal: opts.signal, provider: opts.provider, model: opts.model,
+  });
+  return extractJson(reply);
 }
