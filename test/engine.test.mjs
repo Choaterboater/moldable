@@ -33,6 +33,9 @@ function envelope(model, p) {
     case 'cableclip': return { x: m.length, y: m.cables * (m.dia + 2.5) + 2.5 + (Number(m.mount) >= 0.5 ? 16 : 0), z: m.dia / 2 + 4.5 };
     case 'knob': return { x: m.dia, y: m.dia, z: m.height };
     case 'cupadapter': { const cod = (m.mug + 6) + 2 * m.wall; const fod = Math.max(cod, m.holder + 8); return { x: fod, y: fod, z: m.plugH + m.wall + m.cradleH }; }
+    case 'stackingtray': return { x: m.width, y: m.depth, z: m.height };
+    case 'cableenclosure': return { x: m.length, y: m.width + (Number(m.mount) >= 0.5 ? 18 : 0), z: m.height };
+    case 'hingebox': return { x: 2 * m.width + 1, y: m.depth, z: m.height };
     default: return null;
   }
 }
@@ -116,6 +119,9 @@ const VARIANTS = {
   apmount: [{}, { cols: 2 }, { cols: 1 }],
   wallbin: [{}, { sections: 6 }, { width: 180, depth: 60 }],
   walldock: [{}, { width: 185, height: 140, shelfDepth: 60, lip: 24 }, { slot: 0, width: 45, height: 45 }],
+  stackingtray: [{}, { divX: 5, divY: 4 }, { lip: 8, width: 260, depth: 200, height: 80 }, { wall: 4, divX: 1, divY: 1 }],
+  cableenclosure: [{}, { mount: 0, slots: 0 }, { length: 300, slots: 6, mount: 1 }, { width: 80, height: 60 }],
+  hingebox: [{}, { latch: 0 }, { width: 160, depth: 160, height: 60 }, { hinge: 0.4, wall: 4 }],
 };
 
 let pass = 0, fail = 0;

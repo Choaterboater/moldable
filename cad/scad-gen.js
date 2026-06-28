@@ -154,6 +154,31 @@ export const MODELS = {
     { key: 'slot', label: 'Charger slot', min: 0, max: 50, step: 1, def: 18, unit: 'mm' },
     { key: 'wall', label: 'Wall', min: 2, max: 5, step: 0.5, def: 3, unit: 'mm' },
   ] },
+  stackingtray: { label: 'Stacking Tray', cat: 'Storage', tags: ['tray', 'stacking', 'parts', 'organizer', 'parametric'], params: [
+    { key: 'width', label: 'Width', min: 60, max: 260, step: 2, def: 150, unit: 'mm' },
+    { key: 'depth', label: 'Depth', min: 50, max: 200, step: 2, def: 110, unit: 'mm' },
+    { key: 'height', label: 'Height', min: 15, max: 80, step: 1, def: 35, unit: 'mm' },
+    { key: 'wall', label: 'Wall', min: 1.6, max: 4, step: 0.2, def: 2.4, unit: 'mm' },
+    { key: 'divX', label: 'Columns', min: 1, max: 5, step: 1, def: 1, unit: '' },
+    { key: 'divY', label: 'Rows', min: 1, max: 4, step: 1, def: 1, unit: '' },
+    { key: 'lip', label: 'Stack lip', min: 2, max: 8, step: 1, def: 4, unit: 'mm' },
+  ] },
+  cableenclosure: { label: 'Cable Raceway', cat: 'Workshop', tags: ['cable', 'raceway', 'cord', 'channel', 'management', 'parametric'], params: [
+    { key: 'length', label: 'Length', min: 60, max: 300, step: 2, def: 160, unit: 'mm' },
+    { key: 'width', label: 'Width', min: 20, max: 80, step: 1, def: 40, unit: 'mm' },
+    { key: 'height', label: 'Height', min: 12, max: 60, step: 1, def: 30, unit: 'mm' },
+    { key: 'wall', label: 'Wall', min: 1.6, max: 4, step: 0.2, def: 2.4, unit: 'mm' },
+    { key: 'slots', label: 'Drop-in slots', min: 0, max: 6, step: 1, def: 2, unit: '' },
+    { key: 'mount', label: 'Screw ears', min: 0, max: 1, step: 1, def: 1, unit: '' },
+  ] },
+  hingebox: { label: 'Living-Hinge Box', cat: 'Storage', tags: ['box', 'hinge', 'clamshell', 'case', 'parametric'], params: [
+    { key: 'width', label: 'Width', min: 40, max: 160, step: 1, def: 90, unit: 'mm' },
+    { key: 'depth', label: 'Depth', min: 40, max: 160, step: 1, def: 70, unit: 'mm' },
+    { key: 'height', label: 'Wall height', min: 10, max: 60, step: 1, def: 24, unit: 'mm' },
+    { key: 'wall', label: 'Wall', min: 1.6, max: 4, step: 0.2, def: 2, unit: 'mm' },
+    { key: 'hinge', label: 'Hinge thickness', min: 0.4, max: 1, step: 0.1, def: 0.6, unit: 'mm' },
+    { key: 'latch', label: 'Snap latch', min: 0, max: 1, step: 1, def: 1, unit: '' },
+  ] },
 };
 
 export function defaults(model) {
@@ -712,7 +737,70 @@ union() {
   return { source, files: [] };   // self-contained — no external STL
 }
 
-const GEN = { vase, organizer, stand, holder, hook, shelf, gridfinity, baseplate, box, coaster, bracket, cableclip, knob, cupadapter, funnel, soapdish, peghook, wallhook, brick, apmount, wallbin, walldock };
+// Stacking parts tray — open divided bin; dividers stop `lip` below the rim so trays nest when stacked.
+function stackingtray(p) {
+  const source = customizerHeader('stackingtray', p) + `$fn = 32; eps = 0.02; fil = 2;
+floor = min(wall, 2);
+module rr(w, d, r) { offset(r = r) square([max(0.1, w - 2 * r), max(0.1, d - 2 * r)], center = true); }
+difference() {
+  linear_extrude(height) rr(width, depth, fil);                                                              // outer block
+  translate([0, 0, floor]) linear_extrude(height) rr(width - 2 * wall, depth - 2 * wall, max(0.4, fil - wall)); // open-top cavity (exits past the top)
+}
+recess = min(lip, height - floor - 2);    // dividers stop this far below the rim → nesting recess
+dz = height - recess;
+for (i = [1 : divX - 1])  // columns (empty loop when divX=1)
+  translate([-width / 2 + i * width / divX - wall / 2, -(depth - 2 * wall) / 2 - eps, floor - eps]) cube([wall, depth - 2 * wall + 2 * eps, dz - floor + eps]);
+for (j = [1 : divY - 1])  // rows
+  translate([-(width - 2 * wall) / 2 - eps, -depth / 2 + j * depth / divY - wall / 2, floor - eps]) cube([width - 2 * wall + 2 * eps, wall, dz - floor + eps]);
+`;
+  return { source, files: [] };
+}
+
+// Desk cable raceway — U-channel with top drop-in slots and optional screw-mount ears.
+function cableenclosure(p) {
+  const source = customizerHeader('cableenclosure', p) + `$fn = 32; eps = 0.05;
+floor = min(wall, 2);
+ear = (mount > 0) ? 9 : 0;
+difference() {
+  union() {
+    translate([-length / 2, -width / 2, 0]) cube([length, width, height]);                                  // trough body
+    if (mount > 0) translate([-length / 2, -(width / 2 + ear), 0]) cube([length, width + 2 * ear, wall]);   // base flange + ears
+  }
+  translate([-length / 2 + wall, -width / 2 + wall, floor]) cube([length - 2 * wall, width - 2 * wall, height]); // open channel (exits top)
+  if (slots > 0) for (i = [0 : slots - 1]) {                       // drop-in notches through both side-wall tops
+    sx = -length / 2 + length * (i + 1) / (slots + 1);
+    translate([sx - 6, -width / 2 - eps, height - min(10, height - floor - 2)]) cube([12, width + 2 * eps, height]);
+  }
+  if (mount > 0) for (ex = [-length / 2 + 8, length / 2 - 8]) for (ey = [-(width / 2 + ear / 2), width / 2 + ear / 2])
+    translate([ex, ey, -eps]) cylinder(h = wall + 2 * eps, d = 4);  // screw holes in the ears, clear of the channel
+}
+`;
+  return { source, files: [] };
+}
+
+// Living-hinge clamshell box — two trays joined by a thin flexure web; prints flat, folds closed.
+function hingebox(p) {
+  const source = customizerHeader('hingebox', p) + `$fn = 32; eps = 0.05;
+floor = min(wall, 2);
+hw = max(0.4, hinge);   // living-hinge web thickness
+gap = 1;                // flex gap between the two trays
+module tray() {
+  difference() {
+    cube([width, depth, height]);
+    translate([wall, wall, floor]) cube([width - 2 * wall, depth - 2 * wall, height]);   // open top
+  }
+}
+union() {
+  tray();                                                              // left half  x[0, width]
+  translate([width + gap, 0, 0]) tray();                               // right half x[width+gap, 2*width+gap]
+  translate([width - wall, 0, 0]) cube([gap + 2 * wall, depth, hw]);   // living-hinge web (overlaps both walls -> welds)
+  if (latch > 0) translate([2 * width + gap - wall, depth / 2 - 6, height - eps]) cube([wall, 12, 1.6]); // snap nub on the far wall
+}
+`;
+  return { source, files: [] };
+}
+
+const GEN = { vase, organizer, stand, holder, hook, shelf, gridfinity, baseplate, box, coaster, bracket, cableclip, knob, cupadapter, funnel, soapdish, peghook, wallhook, brick, apmount, wallbin, walldock, stackingtray, cableenclosure, hingebox };
 
 export function generate(model, params) {
   const gen = GEN[model];

@@ -266,6 +266,8 @@
         <sc-if value="{{ rendering }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;top:14px;left:14px;display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:#41505f;background:rgba(255,255,255,.92);border:1px solid #d6dde6;padding:8px 12px;border-radius:9px;backdrop-filter:blur(4px);z-index:6;"><span style="width:13px;height:13px;border:2px solid #ccd4df;border-top-color:var(--accent,#ff5a1f);border-radius:50%;animation:mw-spin .8s linear infinite;display:inline-block;"></span>Rendering&hellip;</div></sc-if>
         <sc-if value="{{ hasRenderError }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;left:14px;right:14px;bottom:46px;font-size:12.5px;font-weight:600;color:#fff;background:rgba(176,0,32,.92);padding:9px 12px;border-radius:9px;z-index:6;">&#9888; {{ renderError }}</div></sc-if>
         <button onClick="{{ resetView }}" style="position:absolute;top:14px;right:14px;display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:#41505f;background:rgba(255,255,255,.92);border:1px solid #d6dde6;padding:8px 12px;border-radius:9px;cursor:pointer;backdrop-filter:blur(4px);">&#8635; Reset view</button>
+        <button onClick="{{ toggleHeatmap }}" title="Colour the model where it overhangs more than 45&deg; and may need supports (works for parts and sculpts)" style="position:absolute;top:14px;right:127px;display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:{{ heatmapBtnColor }};background:rgba(255,255,255,.92);border:1px solid #d6dde6;padding:8px 12px;border-radius:9px;cursor:pointer;backdrop-filter:blur(4px);">&#9968; {{ heatmapLabel }}</button>
+        <sc-if value="{{ heatmap }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;right:14px;bottom:14px;display:inline-flex;align-items:center;gap:8px;font-size:10.5px;color:#41505f;background:rgba(255,255,255,.9);padding:6px 10px;border-radius:8px;font-family:'IBM Plex Mono',monospace;">overhang angle (45&deg;)<span style="display:inline-block;width:60px;height:8px;border-radius:4px;background:linear-gradient(90deg,#4dc75c,#f5cc33,#dc3636);"></span></div></sc-if>
         <div style="position:absolute;left:14px;bottom:14px;font-size:10.5px;color:#586575;font-family:'IBM Plex Mono',monospace;letter-spacing:.06em;text-transform:uppercase;background:rgba(255,255,255,.85);padding:5px 10px;border-radius:8px;font-weight:500;">drag to rotate &middot; scroll to zoom</div>
       </div>
 
@@ -890,7 +892,7 @@ class Component extends DCLogic {
       title: 'Twisted Planter',
       parametric: true,
       toast: '',
-      rendering: false, renderError: '',
+      rendering: false, renderError: '', heatmap: false,
       settingsOpen: false, settingsMsg: '', provider: 'anthropic', apiKey: '', baseUrl: '', modelChoice: 'claude-sonnet-4-6', hasKey: false,
       meshProvider: 'meshy', meshKey: '', meshBase: '', sculptText: '',
       savedSculpts: (() => { try { return JSON.parse(localStorage.getItem('moldable_sculpts') || '[]'); } catch { return []; } })(),
@@ -915,7 +917,7 @@ class Component extends DCLogic {
 
   /* ---------- prompt parsing lives in cad/interpret.js (keywordMatch/keywordPreset);
      the agent drives generate(). No local copy here to avoid drift. ---------- */
-  _titleFor(model) { return ({ vase:'Twisted Planter', organizer:'Desk Organizer', stand:'Phone Stand', holder:'HSW Tool Holder', hook:'HSW Hook', shelf:'HSW Display Shelf', gridfinity:'Gridfinity Bin', baseplate:'Gridfinity Baseplate', box:'Box', coaster:'Coaster', bracket:'L-Bracket', cableclip:'Cable Clip', knob:'Knob', cupadapter:'Cupholder Adapter', funnel:'Funnel', soapdish:'Soap Dish', peghook:'Pegboard Hook', wallhook:'Wall Hook', brick:'Building Brick', apmount:'Aruba AP-515 HSW Mount', wallbin:'Wall Bin', walldock:'Wall Dock' })[model] || 'Model'; }
+  _titleFor(model) { return ({ vase:'Twisted Planter', organizer:'Desk Organizer', stand:'Phone Stand', holder:'HSW Tool Holder', hook:'HSW Hook', shelf:'HSW Display Shelf', gridfinity:'Gridfinity Bin', baseplate:'Gridfinity Baseplate', box:'Box', coaster:'Coaster', bracket:'L-Bracket', cableclip:'Cable Clip', knob:'Knob', cupadapter:'Cupholder Adapter', funnel:'Funnel', soapdish:'Soap Dish', peghook:'Pegboard Hook', wallhook:'Wall Hook', brick:'Building Brick', apmount:'Aruba AP-515 HSW Mount', wallbin:'Wall Bin', walldock:'Wall Dock', stackingtray:'Stacking Tray', cableenclosure:'Cable Raceway', hingebox:'Living-Hinge Box', pedestal:'Base / Stand' })[model] || 'Model'; }
 
   /* ---------- generation ---------- */
   async generate(text) {
@@ -1142,7 +1144,7 @@ class Component extends DCLogic {
       this.modelGroup.position.set(-ctr.x, -box.min.y, -ctr.z);   // sit on the floor (GLB is Y-up like the viewer)
       const maxd = Math.max(size.x, size.y, size.z) || 50;
       this.view.radius = maxd * 2 + 50; this.view.target.set(0, size.y * 0.45, 0); this.view.theta = 0.9; this.view.phi = 1.02;
-      this._meshObj = gltf.scene; this.setState({ rendering: false }); this._draw();
+      this._meshObj = gltf.scene; this.setState({ rendering: false }); if (this.state.heatmap) this._applyHeatmap(); else this._draw();
       // a fresh sculpt (not a recall) auto-saves to "Your sculpts" with a thumbnail snapped from the rendered canvas
       if (this._pendingSave) { const ps = this._pendingSave; this._pendingSave = null; this._saveSculpt(ps.glb, ps.title, this._captureThumb()); }
     }, (err) => { this.setState({ rendering: false, meshMode: false, freeform: false, renderError: 'Could not load the mesh: ' + (err && err.message || err) + ' — try a different photo or backend.' }); });   // reset freeform too (L7) — match the L6 reset in the sculptMesh catch   // renderError shows on the result/viewer screen; genError only shows on the home tabs (would be a silent blank viewer)
@@ -1543,9 +1545,11 @@ class Component extends DCLogic {
       import('./cad/llm.js'),
       import('./cad/catalog.js').catch(() => ({ CATALOG: [] })),
       import('./cad/mesh.js').catch(() => null),
-    ]).then(([runner, agent, llm, catalog, mesh]) => {
+      import('./cad/overhang.js').catch(() => null),
+    ]).then(([runner, agent, llm, catalog, mesh, overhang]) => {
       this._cad = runner;
       this._mesh = mesh;
+      this._overhang = overhang;
       this.CATALOG = (catalog && catalog.CATALOG) || [];
       this._runner = runner.createRunner();
       this._agent = agent;
@@ -1663,7 +1667,7 @@ class Component extends DCLogic {
       this.view.theta = 0.9; this.view.phi = 1.02;
     }
     this._colorSig = this.state.color;
-    this._draw();
+    if (this.state.heatmap) this._applyHeatmap(); else this._draw();
   }
   _stlToGeometry(stl) {
     const T = this.THREE;
@@ -1691,6 +1695,37 @@ class Component extends DCLogic {
     this.modelGroup.traverse((o) => { if (o.isMesh && o.material) o.material.color = c; });
     this._draw();
   }
+  // ---- overhang heat-map: colour faces that overhang >45° (need supports), parts AND sculpts ----
+  // Print-up = viewer +Y for both engines (SCAD geo is pre-rotated Z→Y; GLB is Y-up).
+  _applyHeatmap() {
+    const T = this.THREE, ov = this._overhang; if (!T || !ov || !this.modelGroup) return;
+    this.modelGroup.updateMatrixWorld(true);
+    this.modelGroup.traverse((o) => {
+      if (!o.isMesh || !o.geometry || !o.material) return;
+      const g = o.geometry;
+      if (!g.attributes.normal) g.computeVertexNormals();
+      const nm = new T.Matrix3().getNormalMatrix(o.matrixWorld).elements;   // local normals → world
+      const colors = ov.overhangColorsFromNormals(g.attributes.normal.array, g.attributes.normal.count, nm, [0, 1, 0]);
+      g.setAttribute('color', new T.BufferAttribute(colors, 3));
+      o.material.vertexColors = true; o.material.color = new T.Color(0xffffff); o.material.needsUpdate = true;
+    });
+    this._draw();
+  }
+  _clearHeatmap() {
+    const T = this.THREE; if (!T || !this.modelGroup) return;
+    const c = new T.Color(this.state.color);
+    this.modelGroup.traverse((o) => {
+      if (!o.isMesh || !o.material) return;
+      if (o.geometry && o.geometry.attributes.color) o.geometry.deleteAttribute('color');
+      o.material.vertexColors = false; o.material.color = c; o.material.needsUpdate = true;
+    });
+    this._draw();
+  }
+  toggleHeatmap() {
+    const on = !this.state.heatmap;
+    this.setState({ heatmap: on });
+    if (on) this._applyHeatmap(); else this._clearHeatmap();   // recolour in place — no recompile
+  }
 
   resetView() {
     if (!this.modelGroup || !this.THREE) return;
@@ -1703,7 +1738,7 @@ class Component extends DCLogic {
   componentDidUpdate() {
     if (!this.viewer) return;
     if (this.state.meshMode) {   // AI mesh (GLB) is rendered directly — never recompile OpenSCAD over it
-      if (this.state.color !== this._colorSig) { this._colorSig = this.state.color; this._applyColor(); }
+      if (!this.state.heatmap && this.state.color !== this._colorSig) { this._colorSig = this.state.color; this._applyColor(); }  // heat-map owns the colours while on
       return;
     }
     const m = this.state.model;
@@ -1714,7 +1749,7 @@ class Component extends DCLogic {
       this._geomSig = geomSig; this._lastModel = m;
       this._scheduleRebuild(reframe);
     }
-    if (this.state.color !== this._colorSig) {
+    if (!this.state.heatmap && this.state.color !== this._colorSig) {
       this._colorSig = this.state.color;
       this._applyColor();
     }
@@ -1784,7 +1819,7 @@ class Component extends DCLogic {
       .map(label => ({ label, onClick: () => this.generate(label) }));
 
     const tchip = 'padding:7px 13px;border-radius:99px;font-weight:600;font-size:13px;cursor:pointer;';
-    const typeList = [['vase','Vase'],['organizer','Organizer'],['box','Box'],['coaster','Coaster'],['bracket','L-bracket'],['cableclip','Cable clip'],['knob','Knob'],['cupadapter','Cupholder adapter'],['funnel','Funnel'],['soapdish','Soap dish'],['peghook','Pegboard hook'],['wallhook','Wall hook'],['brick','Building brick'],['stand','Phone stand'],['gridfinity','Gridfinity'],['baseplate','Baseplate'],['apmount','AP-515 mount'],['wallbin','Wall bin'],['walldock','Wall dock'],['holder','HSW cup'],['hook','HSW hook'],['shelf','HSW shelf']].map(([k, label]) => ({
+    const typeList = [['vase','Vase'],['organizer','Organizer'],['box','Box'],['coaster','Coaster'],['bracket','L-bracket'],['cableclip','Cable clip'],['knob','Knob'],['cupadapter','Cupholder adapter'],['funnel','Funnel'],['soapdish','Soap dish'],['peghook','Pegboard hook'],['wallhook','Wall hook'],['brick','Building brick'],['stand','Phone stand'],['gridfinity','Gridfinity'],['baseplate','Baseplate'],['apmount','AP-515 mount'],['wallbin','Wall bin'],['walldock','Wall dock'],['stackingtray','Stacking tray'],['cableenclosure','Cable raceway'],['hingebox','Hinge box'],['holder','HSW cup'],['hook','HSW hook'],['shelf','HSW shelf']].map(([k, label]) => ({
       key: k, label, onClick: () => this.switchType(k),
       style: tchip + (!s.freeform && s.model === k
         ? 'background:var(--accent,#ff5a1f);color:#fff;border:1.5px solid var(--accent,#ff5a1f);'
@@ -1905,6 +1940,7 @@ class Component extends DCLogic {
       openPublish: () => this.openPublish(), closePublish: () => this.closePublish(), doPublish: () => this.doPublish(),
       toggleParametric: () => this.toggleParametric(),
       resetView: () => this.resetView(), downloadSTL: () => this.downloadSTL(), downloadSCAD: () => this.downloadSCAD(), shareLink: () => this.shareLink(), saveDesign: () => this.saveDesign(), newModel: () => this.newModel(),
+      heatmap: s.heatmap, toggleHeatmap: () => this.toggleHeatmap(), heatmapLabel: s.heatmap ? 'Solid' : 'Overhangs', heatmapBtnColor: s.heatmap ? 'var(--accent,#ff5a1f)' : '#41505f',
       refine: () => this.refine(), onRefineInput: (e) => this.onRefineInput(e), refineText: s.refineText || '',
       refineLabel: s.refining ? 'Refining…' : '✨ Refine',
       refineBtnStyle: 'flex:0 0 auto;padding:12px 18px;border-radius:12px;border:none;font-weight:700;font-size:14px;white-space:nowrap;cursor:' + (s.refining ? 'default' : 'pointer') + ';background:' + (s.refining ? '#c6d0db' : 'var(--accent,#ff5a1f)') + ';color:#fff;',
