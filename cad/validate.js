@@ -18,10 +18,13 @@ export function inspectStl(stl) {
   const tri = [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
   let vol6 = 0, area = 0;                    // 6× signed mesh volume (divergence theorem) + surface area
   const edges = new Map(), verts = new Map();
+  const parent = [];                          // union-find over welded vertices → count connected components (shells)
+  const find = (x) => { let r = x; while (parent[r] !== r) r = parent[r]; while (parent[x] !== r) { const n = parent[x]; parent[x] = r; x = n; } return r; };
+  const union = (a, b) => { const ra = find(a), rb = find(b); if (ra !== rb) parent[ra] = rb; };
   const q = 1e-4;                            // weld quantum (mm); OpenSCAD emits shared verts bit-identical
   const intern = (x, y, z) => {
     const k = Math.round(x / q) + ',' + Math.round(y / q) + ',' + Math.round(z / q);
-    let i = verts.get(k); if (i === undefined) { i = verts.size; verts.set(k, i); } return i;
+    let i = verts.get(k); if (i === undefined) { i = verts.size; verts.set(k, i); parent[i] = i; } return i;
   };
   const bump = (a, b) => { const e = a < b ? a + '_' + b : b + '_' + a; edges.set(e, (edges.get(e) || 0) + 1); };
 
@@ -44,11 +47,12 @@ export function inspectStl(stl) {
     const wx = uy*vz - uz*vy, wy = uz*vx - ux*vz, wz = ux*vy - uy*vx;
     area += 0.5 * Math.sqrt(wx*wx + wy*wy + wz*wz);   // for approx wall thickness = 2*volume/area
     const ia = intern(a[0], a[1], a[2]), ib = intern(b[0], b[1], b[2]), ic = intern(c[0], c[1], c[2]);
-    if (ia !== ib && ib !== ic && ia !== ic) { bump(ia, ib); bump(ib, ic); bump(ic, ia); } // skip degenerate
+    if (ia !== ib && ib !== ic && ia !== ic) { bump(ia, ib); bump(ib, ic); bump(ic, ia); union(ia, ib); union(ib, ic); } // edges + connectivity (skip degenerate)
   }
   let openEdges = 0, nonManifoldEdges = 0;
   for (const n of edges.values()) { if (n === 1) openEdges++; else if (n > 2) nonManifoldEdges++; }
 
+  let components = 0; { const roots = new Set(); for (let i = 0; i < verts.size; i++) roots.add(find(i)); components = roots.size; }
   const size = [max[0] - min[0], max[1] - min[1], max[2] - min[2]];
   const bboxVol = size[0] * size[1] * size[2];
   const volume = Math.abs(vol6) / 6;
@@ -56,7 +60,7 @@ export function inspectStl(stl) {
     ok: true, tris, size, min, max,
     signedVolume: vol6 / 6, volume, area,
     volRatio: bboxVol > 0 ? volume / bboxVol : 0,
-    openEdges, nonManifoldEdges,
+    openEdges, nonManifoldEdges, components,
   };
 }
 
@@ -91,6 +95,10 @@ export function validate(stl, constraints = {}) {
     return { ok: false, reason: `geometry sits ${(-info.min[2]).toFixed(2)}mm below the build plate (Z=0) — translate the whole model up so its lowest point rests on Z=0.`, info };
 
   const warnings = [];
+  // the #1 freeform failure: parts placed at uncoordinated positions come out as separate floating
+  // solids ("random pieces"). Each is independently watertight so the hard gates above pass — flag it
+  // here so the freeform repair loop reconnects them (the library route ignores warnings).
+  if (info.components > 1) warnings.push(`the model is in ${info.components} disconnected pieces — they must overlap/connect into a single solid`);
   const bed = constraints.bed;
   const [sx, sy, sz] = info.size;
   if (bed && bed.length === 2) {
