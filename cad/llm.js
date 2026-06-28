@@ -74,8 +74,8 @@ export async function callClaude({ system, messages, maxTokens = 2048, model, si
   const key = getApiKey();
   const mdl = model || getModel();
   const isLocalBridge = provider === 'custom' || provider === 'claude-cli';
-  // the local CLI bridge runs the full agent (~1–2 min to author); APIs are quick.
-  const tmo = timeoutMs || (isLocalBridge ? 320000 : 180000);  // APIs incl. slow reasoning models
+  // the local CLI bridge runs the full agent; free opus-via-CLI is slow, so give it room (≥ the bridge's).
+  const tmo = timeoutMs || (provider === 'claude-cli' ? 600000 : provider === 'custom' ? 320000 : 180000);
 
   // never hang forever on a slow/stuck provider — the timeout always applies,
   // composed with any caller-supplied cancel signal.
