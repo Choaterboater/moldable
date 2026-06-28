@@ -179,6 +179,15 @@ export const MODELS = {
     { key: 'hinge', label: 'Hinge thickness', min: 0.4, max: 1, step: 0.1, def: 0.6, unit: 'mm' },
     { key: 'latch', label: 'Snap latch', min: 0, max: 1, step: 1, def: 1, unit: '' },
   ] },
+  pedestal: { label: 'Base / Stand', cat: 'Display', tags: ['base', 'stand', 'pedestal', 'display', 'parametric'], params: [
+    { key: 'width', label: 'Width', min: 40, max: 300, step: 2, def: 100, unit: 'mm' },
+    { key: 'depth', label: 'Depth', min: 40, max: 300, step: 2, def: 80, unit: 'mm' },
+    { key: 'height', label: 'Height', min: 6, max: 120, step: 1, def: 24, unit: 'mm' },
+    { key: 'wall', label: 'Recess wall', min: 2, max: 8, step: 0.5, def: 3, unit: 'mm' },
+    { key: 'lip', label: 'Seat recess', min: 0, max: 20, step: 1, def: 0, unit: 'mm' },
+    { key: 'fillet', label: 'Corner radius', min: 0, max: 30, step: 1, def: 4, unit: 'mm' },
+    { key: 'chamfer', label: 'Foot chamfer', min: 0, max: 1, step: 1, def: 1, unit: '' },
+  ] },
 };
 
 export function defaults(model) {
@@ -800,7 +809,24 @@ union() {
   return { source, files: [] };
 }
 
-const GEN = { vase, organizer, stand, holder, hook, shelf, gridfinity, baseplate, box, coaster, bracket, cableclip, knob, cupadapter, funnel, soapdish, peghook, wallhook, brick, apmount, wallbin, walldock, stackingtray, cableenclosure, hingebox };
+// Display base / stand sized to a sculpt's footprint — filleted slab, optional seat recess + foot chamfer.
+function pedestal(p) {
+  const source = customizerHeader('pedestal', p) + `$fn = 48; eps = 0.05;
+fil = max(0, min(fillet, min(width, depth) / 2 - 1));
+ch = (chamfer > 0) ? 0.6 : 0;                  // small inset foot to fight elephant-foot
+module rr(w, d, r) { offset(r = r) square([max(0.1, w - 2 * r), max(0.1, d - 2 * r)], center = true); }
+difference() {
+  union() {
+    if (ch > 0) linear_extrude(ch + eps) rr(width - 2 * ch, depth - 2 * ch, max(0.4, fil - ch));   // chamfered foot
+    translate([0, 0, ch]) linear_extrude(height - ch) rr(width, depth, fil);                        // main slab
+  }
+  if (lip > 0) translate([0, 0, height - lip]) linear_extrude(lip + eps) rr(width - 2 * wall, depth - 2 * wall, max(0.4, fil - wall)); // seat recess (sculpt nests in)
+}
+`;
+  return { source, files: [] };
+}
+
+const GEN = { vase, organizer, stand, holder, hook, shelf, gridfinity, baseplate, box, coaster, bracket, cableclip, knob, cupadapter, funnel, soapdish, peghook, wallhook, brick, apmount, wallbin, walldock, stackingtray, cableenclosure, hingebox, pedestal };
 
 export function generate(model, params) {
   const gen = GEN[model];

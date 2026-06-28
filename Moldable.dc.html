@@ -285,6 +285,9 @@
         <sc-if value="{{ isFreeform }}" hint-placeholder-val="{{ false }}">
           <div style="grid-column:1/-1;font-size:13px;color:#586575;line-height:1.5;">{{ freeformNote }}</div>
         </sc-if>
+        <sc-if value="{{ isMeshMode }}" hint-placeholder-val="{{ false }}">
+          <div style="grid-column:1/-1;"><button onClick="{{ addBase }}" title="Generate a printable base/stand sized to this sculpt" style="display:inline-flex;align-items:center;gap:8px;padding:11px 16px;border-radius:12px;border:1.5px solid #d0d8e2;background:#fff;color:#41505f;font-weight:600;font-size:14px;cursor:pointer;">&#127963; Add a base / stand</button></div>
+        </sc-if>
         <sc-for list="{{ paramList }}" as="p" hint-placeholder-count="4">
           <div>
             <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px;">
@@ -1149,6 +1152,7 @@ class Component extends DCLogic {
       this.modelGroup.add(gltf.scene);
       this.modelGroup.position.set(0, 0, 0);
       const box = new T.Box3().setFromObject(this.modelGroup), ctr = box.getCenter(new T.Vector3()), size = box.getSize(new T.Vector3());
+      this._meshSize = { x: size.x, y: size.y, z: size.z, provider: (this._mesh && this._mesh.getMeshProvider) ? this._mesh.getMeshProvider() : '' };   // footprint = X×Z (viewer is Y-up); feeds "Add a base"
       this.modelGroup.position.set(-ctr.x, -box.min.y, -ctr.z);   // sit on the floor (GLB is Y-up like the viewer)
       const maxd = Math.max(size.x, size.y, size.z) || 50;
       this.view.radius = maxd * 2 + 50; this.view.target.set(0, size.y * 0.45, 0); this.view.theta = 0.9; this.view.phi = 1.02;
@@ -1241,6 +1245,30 @@ class Component extends DCLogic {
       codeText: this._code(key, params), recognized: true, hasGenerated: true,
       generating: false, screen: 'result', freeform: false, meshMode: false,
     });
+  }
+  // ---- sculpt → parametric companion: a printable base/stand sized to the sculpt's footprint ----
+  addBase() {
+    if (!this.MODELS || !this.MODELS.pedestal) { this.showToast('Loading…'); return; }
+    const ms = this._meshSize || {};
+    let fx = ms.x || 80, fz = ms.z || 80;        // footprint = X×Z in the viewer (Y is up)
+    const prov = ms.provider;
+    // cloud GLBs (meshy/tripo) come back at ~unit scale; bridge/local are real mm — ask for a size for cloud.
+    if (prov && prov !== 'local' && prov !== 'replicate' && prov !== 'custom') {
+      const target = +window.prompt('About how big is your sculpt across its longest side, in mm?', '80');
+      const longest = Math.max(ms.x || 0, ms.y || 0, ms.z || 0) || 1;
+      if (target > 0) { const k = target / longest; fx *= k; fz *= k; }
+    }
+    const w = Math.max(40, Math.min(300, Math.ceil(fx) + 10));   // +10mm so the sculpt seats with clearance
+    const d = Math.max(40, Math.min(300, Math.ceil(fz) + 10));
+    const params = { ...this.defs.pedestal, width: w, depth: d, lip: 4 };
+    this._codeDirty = false; this._reframeNext = true;
+    this.setState({
+      model: 'pedestal', modelParams: { ...this.state.modelParams, pedestal: params },
+      title: 'Base for ' + (this.state.title || 'sculpt'), tags: this.MODELS.pedestal.tags,
+      codeText: this._code('pedestal', params), recognized: true, hasGenerated: true,
+      generating: false, screen: 'result', freeform: false, meshMode: false, freeformParams: [], heatmap: false,
+    });
+    this.showToast('Base sized to your sculpt — tweak the sliders to fit');
   }
 
   setParam(key, val) {
@@ -1960,6 +1988,7 @@ class Component extends DCLogic {
       toggleParametric: () => this.toggleParametric(),
       resetView: () => this.resetView(), downloadSTL: () => this.downloadSTL(), downloadSCAD: () => this.downloadSCAD(), shareLink: () => this.shareLink(), saveDesign: () => this.saveDesign(), newModel: () => this.newModel(),
       heatmap: s.heatmap, toggleHeatmap: () => this.toggleHeatmap(), heatmapLabel: s.heatmap ? 'Solid' : 'Overhangs', heatmapBtnColor: s.heatmap ? 'var(--accent,#ff5a1f)' : '#41505f',
+      isMeshMode: s.meshMode, addBase: () => this.addBase(),
       refine: () => this.refine(), onRefineInput: (e) => this.onRefineInput(e), refineText: s.refineText || '',
       refineLabel: s.refining ? 'Refining…' : '✨ Refine',
       refineBtnStyle: 'flex:0 0 auto;padding:12px 18px;border-radius:12px;border:none;font-weight:700;font-size:14px;white-space:nowrap;cursor:' + (s.refining ? 'default' : 'pointer') + ';background:' + (s.refining ? '#c6d0db' : 'var(--accent,#ff5a1f)') + ';color:#fff;',
