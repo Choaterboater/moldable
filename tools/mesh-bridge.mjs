@@ -10,6 +10,7 @@
 // Then in Moldable → Settings → AI mesh: provider "Custom / bridge",
 // base URL http://localhost:8788  (the bridge is Meshy-shaped, matching cad/mesh.js).
 import http from 'node:http';
+import { checkAccess } from './bridge-guard.mjs';
 
 const PORT = Number(process.env.PORT || 8788);
 const UPSTREAM = (process.env.MESH_UPSTREAM || 'https://api.meshy.ai').replace(/\/+$/, '');
@@ -22,6 +23,13 @@ const CORS = {
 if (!KEY) console.warn('[mesh-bridge] warning: no MESH_KEY set — upstream calls will be unauthorized');
 
 const server = http.createServer((req, res) => {
+  // gate cross-origin / DNS-rebinding callers before forwarding upstream with the injected key.
+  const access = checkAccess(req);
+  if (!access.ok) {
+    if (req.method === 'OPTIONS') { res.writeHead(403); return res.end(); }
+    res.writeHead(403, { 'content-type': 'application/json' });
+    return res.end(JSON.stringify({ error: { message: 'forbidden: non-local or cross-origin request blocked' } }));
+  }
   if (req.method === 'OPTIONS') { res.writeHead(204, CORS); return res.end(); }
   let body = '';
   req.on('error', () => {});

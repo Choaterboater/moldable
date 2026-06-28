@@ -105,7 +105,8 @@ const VARIANTS = {
   coaster: [{}, { sides: 6 }, { rim: 0, dia: 140 }],
   bracket: [{}, { hole: 0, legA: 120 }, { thick: 10, width: 100 }],
   cableclip: [{}, { cables: 6, dia: 12, mount: 0 }, { cables: 1, length: 60 }],
-  knob: [{}, { grips: 0 }, { dia: 60, grips: 24, shaft: 8 }],
+  knob: [{}, { grips: 0 }, { dia: 60, grips: 24, shaft: 8 }, { dia: 18, shaft: 10 }, { dia: 18, shaft: 10, grips: 0 }],   // small-dia/big-shaft: the corner where the old D-flat sheared the body
+
   cupadapter: [{}, { mug: 60, holder: 78, handle: 0 }, { mug: 100, holder: 90, cradleH: 100, handle: 45 }, { openings: 4, handle: 24 }],
   funnel: [{}, { topDia: 150, stemDia: 40, wall: 3 }, { topDia: 50, stemDia: 8, height: 30, stemLen: 80 }],
   soapdish: [{}, { ridges: 0 }, { width: 170, depth: 120, height: 35, ridges: 12 }],
@@ -160,6 +161,28 @@ for (const model of Object.keys(MODELS)) {
       if (res.log && (res.hardError || !info.ok)) console.log('     ' + res.log.split('\n').filter((l) => /error|warning/i.test(l)).slice(0, 4).join('\n     '));
     }
   }
+}
+
+// ---- #5 focused: the D-flat must NOT shear the knob body at small-dia/big-shaft ----
+// The generic envelope check is too loose to catch the old cutter (a sheared knob still
+// clears it). Assert the +X body survives and the footprint stays centered & full.
+{
+  const bboxOf = (data) => {
+    const dv = new DataView(data.buffer, data.byteOffset, data.byteLength);
+    const tris = dv.getUint32(80, true);
+    const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
+    let off = 84;
+    for (let t = 0; t < tris; t++) { off += 12; for (let v = 0; v < 3; v++) { for (let c = 0; c < 3; c++) { const f = dv.getFloat32(off, true); off += 4; if (f < lo[c]) lo[c] = f; if (f > hi[c]) hi[c] = f; } } off += 2; }
+    return { lo, hi };
+  };
+  const dia = 18;
+  const { source, files } = generate('knob', { dia, shaft: 10, grips: 0 });
+  const r = await compile(source, files);
+  const b = r.data ? bboxOf(r.data) : null;
+  // old (sheared) cutter at dia=18: +X body removed -> hi.x ≈ 3.2 and x-extent ≈ 12. Fixed: full ±9.
+  const okGeo = b && (b.hi[0] >= dia * 0.4) && ((b.hi[0] - b.lo[0]) >= dia * 0.9) && (Math.abs(b.hi[0] + b.lo[0]) <= dia * 0.15);
+  if (okGeo) { pass++; console.log('PASS', 'knob D-flat keeps body intact'.padEnd(52), `x=[${b.lo[0].toFixed(1)},${b.hi[0].toFixed(1)}]`); }
+  else { fail++; const why = b ? `sheared body: x=[${b.lo[0].toFixed(1)},${b.hi[0].toFixed(1)}] extent=${(b.hi[0]-b.lo[0]).toFixed(1)}` : 'no STL'; failures.push('knob D-flat shear -> ' + why); console.log('FAIL', 'knob D-flat keeps body intact'.padEnd(52), why); }
 }
 
 console.log('\n' + '='.repeat(60));

@@ -453,7 +453,10 @@ difference() {
     for (i = [0 : spokes - 1]) rotate([0, 0, 360 / spokes * i]) translate([-spk_w / 2, 0, 0]) cube([spk_w, dia / 2, h]); // keep spokes (hub→rim)
   }
   translate([0, 0, -eps]) cylinder(h = h + 2 * eps, d = shaft);                        // shaft bore
-  translate([shaft / 2 - shaft * 0.18, -shaft, -eps]) cube([shaft, shaft * 2, h + 2 * eps]); // D-flat
+  // D-flat: a flat on the +X side of the shaft bore for anti-rotation. Bounded to the bore
+  // (X in [0.32·shaft, shaft/2], Y in ±shaft/2) so it can NEVER shear the knob body or breach
+  // the hub — the old cutter ran out to 1.32·shaft and sliced the part apart at small dia.
+  translate([shaft * 0.32, -shaft / 2, -eps]) cube([shaft / 2 - shaft * 0.32 + eps, shaft, h + 2 * eps]); // D-flat (bore-bounded)
 }
 `;
   return { source, files: [] };
