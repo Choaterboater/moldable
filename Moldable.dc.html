@@ -1031,10 +1031,13 @@ class Component extends DCLogic {
     if (!d) { this.showToast('That design is missing'); return; }
     try { await this._loadCad(); } catch (e) {}
     this._reframeNext = true;
-    if (d.kind === 'freeir' && d.ir && this._ir) {
-      this._codeDirty = true;
-      this.setState({ screen: 'result', hasGenerated: true, freeform: true, meshMode: false, recognized: true,
-        codeText: this._ir.irToScad(d.ir), freeformIR: d.ir, color: d.c || this.state.color, title: d.title, freeformParams: this._ir.irParams(d.ir), codeOpen: false });
+    if (d.kind === 'freeir' && d.ir) {
+      if (!this._ir) { this.showToast('Model engine didn’t load — refresh and try again'); return; }
+      try {   // a corrupt saved IR must not crash the load
+        this._codeDirty = true;
+        this.setState({ screen: 'result', hasGenerated: true, freeform: true, meshMode: false, recognized: true,
+          codeText: this._ir.irToScad(d.ir), freeformIR: d.ir, color: d.c || this.state.color, title: d.title, freeformParams: this._ir.irParams(d.ir), codeOpen: false });
+      } catch (e) { this.showToast('Couldn’t open that design'); }
     } else if (d.kind === 'free' && d.code) {
       this._codeDirty = true;
       this.setState({ screen: 'result', hasGenerated: true, freeform: true, meshMode: false, recognized: true,
@@ -1074,11 +1077,14 @@ class Component extends DCLogic {
       obj = JSON.parse(decodeURIComponent(escape(atob(m[1]))));
     } catch (e) { return; }
     try { await this._loadCad(); } catch (e) {}
-    if (obj.f === 2 && obj.ir && this._ir) {
-      this._codeDirty = true; this._reframeNext = true;
-      this.setState({ screen: 'result', hasGenerated: true, freeform: true, meshMode: false, recognized: true,
-        codeText: this._ir.irToScad(obj.ir), freeformIR: obj.ir, color: obj.c || this.state.color, title: obj.t || 'Shared model',
-        freeformParams: this._ir.irParams(obj.ir), codeOpen: false });
+    if (obj.f === 2 && obj.ir) {
+      if (!this._ir) { this.showToast('Model engine didn’t load — refresh and try again'); return; }
+      try {   // a corrupt shared IR fragment must not blank the page on load
+        this._codeDirty = true; this._reframeNext = true;
+        this.setState({ screen: 'result', hasGenerated: true, freeform: true, meshMode: false, recognized: true,
+          codeText: this._ir.irToScad(obj.ir), freeformIR: obj.ir, color: obj.c || this.state.color, title: obj.t || 'Shared model',
+          freeformParams: this._ir.irParams(obj.ir), codeOpen: false });
+      } catch (e) { this.showToast('Could not open that shared model'); }
     } else if (obj.f && obj.code) {
       this._codeDirty = true; this._reframeNext = true;
       this.setState({ screen: 'result', hasGenerated: true, freeform: true, meshMode: false, recognized: true,
@@ -1341,7 +1347,7 @@ class Component extends DCLogic {
   onPromptInput(e) { this.setState({ prompt: e.target.value }); }
   onTitleInput(e) { this.setState({ title: e.target.value }); }
   onDescInput(e) { this.setState({ publishDesc: e.target.value }); }
-  onCodeInput(e) { this._codeDirty = true; this.setState({ codeText: e.target.value }); }
+  onCodeInput(e) { this._codeDirty = true; this.setState({ codeText: e.target.value, freeformIR: null }); }   // hand-edited SCAD can't map back to the IR → codeText becomes the source of truth (don't snap back on refine/save/share)
   toggleCode() { this.setState({ codeOpen: !this.state.codeOpen }); }
   // "Design with AI" (OpenSCAD) and "Sculpt" (organic mesh) are mutually-exclusive modes —
   // selecting one deselects the other. The big build button then runs whichever is selected.

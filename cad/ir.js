@@ -39,6 +39,8 @@ const REQUIRED = {
 const num = (x) => { const v = Number(x); if (!isFinite(v)) return '0'; return Number.isInteger(v) ? String(v) : (Math.round(v * 1e4) / 1e4).toString(); };
 // emit a value: number → formatted; string expression → wrapped in parens (precedence-safe).
 const S = (x) => (typeof x === 'number' ? num(x) : '(' + String(x) + ')');
+// emit a value that may be a vector (e.g. linear_extrude scale=[2,1]) as a SCAD vector.
+const vec = (x) => (Array.isArray(x) ? '[' + x.map(S).join(', ') + ']' : S(x));
 const clampVal = (p) => Math.max(Number(p.min), Math.min(Number(p.max), Number(p.value)));
 
 // ======================= safe expression evaluator (no eval/Function) =======================
@@ -122,6 +124,15 @@ export function irValidate(ir) {
     if (want === '3d' && isP2) errors.push({ code: '2D_IN_3D', msg: `${path}: ${t} is 2D — wrap it in a linear_extrude/rotate_extrude` });
     if (want === '2d' && isP3) errors.push({ code: '3D_IN_2D', msg: `${path}: ${t} is 3D but a 2D shape is required here` });
     for (const f of (REQUIRED[t] || [])) if (node[f] == null) errors.push({ code: 'MISSING_FIELD', msg: `${path}: ${t} requires "${f}"` });
+    // "one-of" + arity checks: catch a primitive missing its diameter/size as a SCHEMA fault (fast
+    // repair, no compile) instead of emitting invalid `(undefined)` SCAD.
+    const has = (k) => node[k] != null;
+    if (t === 'cylinder' && !has('d') && !(has('d1') && has('d2'))) errors.push({ code: 'MISSING_FIELD', msg: `${path}: cylinder needs "d" or ("d1" and "d2")` });
+    if ((t === 'regular_prism' || t === 'sphere' || t === 'circle') && !has('d') && !has('r')) errors.push({ code: 'MISSING_FIELD', msg: `${path}: ${t} needs "d" or "r"` });
+    if (t === 'pattern' && node.kind === 'polar' && !has('radius')) errors.push({ code: 'MISSING_FIELD', msg: `${path}: polar pattern needs "radius"` });
+    if (t === 'pattern' && node.kind === 'linear' && !has('spacing')) errors.push({ code: 'MISSING_FIELD', msg: `${path}: linear pattern needs "spacing"` });
+    if (t === 'box' && (!Array.isArray(node.size) || node.size.length !== 3)) errors.push({ code: 'MISSING_FIELD', msg: `${path}: box "size" must be [w,d,h]` });
+    if (t === 'square' && (!Array.isArray(node.size) || node.size.length !== 2)) errors.push({ code: 'MISSING_FIELD', msg: `${path}: square "size" must be [w,h]` });
     // numeric-ish fields → expression identifier check
     for (const f of ['h', 'height', 'd', 'd1', 'd2', 'r', 'sides', 'angle', 'twist', 'scale', 'count', 'radius', 'round', 'size', 'v', 'a', 'spacing']) {
       const val = node[f]; if (val == null) continue;
@@ -168,24 +179,28 @@ function emit(node, ctx) {
     }
     case 'regular_prism':
       return `${zlift}cylinder(h=${S(node.h)}${ext}, ${node.d != null ? 'd=' + S(node.d) : 'r=' + S(node.r)}, $fn=${S(node.sides)})`;
-    case 'sphere':
-      return `sphere(${node.d != null ? 'd=' + S(node.d) : 'r=' + S(node.r)})`;
+    case 'sphere': {
+      const args = node.d != null ? 'd=' + S(node.d) : 'r=' + S(node.r);
+      if (cut) return `sphere(${args})`;                                   // cutter: stays where placed (centered)
+      const r = node.d != null ? '(' + S(node.d) + ')/2' : S(node.r);
+      return `translate([0, 0, ${r}]) sphere(${args})`;                    // rest on Z=0 via the radius EXPRESSION (param-correct under sliders)
+    }
     case 'linear_extrude': {
-      const o = [`height=${S(node.height)}`];
+      const o = [`height=${S(node.height)}${ext}`];                         // ext when used as a difference cutter
       if (node.twist != null) o.push(`twist=${S(node.twist)}`);
-      if (node.scale != null) o.push(`scale=${S(node.scale)}`);
+      if (node.scale != null) o.push(`scale=${vec(node.scale)}`);          // scale may be a 2-vector
       if (node.slices != null) o.push(`slices=${S(node.slices)}`);
-      return `linear_extrude(${o.join(', ')}) ${emit(node.child, { inDiff: false })}`;
+      return `${zlift}linear_extrude(${o.join(', ')}) ${emit(node.child, { inDiff: false })}`;
     }
     case 'rotate_extrude':
-      return `rotate_extrude(${node.angle != null ? 'angle=' + S(node.angle) : ''}) ${emit(node.child, { inDiff: false })}`;
+      return `${zlift}rotate_extrude(${node.angle != null ? 'angle=' + S(node.angle) : ''}) ${emit(node.child, { inDiff: false })}`;
     case 'text': {
       const p = [JSON.stringify(String(node.text || ''))];
       if (node.size != null) p.push(`size=${S(node.size)}`);
       if (node.font) p.push(`font=${JSON.stringify(String(node.font))}`);
       if (node.halign) p.push(`halign=${JSON.stringify(String(node.halign))}`);
       if (node.valign) p.push(`valign=${JSON.stringify(String(node.valign))}`);
-      return `linear_extrude(${S(node.height != null ? node.height : 2)}) text(${p.join(', ')})`;
+      return `${zlift}linear_extrude(${S(node.height != null ? node.height : 2)}${ext}) text(${p.join(', ')})`;
     }
     // 2D
     case 'square': {
@@ -267,7 +282,7 @@ function bboxNode(node, env, m) {
   let local = null;
   if (t === 'box') { const w = ev(node.size[0]), d = ev(node.size[1]), h = ev(node.size[2]); local = [[-w / 2, -d / 2, 0], [w / 2, d / 2, h]]; }
   else if (t === 'cylinder' || t === 'regular_prism') { const h = ev(node.h); const r = node.d != null ? ev(node.d) / 2 : (node.d1 != null ? Math.max(ev(node.d1), ev(node.d2)) / 2 : ev(node.r)); local = [[-r, -r, 0], [r, r, h]]; }
-  else if (t === 'sphere') { const r = node.d != null ? ev(node.d) / 2 : ev(node.r); local = [[-r, -r, -r], [r, r, r]]; }
+  else if (t === 'sphere') { const r = node.d != null ? ev(node.d) / 2 : ev(node.r); local = [[-r, -r, 0], [r, r, 2 * r]]; }   // emitted resting on Z=0
   else if (t === 'linear_extrude') { const a = localAABB2d(node.child, env); if (!a) return null; const h = ev(node.height); local = [[a[0][0], a[0][1], 0], [a[1][0], a[1][1], h]]; }
   else if (t === 'rotate_extrude') { const a = localAABB2d(node.child, env); if (!a) return null; const R = Math.max(Math.abs(a[0][0]), Math.abs(a[1][0])); local = [[-R, -R, a[0][1]], [R, R, a[1][1]]]; }
   else if (t === 'text') { const h = ev(node.height != null ? node.height : 2), sz = ev(node.size != null ? node.size : 10); const w = sz * Math.max(1, String(node.text || '').length) * 0.7; local = [[-w / 2, -sz / 2, 0], [w / 2, sz / 2, h]]; }
