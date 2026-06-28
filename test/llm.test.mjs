@@ -56,7 +56,7 @@ ok('claude-cli reply parsed', t === 'OOK', t);
   const det = await llm.detectBridge();
   ok('detectBridge ok + lists models', det.ok === true && det.models.includes('opus'), JSON.stringify(det));
   const prof = llm.authorProfile();
-  ok('authorProfile routes claude-cli → opus/16000', prof.provider === 'claude-cli' && prof.model === 'opus' && prof.maxTokens === 16000, JSON.stringify(prof));
+  ok('authorProfile uses CLI model (sonnet, not slow opus)', prof.provider === 'claude-cli' && prof.model === 'sonnet' && prof.maxTokens === 8000, JSON.stringify(prof));
 }
 // anthropic authorProfile keeps the chosen model + the standard budget
 store.clear(); llm.setProvider('anthropic'); llm.setApiKey('sk-ant-x'); llm.setModel('claude-opus-4-8');
