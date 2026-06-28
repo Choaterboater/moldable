@@ -112,6 +112,17 @@ for (const [key, ir] of Object.entries(FIXTURES)) {
   ok('addCutter delta compiles watertight', info.ok && info.openEdges <= 2, info.ok ? 'open=' + info.openEdges : info.reason);
 }
 
+// ---- connectivity: scattered "random pieces" must be flagged disconnected (the reported bug) ----
+{
+  const split = { name: 'Split', units: 'mm', params: [], root: { type: 'union', children: [{ type: 'box', size: [20, 20, 20] }, { type: 'translate', v: [60, 0, 0], child: { type: 'box', size: [20, 20, 20] } }] } };
+  const info = inspectStl((await compile(irToScad(split))).data);
+  ok('two separated solids → 2 components', info.ok && info.components === 2, 'components=' + info.components);
+  const v = validate((await compile(irToScad(split))).data, {});
+  ok('validate warns on disconnected pieces', (v.warnings || []).some((w) => /disconnected pieces/.test(w)), (v.warnings || []).join('; '));
+  const joined = inspectStl((await compile(irToScad({ name: 'J', units: 'mm', params: [], root: { type: 'box', size: [20, 20, 20] } }))).data);
+  ok('one connected solid → 1 component', joined.components === 1, 'components=' + joined.components);
+}
+
 // ---- evalExpr (safe arithmetic) ----
 ok('evalExpr arithmetic', evalExpr('dia - 2*wall', { dia: 74, wall: 2.4 }) === 74 - 2 * 2.4);
 ok('evalExpr functions + degrees', Math.abs(evalExpr('max(1, sin(90))', {}) - 1) < 1e-9);

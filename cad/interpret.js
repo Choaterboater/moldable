@@ -332,6 +332,7 @@ export async function authorFreeform(prompt, spec, opts = {}) {
 // map a failure diagnostic to a concrete root-cause hint for the repair pass
 function classifyDiagnostic(diag) {
   const d = (diag || '').toLowerCase();
+  if (/disconnect|separate piece|floating|pieces/.test(d)) return 'The geometry came out as SEPARATE floating solids. Make every part OVERLAP its neighbour so they union into ONE connected body — never leave a wall/leg/tab placed away from the main solid.';
   // --- common HARD compile failures (these used to fall through to null) ---
   if (/syntax error|parse error|parser error|unexpected|expected '/.test(d)) return 'Syntax error — a missing semicolon, unbalanced {}/()/[], or a stray token. Re-emit a complete, syntactically valid program.';
   if (/unknown module|unknown function|ignoring unknown/.test(d)) return 'You called a module/function that is not defined (a typo, or an external-library call). Define it inline or remove it — no external libraries (BOSL2 etc.).';
@@ -435,6 +436,7 @@ OPS: union/intersection/hull {"children":[...]}; difference {"children":[<solid>
 ESCAPE for organic/swept/odd shapes the nodes can't express: {"type":"raw","scad":"<openscad statements>"} as a node, or a top-level {"name","units","params","raw":"<full program body>"}. Prefer real nodes; use raw only when needed.
 
 DESIGN RULES:
+- ONE CONNECTED SOLID. Every part must physically OVERLAP its neighbour so they fuse into a single body — a wall/leg/tab/base placed away from the rest prints as a separate loose piece. Build outward from a base; make adjacent parts share volume (overlap by ~1mm), never just touch at a plane.
 - Design for FUNCTION → real dimensions: a peg that inserts into a hole is SMALLER (≈0.4mm clearance/side); a socket/cradle/sleeve is LARGER. Walls 1.6–3mm. Honor any stated sizes.
 - Build the REQUESTED object (not a generic box/cup). Use difference to hollow and to cut holes/slots/pockets.
 
@@ -455,6 +457,7 @@ export async function authorIR(prompt, spec, opts = {}) {
 // map a compile/validate/IR diagnostic to an IR-STRUCTURAL hint (the transpiler owns the SCAD-level rules)
 function classifyIRDiagnostic(diag) {
   const d = (diag || '').toLowerCase();
+  if (/disconnect|separate piece|floating|pieces/.test(d)) return 'Your parts came out as SEPARATE floating solids. Re-position every node so it physically OVERLAPS its neighbour and they fuse into ONE connected body (union members must touch; a leg/wall/tab placed away from the body prints loose). Re-check the absolute coordinates in your translate nodes.';
   if (/sliver|removed almost all|fills only/.test(d)) return 'A difference cutter (a child after child[0]) is as large as the kept solid in a dimension you need — shrink the cutter’s size expression (inset by the wall), or make sure child[0] is the solid and the rest are cutters.';
   if (/inside-out|inverted|negative volume/.test(d)) return 'In your difference node, child[0] must be the outer solid and the remaining children the cutters — reorder them.';
   if (/manifold|watertight|open edge/.test(d)) return 'Two solids share a coplanar face. Nudge one with a small translate, or for a hole make it a child of a difference node (cutters auto-extend) rather than a union.';

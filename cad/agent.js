@@ -16,7 +16,7 @@ const USE_IR = true;
 
 // run the IR author→transpile→compile→validate→repair loop. Returns the result, or throws.
 async function buildFromIR(ir, { compile, onStatus, author, maxRepairs, spec }) {
-  let lastDiag = '';
+  let lastDiag = '', triedConnect = false;
   for (let attempt = 1; attempt <= maxRepairs + 1; attempt++) {
     onStatus && onStatus(attempt === 1 ? 'Rendering…' : `Fixing the model (attempt ${attempt})…`);
     let source;
@@ -33,7 +33,12 @@ async function buildFromIR(ir, { compile, onStatus, author, maxRepairs, spec }) 
     catch (e) { lastDiag = (e && e.message || String(e)) + (e && e.log ? '\n' + e.log : ''); }
     if (stl) {
       const v = validate(stl, spec.constraints);
-      if (v.ok) return { route: 'freeform', source, ir, irParams: irParams(ir), files: [], stl, log, spec, attempts: attempt, warnings: v.warnings || [], recognized: true };
+      if (v.ok) {
+        // a valid-but-scattered result ("random pieces") gets one reconnect pass before we accept it
+        const broken = (v.warnings || []).find((w) => /disconnected pieces/.test(w));
+        if (broken && !triedConnect && attempt <= maxRepairs) { triedConnect = true; lastDiag = broken; ir = await repairIR(ir, lastDiag, attempt, author); continue; }
+        return { route: 'freeform', source, ir, irParams: irParams(ir), files: [], stl, log, spec, attempts: attempt, warnings: v.warnings || [], recognized: true };
+      }
       lastDiag = v.reason || 'failed printability check';
     }
     if (attempt <= maxRepairs) ir = await repairIR(ir, lastDiag, attempt, author);
@@ -97,7 +102,7 @@ export async function buildFromPrompt(prompt, { compile, onStatus, signal, maxRe
   }
   // legacy raw-SCAD author (fallback, or USE_IR off)
   let source = await authorFreeform(prompt, spec, author);
-  let lastDiag = '';
+  let lastDiag = '', triedConnect = false;
   for (let attempt = 1; attempt <= maxRepairs + 1; attempt++) {
     onStatus && onStatus(attempt === 1 ? 'Rendering…' : `Fixing the model (attempt ${attempt})…`);
     let stl = null, log = '';
@@ -110,6 +115,8 @@ export async function buildFromPrompt(prompt, { compile, onStatus, signal, maxRe
     if (stl) {
       const v = validate(stl, spec.constraints);
       if (v.ok) {
+        const broken = (v.warnings || []).find((w) => /disconnected pieces/.test(w));
+        if (broken && !triedConnect && attempt <= maxRepairs) { triedConnect = true; lastDiag = broken; source = await repairFreeform(source, lastDiag, attempt, author); continue; }
         return { route: 'freeform', source, files: [], stl, log, spec, attempts: attempt, warnings: v.warnings || [], recognized: true };
       }
       lastDiag = v.reason || 'failed printability check';
