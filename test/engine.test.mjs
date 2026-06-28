@@ -36,6 +36,7 @@ function envelope(model, p) {
     case 'stackingtray': return { x: m.width, y: m.depth, z: m.height };
     case 'cableenclosure': return { x: m.length, y: m.width + (Number(m.mount) >= 0.5 ? 18 : 0), z: m.height };
     case 'hingebox': return { x: 2 * m.width + 1, y: m.depth, z: m.height };
+    case 'pedestal': return { x: m.width, y: m.depth, z: m.height };
     default: return null;
   }
 }
@@ -122,6 +123,7 @@ const VARIANTS = {
   stackingtray: [{}, { divX: 5, divY: 4 }, { lip: 8, width: 260, depth: 200, height: 80 }, { wall: 4, divX: 1, divY: 1 }],
   cableenclosure: [{}, { mount: 0, slots: 0 }, { length: 300, slots: 6, mount: 1 }, { width: 80, height: 60 }],
   hingebox: [{}, { latch: 0 }, { width: 160, depth: 160, height: 60 }, { hinge: 0.4, wall: 4 }],
+  pedestal: [{}, { lip: 8, width: 140, depth: 110 }, { fillet: 0, chamfer: 0 }, { height: 100, wall: 6, lip: 12 }],
 };
 
 let pass = 0, fail = 0;
