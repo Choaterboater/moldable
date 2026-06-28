@@ -11,6 +11,10 @@ const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 // ---------- keyword fallback (no key, or Claude failed) ----------
 export function keywordMatch(t) {
   t = (t || '').toLowerCase();
+  // specific multi-word routes FIRST — before the greedy cable/box/tray rules below swallow them
+  if (/living.?hinge|hinged box|clamshell|flip.?top|snap.?(case|box)/.test(t)) return 'hingebox';
+  if (/cable (raceway|enclosure|channel|trough|duct|tidy|cover)|cord (cover|channel|raceway|duct)|wire (duct|raceway|channel)|\braceway\b/.test(t)) return 'cableenclosure';
+  if (/stack(ing|able)\b.{0,14}\b(tray|bin|box|caddy)|nesting\b.{0,14}\b(tray|bin|box)/.test(t)) return 'stackingtray';
   if (/base.?plate/.test(t)) return 'baseplate';
   if (/grid.?fin/.test(t)) return 'gridfinity';
   if (/coaster|drink mat/.test(t)) return 'coaster';
@@ -108,6 +112,18 @@ export function keywordPreset(model, t) {
     if (hm) p.holder = clamp(+((hm[1].match(/\d+/) || [])[0] || (hm[2].match(/\d+/) || [])[0]), 55, 100);
     if (/no handle|handleless|no slot/.test(t)) p.handle = 0;
     if (/travel|tumbler|tall/.test(t)) { p.cradleH = 95; p.handle = 0; }
+  } else if (model === 'stackingtray') {
+    const gm = t.match(/(\d+)\s*[x×]\s*(\d+)/); if (gm) { p.divX = clamp(+gm[1], 1, 5); p.divY = clamp(+gm[2], 1, 4); }
+    const dm = t.match(/(\d+)\s*(compartment|division|cell|slot)/); if (dm) p.divX = clamp(+dm[1], 1, 5);
+    if (/deep|tall/.test(t)) p.height = 70;
+  } else if (model === 'cableenclosure') {
+    const lm = t.match(/(\d+)\s*mm/); if (lm) p.length = clamp(+lm[1], 60, 300);
+    if (/no (lid|cover|ear|mount|screw)/.test(t)) p.mount = 0;
+    if (/wide/.test(t)) p.width = 70;
+  } else if (model === 'hingebox') {
+    const dm = t.match(/(\d+)\s*[x×]\s*(\d+)/); if (dm) { p.width = clamp(+dm[1], 40, 160); p.depth = clamp(+dm[2], 40, 160); }
+    if (/no (latch|snap|clasp)/.test(t)) p.latch = 0;
+    if (/deep|tall/.test(t)) p.height = 50;
   }
   return p;
 }
