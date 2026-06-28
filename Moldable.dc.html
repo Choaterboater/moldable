@@ -1911,11 +1911,11 @@ class Component extends DCLogic {
       apiKey: s.apiKey, baseUrl: s.baseUrl, modelChoice: s.modelChoice,
       hasKey: !!(this._llm && this._llm.hasApiKey()),
       isCustomProvider: s.provider === 'custom', isClaudeCli: s.provider === 'claude-cli', showKey: s.provider !== 'claude-cli',
-      showModelCards: s.provider === 'anthropic', showModelText: s.provider !== 'anthropic' && s.provider !== 'claude-cli',
+      showModelCards: s.provider === 'anthropic', showModelText: s.provider !== 'anthropic',
       bridgeOk: s.bridgeStatus === 'ok', bridgeDown: s.bridgeStatus === 'down',
       keyLabel: s.provider === 'custom' ? 'API key (optional)' : s.provider === 'openrouter' ? 'OpenRouter API key' : 'Anthropic API key',
       keyPlaceholder: s.provider === 'openrouter' ? 'sk-or-…' : s.provider === 'custom' ? 'leave blank if your endpoint needs none' : 'sk-ant-…',
-      modelPlaceholder: s.provider === 'openrouter' ? 'anthropic/claude-sonnet-4.6' : 'claude-sonnet-4-6',
+      modelPlaceholder: s.provider === 'claude-cli' ? 'sonnet (fast) · opus (best, slower) · haiku' : s.provider === 'openrouter' ? 'anthropic/claude-sonnet-4.6' : 'claude-sonnet-4-6',
       providerNote: s.provider === 'claude-cli'
         ? 'Runs your local Claude CLI — free, no API key. Start it with “node tools/start.mjs --with-ai”, then OpenSCAD authoring runs on Opus locally.'
         : s.provider === 'openrouter'

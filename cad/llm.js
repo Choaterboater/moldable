@@ -59,9 +59,10 @@ export async function detectBridge(base = BRIDGE_URL, timeoutMs = 1500) {
 }
 
 // authorProfile() -> { provider, model, maxTokens } for the heavy authoring/repair step.
-// On the local Claude CLI use the strongest model + a bigger budget (free + local).
+// Uses the CONFIGURED provider + model (the CLI defaults to sonnet). We previously forced opus
+// on the CLI, but opus via `claude -p` routinely blows past the bridge timeout — and the JSON-IR
+// offloads the spatial reasoning so a faster model is plenty. Pick opus in Settings if you want it.
 export function authorProfile() {
-  if (getProvider() === 'claude-cli') return { provider: 'claude-cli', model: 'opus', maxTokens: 16000 };
   return { provider: getProvider(), model: getModel(), maxTokens: 8000 };
 }
 
