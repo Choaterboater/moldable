@@ -22,6 +22,7 @@ const bridge = BRIDGES[which];
 const PORT = process.env.PORT || '8765';            // web server (serves Moldable.dc.html)
 const BRIDGE_PORT = process.env.BRIDGE_PORT || '8788';   // mesh bridge — kept separate so changing PORT can't collide it
 const AI_PORT = process.env.AI_PORT || '8787';      // Claude-CLI bridge — its own port too
+const AI_TIMEOUT = String(Math.max(600000, Number(process.env.CLAUDE_TIMEOUT_MS) || 0));   // ≥10min so FREE opus-via-CLI can finish (it's slow, not killed)
 const PY = process.env.PYTHON || (process.platform === 'win32' ? 'python' : 'python3');
 
 if (!existsSync('Moldable.dc.html')) { console.error('start.mjs: run this from the Moldable repo root (Moldable.dc.html not found here).'); process.exit(1); }
@@ -45,7 +46,7 @@ run('web', PY, ['-m', 'http.server', PORT, '--bind', '127.0.0.1']);   // loopbac
 run('bridge', process.execPath, [bridge], { env: { ...process.env, PORT: BRIDGE_PORT } });
 // optional: the Claude CLI bridge (free local OpenSCAD authoring) on its own port
 if (withAI) {
-  if (existsSync('tools/claude-bridge.mjs')) run('claude-bridge', process.execPath, ['tools/claude-bridge.mjs'], { env: { ...process.env, PORT: AI_PORT } });
+  if (existsSync('tools/claude-bridge.mjs')) run('claude-bridge', process.execPath, ['tools/claude-bridge.mjs'], { env: { ...process.env, PORT: AI_PORT, CLAUDE_TIMEOUT_MS: AI_TIMEOUT } });
   else console.error('start.mjs: --with-ai set but tools/claude-bridge.mjs not found.');
 }
 
