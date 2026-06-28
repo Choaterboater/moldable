@@ -892,7 +892,7 @@ class Component extends DCLogic {
       model: 'vase',
       modelParams: seed,
       color: '#e0653f',
-      recognized: true, lastPrompt: '', freeform: false, freeformParams: [], forceAI: false, sculptMode: false, genError: '', meshMode: false, printEst: null, refineText: '', refining: false,
+      recognized: true, lastPrompt: '', freeform: false, freeformParams: [], freeformIR: null, forceAI: false, sculptMode: false, genError: '', meshMode: false, printEst: null, refineText: '', refining: false,
       codeOpen: false,
       codeText: this._code('vase', defs.vase),
       publishOpen: false, publishState: 'form',
@@ -961,7 +961,7 @@ class Component extends DCLogic {
         patch.modelParams = { ...this.state.modelParams, [out.system]: out.params };
         patch.title = this._titleFor(out.system);
         patch.tags = this.MODELS[out.system].tags;
-        patch.freeformParams = [];
+        patch.freeformParams = []; patch.freeformIR = null;
         this._codeDirty = false;
         this._geomSig = out.system + '|' + JSON.stringify(out.params);
         this._lastModel = out.system;
@@ -969,7 +969,9 @@ class Component extends DCLogic {
         // freeform: parse the // [min:max] customizer comments the AI already emits into LIVE SLIDERS,
         // so an AI-authored part is adjustable like a template (no extra LLM call). Editor still available.
         patch.title = 'Custom model';
-        patch.freeformParams = this._parseScadParams(out.source);
+        // IR freeform carries structured params; the raw-author fallback parses the // [min:max] comments.
+        patch.freeformParams = out.irParams || this._parseScadParams(out.source);
+        patch.freeformIR = out.ir || null;
         patch.codeOpen = patch.freeformParams.length === 0;   // sliders present → keep code tucked away; none → open the editor
         this._codeDirty = true;                 // viewer follows the authored source
         this._geomSig = this.state.model + '|code:' + out.source;
@@ -1014,7 +1016,7 @@ class Component extends DCLogic {
     const s = this.state;
     if (s.meshMode) { this.showToast('AI meshes save to “Your sculpts” automatically'); return; }
     const entry = s.freeform
-      ? { kind: 'free', code: s.codeText, c: s.color }
+      ? (s.freeformIR ? { kind: 'freeir', ir: s.freeformIR, c: s.color } : { kind: 'free', code: s.codeText, c: s.color })   // compact IR when available
       : { kind: 'param', m: s.model, p: s.modelParams[s.model], c: s.color };
     const meta = this._designMeta();
     meta.unshift({ id: 'dg' + Date.now(), title: (s.title || 'Design').slice(0, 60), thumb: this._captureThumb(), createdAt: Date.now(), ...entry });
@@ -1029,10 +1031,14 @@ class Component extends DCLogic {
     if (!d) { this.showToast('That design is missing'); return; }
     try { await this._loadCad(); } catch (e) {}
     this._reframeNext = true;
-    if (d.kind === 'free' && d.code) {
+    if (d.kind === 'freeir' && d.ir && this._ir) {
       this._codeDirty = true;
       this.setState({ screen: 'result', hasGenerated: true, freeform: true, meshMode: false, recognized: true,
-        codeText: d.code, color: d.c || this.state.color, title: d.title, freeformParams: this._parseScadParams(d.code), codeOpen: false });
+        codeText: this._ir.irToScad(d.ir), freeformIR: d.ir, color: d.c || this.state.color, title: d.title, freeformParams: this._ir.irParams(d.ir), codeOpen: false });
+    } else if (d.kind === 'free' && d.code) {
+      this._codeDirty = true;
+      this.setState({ screen: 'result', hasGenerated: true, freeform: true, meshMode: false, recognized: true,
+        codeText: d.code, color: d.c || this.state.color, title: d.title, freeformParams: this._parseScadParams(d.code), freeformIR: null, codeOpen: false });
     } else if (d.m && this.MODELS[d.m]) {
       this.loadGallery({ model: d.m, params: { ...this.defs[d.m], ...(d.p || {}) }, color: d.c || this.state.color, name: d.title });
     }
@@ -1048,7 +1054,9 @@ class Component extends DCLogic {
     try {
       const s = this.state;
       if (s.meshMode) { this.showToast('AI meshes are too big to share as a link — download the STL to share'); return; }
-      const obj = s.freeform ? { f: 1, code: s.codeText, c: s.color, t: s.title } : { m: s.model, p: s.modelParams[s.model], c: s.color };
+      const obj = s.freeform
+        ? (s.freeformIR ? { f: 2, ir: s.freeformIR, c: s.color, t: s.title } : { f: 1, code: s.codeText, c: s.color, t: s.title })   // f:2 = compact IR
+        : { m: s.model, p: s.modelParams[s.model], c: s.color };
       const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(obj))));
       const frag = '#m=' + b64;
       try { history.replaceState(null, '', frag); } catch {}
@@ -1066,11 +1074,16 @@ class Component extends DCLogic {
       obj = JSON.parse(decodeURIComponent(escape(atob(m[1]))));
     } catch (e) { return; }
     try { await this._loadCad(); } catch (e) {}
-    if (obj.f && obj.code) {
+    if (obj.f === 2 && obj.ir && this._ir) {
+      this._codeDirty = true; this._reframeNext = true;
+      this.setState({ screen: 'result', hasGenerated: true, freeform: true, meshMode: false, recognized: true,
+        codeText: this._ir.irToScad(obj.ir), freeformIR: obj.ir, color: obj.c || this.state.color, title: obj.t || 'Shared model',
+        freeformParams: this._ir.irParams(obj.ir), codeOpen: false });
+    } else if (obj.f && obj.code) {
       this._codeDirty = true; this._reframeNext = true;
       this.setState({ screen: 'result', hasGenerated: true, freeform: true, meshMode: false, recognized: true,
         codeText: obj.code, color: obj.c || this.state.color, title: obj.t || 'Shared model',
-        freeformParams: this._parseScadParams(obj.code), codeOpen: false });
+        freeformParams: this._parseScadParams(obj.code), freeformIR: null, codeOpen: false });
     } else if (obj.m && this.MODELS[obj.m]) {
       this._reframeNext = true;
       this.loadGallery({ model: obj.m, params: { ...this.defs[obj.m], ...(obj.p || {}) }, color: obj.c || this.state.color, name: this._titleFor(obj.m) });
@@ -1087,14 +1100,16 @@ class Component extends DCLogic {
     const gen = ++this._genSeq;
     this.setState({ refining: true, genError: '' });
     try {
-      const cur = this.state.freeform
-        ? { freeform: true, source: this.state.codeText }
-        : { freeform: false, model: this.state.model, params: this.state.modelParams[this.state.model] };
+      const cur = (this.state.freeform && this.state.freeformIR)
+        ? { ir: this.state.freeformIR }                                          // structured IR → JSON-delta refine
+        : this.state.freeform
+          ? { freeform: true, source: this.state.codeText }                      // raw-author fallback → source edit
+          : { freeform: false, model: this.state.model, params: this.state.modelParams[this.state.model] };
       const out = await this._agent.refine(text, { current: cur });
       if (gen !== this._genSeq) { return; }
       if (out.freeform) {
         this._codeDirty = true; this._reframeNext = false;
-        this.setState({ refining: false, refineText: '', codeText: out.source, freeformParams: this._parseScadParams(out.source) });
+        this.setState({ refining: false, refineText: '', freeformIR: out.ir || this.state.freeformIR, codeText: out.source, freeformParams: out.irParams || this._parseScadParams(out.source) });
       } else {
         const np = { ...this.state.modelParams[this.state.model], ...out.params };
         this._codeDirty = false;
@@ -1234,7 +1249,7 @@ class Component extends DCLogic {
       title: item.name, codeText: item.scad, color: item.color || this.state.color,
       tags: [item.cat], hasGenerated: true, galleryOpen: false, generating: false,
       screen: 'result', recognized: true, freeform: true, codeOpen: false, genError: '', meshMode: false,
-      freeformParams: this._parseScadParams(item.scad),   // parse THIS model's sliders (and drop the previous model's stale ones)
+      freeformParams: this._parseScadParams(item.scad), freeformIR: null,   // parse THIS model's sliders; catalog is raw scad (no IR)
     });
   }
   switchType(key) {
@@ -1311,7 +1326,10 @@ class Component extends DCLogic {
     const src = this.state.codeText.replace(re, (_m, a, _old, c) => a + val + c);
     const fp = (this.state.freeformParams || []).map((p) => (p.key === key ? { ...p, value: val } : p));
     this._codeDirty = true;
-    this.setState({ codeText: src, freeformParams: fp });
+    // keep the IR in sync so a later "Refine" / Save / Share reflects the dragged value (bookkeeping;
+    // the source patch above already drives the viewer with no extra transpile).
+    const ir = (this.state.freeformIR && this._ir) ? this._ir.applyIRDelta(this.state.freeformIR, { params: { [key]: val } }) : this.state.freeformIR;
+    this.setState({ codeText: src, freeformParams: fp, freeformIR: ir });
   }
   setColor(hex) { this.setState({ color: hex }); }
 
@@ -1589,10 +1607,12 @@ class Component extends DCLogic {
       import('./cad/catalog.js').catch(() => ({ CATALOG: [] })),
       import('./cad/mesh.js').catch(() => null),
       import('./cad/overhang.js').catch(() => null),
-    ]).then(([runner, agent, llm, catalog, mesh, overhang]) => {
+      import('./cad/ir.js').catch(() => null),
+    ]).then(([runner, agent, llm, catalog, mesh, overhang, ir]) => {
       this._cad = runner;
       this._mesh = mesh;
       this._overhang = overhang;
+      this._ir = ir;   // irToScad / irParams / applyIRDelta — re-transpile saved/shared IR without an LLM call
       this.CATALOG = (catalog && catalog.CATALOG) || [];
       this._runner = runner.createRunner();
       this._agent = agent;
