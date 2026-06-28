@@ -10,6 +10,7 @@
 // http://localhost:8787/v1, model "sonnet" (or opus / haiku / a full id).
 import http from 'node:http';
 import { spawn } from 'node:child_process';
+import { checkAccess } from './bridge-guard.mjs';
 
 const PORT = Number(process.env.PORT || 8787);
 const CLAUDE = process.env.CLAUDE_BIN || 'claude';
@@ -67,6 +68,14 @@ function runClaude(req) {
 }
 
 const server = http.createServer((req, res) => {
+  // gate cross-origin / DNS-rebinding callers before spawning the local Claude CLI.
+  // Without this, any open web page could run `claude` with arbitrary prompts.
+  const access = checkAccess(req);
+  if (!access.ok) {
+    if (req.method === 'OPTIONS') { res.writeHead(403); return res.end(); }
+    res.writeHead(403, { 'content-type': 'application/json' });
+    return res.end(JSON.stringify({ error: { message: 'forbidden: non-local or cross-origin request blocked' } }));
+  }
   if (req.method === 'OPTIONS') { res.writeHead(204, CORS); return res.end(); }
   if (req.method === 'GET' && req.url.startsWith('/v1/models')) {
     res.writeHead(200, { ...CORS, 'content-type': 'application/json' });

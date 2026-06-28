@@ -12,6 +12,7 @@
 import http from 'node:http';
 import { writeFileSync, readFileSync, existsSync } from 'node:fs';
 import { spawn } from 'node:child_process';
+import { checkAccess } from './bridge-guard.mjs';
 
 const PORT = Number(process.env.PORT || 8788);
 const MODEL = process.env.REPLICATE_MODEL || 'firtoz/trellis';   // fallback when the GUI doesn't name a model
@@ -90,7 +91,9 @@ async function advance(t) {
   const g = await fetch(t.pred.urls.get, { headers: { Authorization: `Bearer ${t.token}` } });
   const pred = await g.json();
   t.progress = pred.status === 'processing' ? 60 : 20;
-  if (pred.status === 'failed' || pred.status === 'canceled') { t.status = 'FAILED'; return; }
+  // capture Replicate's own failure reason (model crash / CUDA OOM on their side) — the most
+  // common real failure; without t.err the UI would fall back to the generic message.
+  if (pred.status === 'failed' || pred.status === 'canceled') { t.status = 'FAILED'; t.err = pred.error || ('Replicate prediction ' + pred.status); return; }
   if (pred.status !== 'succeeded') return;
   const url = findMeshUrl(pred.output);
   if (!url) { t.status = 'FAILED'; t.err = 'no mesh url'; return; }
@@ -105,6 +108,14 @@ async function advance(t) {
 }
 
 const server = http.createServer((req, res) => {
+  // gate cross-origin / DNS-rebinding callers before any token use (see bridge-guard.mjs).
+  // ACAO stays '*' because only loopback-origin requests get this far and there are no cookies.
+  const access = checkAccess(req);
+  if (!access.ok) {
+    if (req.method === 'OPTIONS') { res.writeHead(403); return res.end(); }
+    res.writeHead(403, { 'content-type': 'application/json' });
+    return res.end(JSON.stringify({ error: 'forbidden: non-local or cross-origin request blocked' }));
+  }
   if (req.method === 'OPTIONS') { res.writeHead(204, CORS); return res.end(); }
   const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
   const u = req.url.split('?')[0];
@@ -150,6 +161,7 @@ const server = http.createServer((req, res) => {
     advance(t).catch((e) => log('advance err', e.message));
     return json(res, 200, {
       status: t.status, progress: t.progress || 0,
+      error: t.err,   // surface the real failure (e.g. mesh-print error) so the UI doesn't blame the prompt
       model_urls: t.status === 'SUCCEEDED' ? { glb: `http://localhost:${PORT}/mesh/${id}` } : {},
     });
   }

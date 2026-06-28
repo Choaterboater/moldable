@@ -19,6 +19,7 @@ import http from 'node:http';
 import { writeFileSync, readFileSync, existsSync } from 'node:fs';
 import { spawn } from 'node:child_process';
 import os from 'node:os';
+import { checkAccess } from './bridge-guard.mjs';
 
 const PORT = Number(process.env.PORT || 8788);
 // Hunyuan3D's api_server.py — http://host:8080 by default. No auth, no slug, one model.
@@ -130,6 +131,13 @@ async function runTask(t, imageB64) {
 }
 
 const server = http.createServer((req, res) => {
+  // gate cross-origin / DNS-rebinding callers (see bridge-guard.mjs) before running any GPU job.
+  const access = checkAccess(req);
+  if (!access.ok) {
+    if (req.method === 'OPTIONS') { res.writeHead(403); return res.end(); }
+    res.writeHead(403, { 'content-type': 'application/json' });
+    return res.end(JSON.stringify({ error: 'forbidden: non-local or cross-origin request blocked' }));
+  }
   if (req.method === 'OPTIONS') { res.writeHead(204, CORS); return res.end(); }
   const u = req.url.split('?')[0];
 
@@ -163,6 +171,7 @@ const server = http.createServer((req, res) => {
     if (!t) return json(res, 404, { error: 'unknown task' });
     return json(res, 200, {
       status: t.status, progress: t.progress || 0,
+      error: t.err,   // surface the real failure (e.g. Hunyuan OOM) so the UI doesn't blame the prompt
       model_urls: t.status === 'SUCCEEDED' ? { glb: `http://localhost:${PORT}/mesh/${id}` } : {},
     });
   }

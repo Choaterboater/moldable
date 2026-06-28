@@ -95,6 +95,7 @@ function adapter(provider, base, key) {
         return {
           done: st === 'success', failed: st === 'failed' || st === 'cancelled' || st === 'unknown',
           progress: t.progress || 0,
+          error: t.message || t.error || d.message,
           glbUrl: t.output && (t.output.pbr_model || t.output.model || t.output.base_model),
         };
       },
@@ -124,6 +125,7 @@ function adapter(provider, base, key) {
       return {
         done: st === 'SUCCEEDED', failed: st === 'FAILED' || st === 'EXPIRED' || st === 'CANCELED',
         progress: d.progress || 0,
+        error: d.error || (d.task_error && d.task_error.message),
         glbUrl: d.model_urls && d.model_urls.glb,
       };
     },
@@ -156,7 +158,9 @@ export async function generateMesh({ prompt, imageDataUrl, signal, onStatus, pol
     let s;
     try { s = await a.poll(taskId, !!imageDataUrl); }
     catch (e) { throw netGuard(e, provider, base); }
-    if (s.failed) throw new MeshError('the mesh model failed on this prompt — try rephrasing', 'gen-failed');
+    // Prefer the backend's real error (CUDA OOM, bad model, server crash) — blaming the
+    // prompt sends users to reword forever when the fix is e.g. a smaller octree.
+    if (s.failed) throw new MeshError(s.error || 'the mesh model failed — try again, simplify the prompt, or (local/Replicate) lower the octree', 'gen-failed');
     if (s.done) {
       if (!s.glbUrl) throw new MeshError('mesh finished but returned no GLB', 'bad-response');
       onStatus && onStatus('Downloading mesh…');

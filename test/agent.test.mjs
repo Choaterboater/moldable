@@ -60,6 +60,19 @@ const ok = (name, cond, extra = '') => { if (cond) { pass++; console.log('PASS',
   ok('library produced STL', r.stl && r.stl.length > 84, (r.stl ? r.stl.length : 0) + ' bytes');
 }
 
+// ---- caller printer bed overrides the interpreter's hardcoded 256×256 (#7) ----
+{
+  store.clear();
+  // Deterministic proof the override reaches validate: the returned spec must carry the
+  // caller's bed, not the interpreter's DEFAULT_CONSTRAINTS ([256,256]).
+  const odd = await buildFromPrompt('a 3x2 gridfinity bin', { compile, constraints: { bed: [181, 181] } });
+  ok('caller bed reaches spec.constraints', JSON.stringify(odd.spec.constraints.bed) === '[181,181]', JSON.stringify(odd.spec.constraints.bed));
+  // and the overridden bed actually drives the outcome: a ~126×84mm bin FLAGS a 100×100 bed
+  // (the 256 default would NOT — so a warning here can only come from the override taking effect).
+  const small = await buildFromPrompt('a 3x2 gridfinity bin', { compile, constraints: { bed: [100, 100] } });
+  ok('caller small bed flags oversize', small.warnings.some((w) => /exceeds/.test(w)), small.warnings.join('; ') || '(no warnings — bed ignored!)');
+}
+
 // ---- freeform route with mocked Claude (bad -> repair -> good) ----
 {
   store.clear();

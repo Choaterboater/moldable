@@ -330,7 +330,7 @@ function classifyDiagnostic(diag) {
   if (/non-finite|\bnan\b|\binf(?:inity)?\b/.test(d)) return 'A vertex is non-finite. Check for division by zero in a parameter expression (e.g. a radius derived from a value that can be 0).';
   if (/manifold|watertight|open edge/.test(d)) return 'Non-manifold / not watertight. Extend every difference() cutter by epsilon past the exit face; overlap every union() by >= epsilon; never leave a 2D face or a zero-thickness wall.';
   if (/below z|z=0|rest flat|base sits/.test(d)) return 'Geometry is below Z=0. Translate the whole model up so its lowest point is exactly Z=0.';
-  if (/bed|footprint|exceeds/.test(d)) return 'Part exceeds the print bed — scale it down to fit within 256×256mm.';
+  if (/bed|footprint|exceeds/.test(d)) return 'Part exceeds the print bed — scale it down to fit within the bed footprint.';
   if (/thin|1.2mm|wall/.test(d)) return 'A wall is under 1.2mm. Increase the wall variable or shrink the subtracted body.';
   return null;
 }

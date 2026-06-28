@@ -10,7 +10,7 @@ import { hasApiKey } from './llm.js';
 // buildFromPrompt(prompt, { compile, onStatus, signal, maxRepairs })
 //   compile: ({source, files?}) => Promise<{ stl: Uint8Array, log: string }>
 // returns { route, system?, params?, source, files, stl, spec, attempts, warnings, recognized }
-export async function buildFromPrompt(prompt, { compile, onStatus, signal, maxRepairs = 3, forceAI = false } = {}) {
+export async function buildFromPrompt(prompt, { compile, onStatus, signal, maxRepairs = 3, forceAI = false, constraints } = {}) {
   onStatus && onStatus('Interpreting your idea…');
   // forceAI ("Design with AI") bypasses keyword/template routing → straight to freeform authoring,
   // but first expand the (often terse) prompt into a buildable spec so the author has real dimensions.
@@ -22,6 +22,10 @@ export async function buildFromPrompt(prompt, { compile, onStatus, signal, maxRe
   } else {
     spec = await interpret(prompt, { signal });
   }
+  // Caller-supplied constraints (e.g. the user's SELECTED printer bed) override the
+  // interpreter's hardcoded 256×256 default, so bed-fit + the repair hint reflect the
+  // real printer rather than a fixed size. (Fixes false/missing bed warnings.)
+  if (constraints) spec.constraints = { ...(spec.constraints || {}), ...constraints };
 
   // ---- known / library route ----
   if (!spec.freeform && spec.system && MODELS[spec.system]) {

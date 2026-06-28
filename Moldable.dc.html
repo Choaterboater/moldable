@@ -182,7 +182,10 @@
           <sc-for list="{{ savedDesignItems }}" as="dg" hint-placeholder-count="6">
             <div style="flex:0 0 auto;width:120px;">
               <div style="position:relative;">
-                <button onClick="{{ dg.onOpen }}" title="{{ dg.title }}" style="width:120px;height:120px;border-radius:15px;border:1.5px solid #d6dde6;background:#eef2f6 no-repeat center/cover;cursor:pointer;display:flex;align-items:center;justify-content:center;overflow:hidden;{{ dg.bg }}"><span style="font-size:40px;opacity:.45;">{{ dg.icon }}</span></button>
+                <button onClick="{{ dg.onOpen }}" title="{{ dg.title }}" style="position:relative;width:120px;height:120px;border-radius:15px;border:1.5px solid #d6dde6;background:#eef2f6;cursor:pointer;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+                  <span style="font-size:40px;opacity:.45;">{{ dg.icon }}</span>
+                  <img src="{{ dg.thumb }}" alt="" style="{{ dg.imgStyle }}" />
+                </button>
                 <button onClick="{{ dg.onDelete }}" title="Delete" style="position:absolute;top:6px;right:6px;width:23px;height:23px;border-radius:50%;border:none;background:rgba(16,21,27,.74);color:#fff;font-size:14px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;">&times;</button>
               </div>
               <div style="font-size:12px;color:#586575;margin-top:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="{{ dg.title }}">{{ dg.title }}</div>
@@ -199,7 +202,10 @@
           <sc-for list="{{ savedSculptItems }}" as="sc" hint-placeholder-count="6">
             <div style="flex:0 0 auto;width:120px;">
               <div style="position:relative;">
-                <button onClick="{{ sc.onOpen }}" title="{{ sc.title }}" style="width:120px;height:120px;border-radius:15px;border:1.5px solid #d6dde6;background:#eef2f6 no-repeat center/cover;cursor:pointer;display:flex;align-items:center;justify-content:center;overflow:hidden;{{ sc.bg }}"><span style="font-size:40px;opacity:.45;">{{ sc.icon }}</span></button>
+                <button onClick="{{ sc.onOpen }}" title="{{ sc.title }}" style="position:relative;width:120px;height:120px;border-radius:15px;border:1.5px solid #d6dde6;background:#eef2f6;cursor:pointer;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+                  <span style="font-size:40px;opacity:.45;">{{ sc.icon }}</span>
+                  <img src="{{ sc.thumb }}" alt="" style="{{ sc.imgStyle }}" />
+                </button>
                 <button onClick="{{ sc.onDelete }}" title="Delete" style="position:absolute;top:6px;right:6px;width:23px;height:23px;border-radius:50%;border:none;background:rgba(16,21,27,.74);color:#fff;font-size:14px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;">&times;</button>
               </div>
               <div style="font-size:12px;color:#586575;margin-top:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="{{ sc.title }}">{{ sc.title }}</div>
@@ -932,6 +938,7 @@ class Component extends DCLogic {
         onStatus: (s) => { if (gen === this._genSeq) this.setState({ genStatus: s }); },
         maxRepairs: 3,
         forceAI: this.state.forceAI,
+        constraints: { bed: this._bedSize(), material: 'PLA' },   // honor the user's selected printer (not a hardcoded 256×256)
       });
       if (gen !== this._genSeq) return;   // only a newer generate supersedes (it will reset `generating`)
       this._lastStl = out.stl; this._lastFiles = out.files || [];
@@ -983,9 +990,12 @@ class Component extends DCLogic {
   // ---------- "Your designs": persist parametric/freeform OpenSCAD models (small JSON + thumbnail
   //            in localStorage — params/code are tiny) so a dialed-in config survives "+ New". ----------
   _designMeta() { try { return JSON.parse(localStorage.getItem('moldable_designs') || '[]'); } catch { return []; } }
+  // returns true only if SOMETHING was actually persisted (full write, or a thumbless fallback
+  // when thumbs overflow quota). false means storage is full/unavailable (e.g. Safari private).
   _writeDesignMeta(list) {
-    try { localStorage.setItem('moldable_designs', JSON.stringify(list)); }
-    catch (e) { try { localStorage.setItem('moldable_designs', JSON.stringify(list.map((m) => ({ ...m, thumb: '' })))); } catch {} }
+    try { localStorage.setItem('moldable_designs', JSON.stringify(list)); return true; }
+    catch (e) { try { localStorage.setItem('moldable_designs', JSON.stringify(list.map((m) => ({ ...m, thumb: '' })))); return true; } catch {} }
+    return false;
   }
   saveDesign() {
     const s = this.state;
@@ -996,9 +1006,10 @@ class Component extends DCLogic {
     const meta = this._designMeta();
     meta.unshift({ id: 'dg' + Date.now(), title: (s.title || 'Design').slice(0, 60), thumb: this._captureThumb(), createdAt: Date.now(), ...entry });
     const keep = meta.slice(0, 30);
-    this._writeDesignMeta(keep);
+    const ok = this._writeDesignMeta(keep);
     this.setState({ savedDesigns: keep });
-    this.showToast('Saved to Your designs ↓');
+    // tell the truth: don't claim "Saved" when the write silently failed.
+    this.showToast(ok ? 'Saved to Your designs ↓' : 'Couldn’t save — storage is full or unavailable (kept for this session only)');
   }
   async loadDesign(id) {
     const d = this._designMeta().find((x) => x.id === id);
@@ -1089,7 +1100,7 @@ class Component extends DCLogic {
     try { await this._loadCad(); } catch (e) { return; }
     if (!this._mesh || !this._mesh.hasMesh()) { this.openSettings('To Sculpt: open Settings → “AI mesh” and pick a backend. Local (free, your GPU) or Replicate need their bridge running in a terminal; Meshy/Tripo need a token.'); return; }
     const gen = ++this._genSeq; this._compileSeq++;
-    this.setState({ hasGenerated: true, lastPrompt: prompt || 'image', screen: this.state.flow === 'guided' ? 'generating' : this.state.screen, generating: true, genStatus: 'Sculpting…', meshMode: true, freeform: true, genError: '', codeOpen: false });
+    this.setState({ hasGenerated: true, lastPrompt: prompt || 'image', screen: this.state.flow === 'guided' ? 'generating' : this.state.screen, generating: true, genStatus: 'Sculpting…', meshMode: true, freeform: true, freeformParams: [], genError: '', codeOpen: false });   // clear stale sliders — a mesh has none
     try {
       const out = await this._mesh.generateMesh({ prompt, imageDataUrl, onStatus: (s) => { if (gen === this._genSeq) this.setState({ genStatus: s }); } });
       if (gen !== this._genSeq) return;
@@ -1141,8 +1152,9 @@ class Component extends DCLogic {
      localStorage) so they can be recalled any time. GLBs are ~20-30MB → far past localStorage. ---------- */
   _sculptMeta() { try { return JSON.parse(localStorage.getItem('moldable_sculpts') || '[]'); } catch { return []; } }
   _writeSculptMeta(list) {
-    try { localStorage.setItem('moldable_sculpts', JSON.stringify(list)); }
-    catch (e) { try { localStorage.setItem('moldable_sculpts', JSON.stringify(list.map((m) => ({ ...m, thumb: '' })))); } catch {} }  // thumbs overflowed quota → keep names only
+    try { localStorage.setItem('moldable_sculpts', JSON.stringify(list)); return true; }
+    catch (e) { try { localStorage.setItem('moldable_sculpts', JSON.stringify(list.map((m) => ({ ...m, thumb: '' })))); return true; } catch {} }  // thumbs overflowed quota → keep names only
+    return false;
   }
   _db() {
     if (!this._dbPromise) this._dbPromise = new Promise((resolve, reject) => {
@@ -1167,17 +1179,21 @@ class Component extends DCLogic {
     } catch { return ''; }
   }
   async _saveSculpt(glb, title, thumb) {
+    const id = 'sc' + Date.now();
     try {
-      const id = 'sc' + Date.now();
-      await this._idbPut(id, glb);
-      const meta = this._sculptMeta();
-      meta.unshift({ id, title: (title || 'Sculpt').slice(0, 60), thumb: thumb || '', createdAt: Date.now() });
-      const keep = meta.slice(0, 50);                          // cap at 50; prune oldest GLBs so we can't fill the disk
-      for (const old of meta.slice(50)) this._idbDel(old.id);
-      this._writeSculptMeta(keep);
-      this.setState({ savedSculpts: keep });
-      this.showToast('Saved to Your sculpts ↓');
-    } catch (e) { /* IndexedDB unavailable (private mode) — sculpt still usable, just not saved */ }
+      await this._idbPut(id, glb);                             // the big GLB → IndexedDB
+    } catch (e) {
+      // IndexedDB unavailable (private mode / quota) — be honest, don't imply it persisted.
+      this.showToast('Couldn’t save sculpt — browser storage is unavailable (still usable this session)');
+      return;
+    }
+    const meta = this._sculptMeta();
+    meta.unshift({ id, title: (title || 'Sculpt').slice(0, 60), thumb: thumb || '', createdAt: Date.now() });
+    const keep = meta.slice(0, 50);                            // cap at 50; prune oldest GLBs so we can't fill the disk
+    for (const old of meta.slice(50)) this._idbDel(old.id);
+    const ok = this._writeSculptMeta(keep);                    // small metadata → localStorage
+    this.setState({ savedSculpts: keep });
+    this.showToast(ok ? 'Saved to Your sculpts ↓' : 'Saved the mesh, but its name couldn’t be stored (storage full)');
   }
   async loadSavedSculpt(id) {
     const meta = this._sculptMeta().find((s) => s.id === id);
@@ -1186,7 +1202,7 @@ class Component extends DCLogic {
     if (!glb) { this.showToast('That sculpt could not be found'); return; }
     const gen = ++this._genSeq; this._compileSeq++;
     this._lastMeshGlb = glb; this._pendingSave = null;        // recall: do NOT re-save
-    this.setState({ hasGenerated: true, screen: 'result', meshMode: true, freeform: true, recognized: true, generating: false, genError: '', renderError: '', rendering: true, title: (meta && meta.title) || 'Sculpt' });
+    this.setState({ hasGenerated: true, screen: 'result', meshMode: true, freeform: true, freeformParams: [], recognized: true, generating: false, genError: '', renderError: '', rendering: true, title: (meta && meta.title) || 'Sculpt' });   // a recalled mesh has no sliders
     this._reframeNext = true; this._meshPending = glb; this._tryLoadGlb();
   }
   deleteSavedSculpt(id, e) {
@@ -1204,6 +1220,7 @@ class Component extends DCLogic {
       title: item.name, codeText: item.scad, color: item.color || this.state.color,
       tags: [item.cat], hasGenerated: true, galleryOpen: false, generating: false,
       screen: 'result', recognized: true, freeform: true, codeOpen: false, genError: '', meshMode: false,
+      freeformParams: this._parseScadParams(item.scad),   // parse THIS model's sliders (and drop the previous model's stale ones)
     });
   }
   switchType(key) {
@@ -1730,7 +1747,9 @@ class Component extends DCLogic {
     const itabOn = itabBase + 'background:#fff;color:var(--accent,#ff5a1f);';
     const itabOff = itabBase + 'background:transparent;color:#8e9bab;';
 
-    const paramList = s.freeform
+    const paramList = s.meshMode
+      ? []   // an AI mesh has no source and no sliders — never render stale ones (freeformNote explains)
+      : s.freeform
       ? (s.freeformParams || []).map(pm => ({
           key: pm.key, label: pm.label, min: pm.min, max: pm.max, step: pm.step, value: pm.value,
           display: '' + pm.value,
@@ -1835,18 +1854,21 @@ class Component extends DCLogic {
         style: 'flex:1;text-align:center;padding:8px 4px;border-radius:9px;cursor:pointer;font-size:11px;font-weight:600;border:1.5px solid ' + (s.bedSpec === spec ? 'var(--accent,#ff5a1f)' : '#d6dde6') + ';background:' + (s.bedSpec === spec ? 'rgba(255,90,31,.08)' : '#fff') + ';color:#19222d;',
       })),
       hasSavedSculpts: (s.savedSculpts || []).length > 0,
+      // thumb is a data: URL — bind it to an <img src> (below), NOT a background-image style
+      // string. The framework's style parser splits on ';', which corrupts the ';base64,' in
+      // the data URL and produced blank tiles. src bindings don't go through that parser.
       savedSculptItems: (s.savedSculpts || []).map((it) => ({
         title: it.title || 'Sculpt',
-        bg: it.thumb ? "background-image:url('" + it.thumb + "');" : '',
-        icon: it.thumb ? '' : String.fromCodePoint(129501),
+        thumb: it.thumb || '', imgStyle: it.thumb ? 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;' : 'display:none;',
+        icon: String.fromCodePoint(129501),
         onOpen: () => this.loadSavedSculpt(it.id),
         onDelete: (e) => this.deleteSavedSculpt(it.id, e),
       })),
       hasSavedDesigns: (s.savedDesigns || []).length > 0,
       savedDesignItems: (s.savedDesigns || []).map((it) => ({
         title: it.title || 'Design',
-        bg: it.thumb ? "background-image:url('" + it.thumb + "');" : '',
-        icon: it.thumb ? '' : String.fromCodePoint(128208),
+        thumb: it.thumb || '', imgStyle: it.thumb ? 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;' : 'display:none;',
+        icon: String.fromCodePoint(128208),
         onOpen: () => this.loadDesign(it.id),
         onDelete: (e) => this.deleteDesign(it.id, e),
       })),
