@@ -99,6 +99,28 @@ const ok = (name, cond, extra = '') => { if (cond) { pass++; console.log('PASS',
   } finally { globalThis.fetch = realFetch; }
 }
 
+// ---- IR path fails entirely -> MUST fall back to the legacy raw author (the "only ADDS reliability" invariant) ----
+{
+  store.clear();
+  setApiKey('sk-test');
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = async (_url, opts) => {
+    const sys = JSON.parse(opts.body).system || '';
+    let text;
+    if (/FIXING an IR/.test(sys)) text = '{"name":"Bad2","params":[],"root":{"type":"frobnicate"}}';     // IR repair stays invalid → IR path exhausts
+    else if (/STRUCTURED JSON tree/.test(sys)) text = '{"name":"Bad","params":[],"root":{"type":"frobnicate"}}';   // IR author invalid
+    else if (/expert OpenSCAD author/.test(sys)) text = 'cube([15,15,15]);';                              // raw author fallback → valid
+    else text = '{"system":null,"params":{},"freeform":true,"description":"a box ~15mm","confidence":0.6}'; // interpret
+    return { ok: true, json: async () => ({ content: [{ type: 'text', text }] }) };
+  };
+  try {
+    const r = await buildFromPrompt('an organic blob', { compile, maxRepairs: 1 });
+    ok('IR failure falls back to raw author', r.route === 'freeform' && !r.ir && r.stl && r.stl.length > 84, r.route + ' ir=' + !!r.ir);
+  } catch (e) {
+    fail++; console.log('FAIL IR-fallback threw:', e.message);
+  } finally { globalThis.fetch = realFetch; }
+}
+
 // ---- no key + unknown prompt: graceful fallback to a template (not an error) ----
 {
   store.clear();

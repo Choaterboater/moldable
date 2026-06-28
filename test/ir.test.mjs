@@ -48,6 +48,9 @@ const FIXTURES = {
     root: { type: 'difference', children: [{ type: 'regular_prism', sides: 6, d: 'd', h: 12 }, { type: 'cylinder', d: 'd*0.4', h: 12 }] } },
   capsule: { name: 'Capsule', units: 'mm', params: [{ key: 'len', min: 20, max: 80, value: 50, step: 1 }],
     root: { type: 'hull', children: [{ type: 'cylinder', d: 16, h: 8 }, { type: 'translate', v: ['len', 0, 0], child: { type: 'cylinder', d: 16, h: 8 } }] } },
+  // an EXTRUDED cutter flush with the solid's top — must be eps-extended or it leaves a coplanar (non-manifold) face
+  extrude_cut: { name: 'Extruded slot', units: 'mm', params: [{ key: 's', min: 20, max: 60, value: 40, step: 1 }],
+    root: { type: 'difference', children: [{ type: 'box', size: ['s', 's', 's'] }, { type: 'linear_extrude', height: 's', child: { type: 'circle', d: 's*0.4' } }] } },
 };
 
 for (const [key, ir] of Object.entries(FIXTURES)) {
@@ -71,7 +74,8 @@ for (const [key, ir] of Object.entries(FIXTURES)) {
 {
   const ball = { name: 'Ball', units: 'mm', params: [{ key: 'd', min: 20, max: 60, value: 40, step: 1 }], root: { type: 'sphere', d: 'd' } };
   const src = irToScad(ball);
-  ok('Z-lift emitted for centered sphere', /translate\(\[0, 0, 20\]\)/.test(src), (src.match(/translate\(\[0, 0, [\d.]+\]\)/) || [''])[0]);
+  // sphere rests on Z=0 via its radius EXPRESSION (param-correct under sliders), not a baked constant
+  ok('sphere rests on Z=0 via param expression', /translate\(\[0, 0, [^\]]*d[^\]]*\]\) sphere/.test(src), (src.match(/translate\([^)]*\) sphere/) || [''])[0]);
   const info = inspectStl((await compile(src)).data);
   ok('Z-lift: STL rests on Z=0', info.ok && info.min[2] >= -0.05, 'minZ=' + (info.min ? info.min[2].toFixed(2) : '?'));
 }
@@ -119,6 +123,11 @@ ok('reject 2D under union', neg({ params: [], root: { type: 'union', children: [
 ok('reject undeclared identifier', neg({ params: [{ key: 'a', min: 0, max: 9, value: 1 }], root: { type: 'cylinder', d: 'bogus', h: 'a' } }, 'UNDECLARED_IDENT'));
 ok('reject min>=max param', neg({ params: [{ key: 'x', min: 9, max: 1, value: 5 }], root: { type: 'sphere', d: 'x' } }, 'BAD_PARAM'));
 ok('reject neither root nor raw', neg({ params: [] }, 'NO_ROOT'));
+ok('reject cylinder missing diameter (one-of)', neg({ params: [], root: { type: 'cylinder', h: 10 } }, 'MISSING_FIELD'));
+ok('reject box with wrong size arity', neg({ params: [], root: { type: 'box', size: [10, 10] } }, 'MISSING_FIELD'));
+
+// ---- vector-valued fields emit a SCAD vector, not parens (#2) ----
+ok('linear_extrude vector scale → SCAD vector', /scale=\[2, 1\]/.test(irToScad({ name: 'x', units: 'mm', params: [], root: { type: 'linear_extrude', height: 10, scale: [2, 1], child: { type: 'square', size: [10, 10] } } })), 'scale emit');
 
 console.log('\n' + '='.repeat(56));
 console.log(`${pass} passed, ${fail} failed`);

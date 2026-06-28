@@ -88,7 +88,12 @@ export async function buildFromPrompt(prompt, { compile, onStatus, signal, maxRe
   if (USE_IR) {
     let ir = null;
     try { ir = await authorIR(prompt, spec, author); } catch (e) { ir = null; }   // unparseable JSON / LLM error → fall back to raw author
-    if (ir) return await buildFromIR(ir, { compile, onStatus, author, maxRepairs, spec });
+    if (ir) {
+      // any IR-build failure (repair-exhausted, OR a repairIR reply that won't parse) must fall through to
+      // the legacy raw author — otherwise the "IR only ADDS reliability" invariant breaks.
+      try { return await buildFromIR(ir, { compile, onStatus, author, maxRepairs, spec }); }
+      catch (e) { onStatus && onStatus('Re-authoring…'); }
+    }
   }
   // legacy raw-SCAD author (fallback, or USE_IR off)
   let source = await authorFreeform(prompt, spec, author);
