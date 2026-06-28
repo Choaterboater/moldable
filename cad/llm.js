@@ -18,11 +18,14 @@ const ls = {
   set: (k, v) => { try { v ? localStorage.setItem(k, v) : localStorage.removeItem(k); } catch {} },
 };
 
+export const BRIDGE_URL = 'http://localhost:8787/v1';   // the local Claude-CLI bridge (tools/claude-bridge.mjs)
+
 export function getProvider() { return ls.get(K.provider) || 'anthropic'; }
 export function setProvider(p) { ls.set(K.provider, p); }
 export function getApiKey() { return ls.get(K.key) || ls.get(K.legacyKey); }
 export function setApiKey(v) { ls.set(K.key, (v || '').trim()); }
-export function getBaseUrl() { return ls.get(K.base); }
+// claude-cli falls back to the known bridge URL so the user types nothing.
+export function getBaseUrl() { return ls.get(K.base) || (getProvider() === 'claude-cli' ? BRIDGE_URL : ''); }
 export function setBaseUrl(v) { ls.set(K.base, (v || '').trim()); }
 export function getModel() { return ls.get(K.model) || DEFAULT_MODEL[getProvider()] || 'claude-sonnet-4-6'; }
 export function setModel(m) { ls.set(K.model, (m || '').trim()); }
@@ -31,23 +34,47 @@ export const DEFAULT_MODEL = {
   anthropic: 'claude-sonnet-4-6',
   openrouter: 'anthropic/claude-sonnet-4.6',
   custom: 'claude-sonnet-4-6',
+  'claude-cli': 'sonnet',
 };
 
 // usable = enough config to make a call
 export function isConfigured() {
-  return getProvider() === 'custom' ? !!getBaseUrl() : !!getApiKey();
+  const p = getProvider();
+  if (p === 'claude-cli') return true;                 // the local bridge needs no key
+  return p === 'custom' ? !!getBaseUrl() : !!getApiKey();
 }
 export function hasApiKey() { return isConfigured(); } // back-compat name used by the app
+
+// detectBridge(base?) -> { ok, models? } — a quick ping so the UI can confirm the CLI bridge is up.
+export async function detectBridge(base = BRIDGE_URL, timeoutMs = 1500) {
+  try {
+    const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    const t = ctrl ? setTimeout(() => ctrl.abort(), timeoutMs) : null;
+    const r = await fetch(base.replace(/\/+$/, '') + '/models', { signal: ctrl && ctrl.signal });
+    if (t) clearTimeout(t);
+    if (!r.ok) return { ok: false };
+    const d = await r.json().catch(() => null);
+    return { ok: true, models: ((d && d.data) || []).map((m) => m.id).filter(Boolean) };
+  } catch { return { ok: false }; }
+}
+
+// authorProfile() -> { provider, model, maxTokens } for the heavy authoring/repair step.
+// On the local Claude CLI use the strongest model + a bigger budget (free + local).
+export function authorProfile() {
+  if (getProvider() === 'claude-cli') return { provider: 'claude-cli', model: 'opus', maxTokens: 16000 };
+  return { provider: getProvider(), model: getModel(), maxTokens: 8000 };
+}
 
 export class NoKeyError extends Error { constructor() { super('llm-not-configured'); this.code = 'no-api-key'; } }
 
 // callClaude({system, messages, maxTokens, model, signal, timeoutMs}) -> assistant text
-export async function callClaude({ system, messages, maxTokens = 2048, model, signal, timeoutMs } = {}) {
-  const provider = getProvider();
+export async function callClaude({ system, messages, maxTokens = 2048, model, signal, timeoutMs, provider: providerOverride } = {}) {
+  const provider = providerOverride || getProvider();   // a single call can be routed (e.g. authoring → claude-cli) without flipping global state
   const key = getApiKey();
   const mdl = model || getModel();
+  const isLocalBridge = provider === 'custom' || provider === 'claude-cli';
   // the local CLI bridge runs the full agent (~1–2 min to author); APIs are quick.
-  const tmo = timeoutMs || (provider === 'custom' ? 320000 : 180000);  // APIs incl. slow reasoning models
+  const tmo = timeoutMs || (isLocalBridge ? 320000 : 180000);  // APIs incl. slow reasoning models
 
   // never hang forever on a slow/stuck provider — the timeout always applies,
   // composed with any caller-supplied cancel signal.
@@ -67,8 +94,8 @@ export async function callClaude({ system, messages, maxTokens = 2048, model, si
     if (e && e.name === 'AbortError') return new Error(timedOut ? 'LLM request timed out after ' + Math.round(tmo / 1000) + 's' : 'LLM request cancelled');
     // network failure (connection refused / CORS / DNS) surfaces as a TypeError
     if (e && (e.name === 'TypeError' || /failed to fetch|networkerror|load failed/i.test(e.message || ''))) {
-      const where = provider === 'custom' ? 'the endpoint at ' + (getBaseUrl() || '(no base URL set)') : provider;
-      return new Error("Couldn't reach " + where + '. ' + (provider === 'custom' ? 'Is the bridge running? `node tools/claude-bridge.mjs`' : 'Check your network/key.'));
+      const where = isLocalBridge ? 'the bridge at ' + (getBaseUrl() || BRIDGE_URL) : provider;
+      return new Error("Couldn't reach " + where + '. ' + (isLocalBridge ? 'Start it with `node tools/start.mjs --with-ai`.' : 'Check your network/key.'));
     }
     return e;
   };
@@ -89,8 +116,10 @@ export async function callClaude({ system, messages, maxTokens = 2048, model, si
       return (data.content || []).map((b) => b.text || '').join('').trim();
     }
 
-    // OpenAI-compatible (openrouter / custom)
-    const base = provider === 'openrouter' ? 'https://openrouter.ai/api/v1' : getBaseUrl();
+    // OpenAI-compatible (openrouter / custom / claude-cli)
+    const base = provider === 'openrouter' ? 'https://openrouter.ai/api/v1'
+               : provider === 'claude-cli' ? (getBaseUrl() || BRIDGE_URL)   // no key required — the local CLI bridge
+               : getBaseUrl();
     if (!base) throw new NoKeyError();
     if (provider === 'openrouter' && !key) throw new NoKeyError();
     const headers = { 'content-type': 'application/json' };
