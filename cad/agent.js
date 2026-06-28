@@ -3,15 +3,53 @@
 // validate/self-repair loop for freeform. `compile` is injected (the worker
 // runner in the app; a direct call in tests) so this stays unit-testable.
 import { MODELS, generate as genLibrary } from './scad-gen.js';
-import { interpret, authorFreeform, repairFreeform, refineParams, refineFreeform, expandPrompt } from './interpret.js';
+import { interpret, authorFreeform, repairFreeform, refineParams, refineFreeform, expandPrompt, authorIR, repairIR, refineIR } from './interpret.js';
 import { validate } from './validate.js';
-import { hasApiKey } from './llm.js';
+import { hasApiKey, authorProfile } from './llm.js';
+import { irToScad, irParams, applyIRDelta, IRError } from './ir.js';
 
-// buildFromPrompt(prompt, { compile, onStatus, signal, maxRepairs })
+// Freeform now goes through a JSON-IR (the LLM emits a node tree, ir.js transpiles it to
+// manifold OpenSCAD). USE_IR is a one-line revert; the legacy raw-SCAD author stays as the
+// fallback (used when the model can't return parseable IR JSON), so the IR path can only
+// ADD reliability, never subtract it.
+const USE_IR = true;
+
+// run the IR author→transpile→compile→validate→repair loop. Returns the result, or throws.
+async function buildFromIR(ir, { compile, onStatus, author, maxRepairs, spec }) {
+  let lastDiag = '';
+  for (let attempt = 1; attempt <= maxRepairs + 1; attempt++) {
+    onStatus && onStatus(attempt === 1 ? 'Rendering…' : `Fixing the model (attempt ${attempt})…`);
+    let source;
+    try {
+      source = irToScad(ir);                         // schema faults repair WITHOUT a compile (fast)
+    } catch (e) {
+      lastDiag = e instanceof IRError ? e.message : (e && e.message || String(e));
+      if (attempt > maxRepairs) break;
+      ir = await repairIR(ir, lastDiag, attempt, author);
+      continue;
+    }
+    let stl = null, log = '';
+    try { const r = await compile({ source }); stl = r.stl; log = r.log || ''; }
+    catch (e) { lastDiag = (e && e.message || String(e)) + (e && e.log ? '\n' + e.log : ''); }
+    if (stl) {
+      const v = validate(stl, spec.constraints);
+      if (v.ok) return { route: 'freeform', source, ir, irParams: irParams(ir), files: [], stl, log, spec, attempts: attempt, warnings: v.warnings || [], recognized: true };
+      lastDiag = v.reason || 'failed printability check';
+    }
+    if (attempt <= maxRepairs) ir = await repairIR(ir, lastDiag, attempt, author);
+  }
+  const err = new Error('Could not produce a valid model after ' + (maxRepairs + 1) + ' tries: ' + lastDiag);
+  err.code = 'repair-exhausted';
+  throw err;
+}
+
+// buildFromPrompt(prompt, { compile, onStatus, signal, maxRepairs, forceAI, constraints })
 //   compile: ({source, files?}) => Promise<{ stl: Uint8Array, log: string }>
-// returns { route, system?, params?, source, files, stl, spec, attempts, warnings, recognized }
+// returns { route, system?, params?, source, ir?, irParams?, files, stl, spec, attempts, warnings, recognized }
 export async function buildFromPrompt(prompt, { compile, onStatus, signal, maxRepairs = 3, forceAI = false, constraints } = {}) {
   onStatus && onStatus('Interpreting your idea…');
+  // routing for the heavy authoring step (claude-cli → opus/16000; otherwise the chosen model).
+  const author = { signal, ...authorProfile() };
   // forceAI ("Design with AI") bypasses keyword/template routing → straight to freeform authoring,
   // but first expand the (often terse) prompt into a buildable spec so the author has real dimensions.
   let spec;
@@ -46,8 +84,14 @@ export async function buildFromPrompt(prompt, { compile, onStatus, signal, maxRe
     err.code = 'needs-key';
     throw err;
   }
-  onStatus && onStatus('Writing OpenSCAD…');
-  let source = await authorFreeform(prompt, spec, { signal });
+  onStatus && onStatus('Designing the part…');
+  if (USE_IR) {
+    let ir = null;
+    try { ir = await authorIR(prompt, spec, author); } catch (e) { ir = null; }   // unparseable JSON / LLM error → fall back to raw author
+    if (ir) return await buildFromIR(ir, { compile, onStatus, author, maxRepairs, spec });
+  }
+  // legacy raw-SCAD author (fallback, or USE_IR off)
+  let source = await authorFreeform(prompt, spec, author);
   let lastDiag = '';
   for (let attempt = 1; attempt <= maxRepairs + 1; attempt++) {
     onStatus && onStatus(attempt === 1 ? 'Rendering…' : `Fixing the model (attempt ${attempt})…`);
@@ -65,7 +109,7 @@ export async function buildFromPrompt(prompt, { compile, onStatus, signal, maxRe
       }
       lastDiag = v.reason || 'failed printability check';
     }
-    if (attempt <= maxRepairs) source = await repairFreeform(source, lastDiag, attempt, { signal });
+    if (attempt <= maxRepairs) source = await repairFreeform(source, lastDiag, attempt, author);
   }
   const err = new Error('Could not produce a valid model after ' + (maxRepairs + 1) + ' tries: ' + lastDiag);
   err.code = 'repair-exhausted';
@@ -73,9 +117,14 @@ export async function buildFromPrompt(prompt, { compile, onStatus, signal, maxRe
 }
 
 // refine(request, { current, signal }) — conversational tweak of an existing model.
-//   current = { freeform:true, source } | { freeform:false, model, params }
-// Returns { freeform, params? , source? } — the caller applies it and lets the viewer re-render.
+//   current = { ir } (freeform-IR) | { freeform:true, source } | { freeform:false, model, params }
+// Returns { freeform, ir?, irParams?, params?, source? } — the caller applies it and re-renders.
 export async function refine(request, { current, signal } = {}) {
+  if (current && current.ir) {
+    const delta = await refineIR(current.ir, request, { signal });
+    const ir = applyIRDelta(current.ir, delta);
+    return { freeform: true, ir, source: irToScad(ir), irParams: irParams(ir) };
+  }
   if (current && current.freeform) return { freeform: true, source: await refineFreeform(current.source, request, { signal }) };
   return { freeform: false, params: await refineParams(current.model, current.params, request, { signal }) };
 }
