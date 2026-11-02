@@ -28,7 +28,13 @@ export const OTTO_ELECTRONICS = [
     box(x - 6.1, x + 6.1, -5.9, 16.9, 47.5, 70.2), box(x - 6.1, x + 6.1, -10.75, 21.75, 53.7, 56.2)] })),
   { name: '9V battery', shapes: [box(-8.75, 8.75, -28, 20.5, 47.5, 74)] },
   { name: '9V clip', shapes: [box(-9, 9, 20.5, 28.5, 47.5, 67.5)] },
-  { name: 'Buzzer', shapes: [{ zcyl: { x: -21, y: -22, r: 6, z0: 47.5, z1: 57 } }] },
+  // Four crush ribs press 0.15 mm into the nominal buzzer on purpose; those zones are excluded.
+  { name: 'Buzzer', shapes: [{ zcyl: { x: -21, y: -22, r: 6, z0: 47.5, z1: 57 } }],
+    minus: [box(-15.2, -14.9, -22.6, -21.4, 47, 58), box(-27.1, -26.8, -22.6, -21.4, 47, 58),
+      box(-21.6, -20.4, -16.2, -15.9, 47, 58), box(-21.6, -20.4, -28.1, -27.8, 47, 58)] },
+  // Strap over the battery, down through the floor slots and under the floor between them.
+  { name: 'Battery strap', shapes: [box(-14.5, 14.5, 16, 21, 74, 75.5), box(-14.5, -12, 16, 21, 44, 75.5),
+    box(12, 14.5, 16, 21, 44, 75.5), box(-14.5, 14.5, 16, 21, 44, 45.5)] },
   { name: 'DC jack', shapes: [{ zcyl: { x: -18, y: 27, r: 4, z0: 45.5, z1: 55.5 } }] },
   { name: 'Switch', shapes: [box(10.5, 23.5, 22.5, 31.5, 45.5, 55.5)] },
 ];
