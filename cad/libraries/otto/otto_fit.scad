@@ -40,9 +40,16 @@ otto_shield_under = 2; // solder joints behind the PCB
 otto_standoff = [6,2.5]; // [post diameter, M3 self-tap pilot]
 otto_nano_usb = [0,11.7]; // Type-C port centre: [x, height in front of the shield PCB] (provisional)
 otto_sensor = [45,20,4]; // HC-SR04 PCB + rear parts, behind the transducers
+otto_sensor_holes = [41,16]; // corner holes, 2 mm, centre spacing (generic drawing, unmeasured)
 otto_transducer = [16,12]; // [diameter, height in front of the PCB]
-otto_oled = [27,27,4];
+// 0.96" SSD1306 module, LCDWiki MC096 drawing (https://www.lcdwiki.com/0.96inch_OLED_Module_SKU:MC096VX):
+otto_oled = [27.3,27.8,4]; // PCB + glass + rear parts
 otto_oled_visible = [21.74,10.86];
+otto_oled_glass = 1.5; // glass in front of the PCB (provisional)
+otto_oled_holes = [23.3,23.8]; // 2 mm holes for M2, centre spacing
+otto_oled_offset = 2.1; // active area sits this far toward the pin header from the PCB centre
+// Face mounts: [post diameter (hole pad), peg pin diameter, M2 self-tap pilot]
+otto_face_mount = [3.5,1.7,1.6];
 otto_battery = [48.5,17.5,26.5]; // 6F22 on its side
 otto_clip_size = [18,8,20]; // snap + wire allowance at the battery terminal end
 otto_usb = [12.35,6.5];
@@ -65,7 +72,7 @@ otto_grille_y = -28;
 otto_sensor_pos = [0,-15,12]; // PCB front face; transducer fronts flush with the face
 // OLED mounts upside down (pin header at the BOTTOM edge) so its rear plugs pass
 // under the HC-SR04's downward plugs; rotate the display 180 degrees in the sketch.
-otto_oled_pos = [0,-40,2];
+otto_oled_pos = [0,-40,2]; // visible-area centre; the PCB centre sits otto_oled_offset above it
 otto_shield_top = -3.5; // y of the shield's top edge; clears the dome's rounded ceiling
 otto_shield_standoff = 6.75; // back-cover inner face to the shield PCB back
 // Body-local (x across, y front-to-back, z up from the floor underside):

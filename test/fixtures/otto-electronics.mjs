@@ -6,13 +6,18 @@
 // box: [x0,x1, y0,y1, z0,z1]; cyl (axis along Y): {x, z, r, y0, y1}; zcyl (axis along Z): {x, y, r, z0, z1}.
 const box = (x0, x1, y0, y1, z0, z1) => ({ box: [x0, x1, y0, y1, z0, z1] });
 export const OTTO_ELECTRONICS = [
-  { name: 'HC-SR04 board', shapes: [box(-22.5, 22.5, -19.75, -15.75, 116.5, 136.5)] },
+  // Board + rear parts, minus its 2 mm corner holes (41 x 16) where the face pegs pass.
+  { name: 'HC-SR04 board', shapes: [box(-22.5, 22.5, -19.75, -15.75, 116.5, 136.5)],
+    minus: [-20.5, 20.5].flatMap(x => [118.5, 134.5].map(z => ({ cyl: { x, z, r: 1, y0: -20, y1: -15.5 } }))) },
   { name: 'HC-SR04 transducers', shapes: [-13.25, 13.25].map(x => ({ cyl: { x, z: 126.5, r: 8, y0: -31.75, y1: -19.75 } })) },
   // 4-pin header points down in the board plane; Dupont housings + wire bend.
   { name: 'HC-SR04 plugs', shapes: [box(-6, 6, -19.5, -14.5, 96.5, 116.5)] },
-  { name: 'OLED module', shapes: [box(-13.5, 13.5, -29.75, -25.75, 88, 115)] },
-  // OLED mounted upside down: header at the BOTTOM edge, plugs straight back.
-  { name: 'OLED plugs', shapes: [box(-6, 6, -25.75, -3.25, 88, 92.5)] },
+  // 0.96" OLED, LCDWiki MC096 drawing, mounted upside down (header at the bottom):
+  // glass in front, PCB + rear parts minus its 2 mm holes (23.3 x 23.8), flex cable at the top edge.
+  { name: 'OLED module', shapes: [box(-13.35, 13.35, -29.75, -28.25, 93.97, 113.23), box(-13.65, 13.65, -28.25, -25.75, 89.7, 117.5),
+    box(-7, 7, -29.75, -25.75, 113.23, 118)],
+    minus: [-11.65, 11.65].flatMap(x => [91.7, 115.5].map(z => ({ cyl: { x, z, r: 1, y0: -28.5, y1: -25.5 } }))) },
+  { name: 'OLED plugs', shapes: [box(-6, 6, -25.75, -3.25, 88.95, 93.45)] },
   // I/O shield 42 x 60 upright, PCB back at y 29; Nano + Dupont plugs in front.
   { name: 'Shield PCB + Nano + plugs', shapes: [box(-21, 21, -1, 29, 78, 138)] },
   // Solder joints behind the PCB, except around the two top screw holes.
@@ -27,6 +32,10 @@ export const OTTO_ELECTRONICS = [
   { name: 'DC jack', shapes: [{ zcyl: { x: -18, y: 27, r: 4, z0: 45.5, z1: 55.5 } }] },
   { name: 'Switch', shapes: [box(10.5, 23.5, 22.5, 31.5, 45.5, 55.5)] },
 ];
+export function componentScad(c) {
+  const add = c.shapes.map(shapeScad).join(' ');
+  return c.minus ? `difference(){ union(){ ${add} } union(){ ${c.minus.map(shapeScad).join(' ')} } }` : add;
+}
 export function shapeScad(s) {
   if (s.box) { const [x0, x1, y0, y1, z0, z1] = s.box; return `translate([${x0},${y0},${z0}]) cube([${x1 - x0},${y1 - y0},${z1 - z0}]);`; }
   if (s.cyl) { const { x, z, r, y0, y1 } = s.cyl; return `translate([${x},${y0},${z}]) rotate([-90,0,0]) cylinder(r=${r},h=${y1 - y0},$fn=48);`; }

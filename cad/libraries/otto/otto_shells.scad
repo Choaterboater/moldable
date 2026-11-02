@@ -51,6 +51,8 @@ module hats(style=0,top=0) {
 function head_depth() = otto_head[2]-otto_wall;
 module head_part(style=1,r=4,grow=0,ear=0,ant=0,hat=0,mouth=0,c=0.25) {
   difference() {
+  union() {
+  difference() {
     union() {
       difference() {
         linear_extrude(head_depth()) head_outline(style,r,grow,mouth);
@@ -65,6 +67,12 @@ module head_part(style=1,r=4,grow=0,ear=0,ant=0,hat=0,mouth=0,c=0.25) {
     if(mouth==0) translate([0,otto_nose_y,-1]) cylinder(d=otto_nose_d,h=otto_wall+2,$fn=32);
     if(mouth==1) oled_window(c);
     if(mouth==2) for(x=[-8,0,8]) translate([x,otto_grille_y,-1]) fit_box([3,8,otto_wall+2],c);
+  }
+  // Face mounts go in after the cavity cuts so the sensor and OLED are held to the face.
+  hcsr04_pegs();
+  if(mouth==1) oled_posts();
+  }
+  if(mouth==1) oled_pilots();
   }
 }
 // Back cover: outside face on the bed. A U-shaped lip locates it in the head's

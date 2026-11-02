@@ -6,9 +6,17 @@ module otto_dummy(part,id) {
   if(part==0) {
     if(id==0) dummy_box([42,60,32],[0,-33.5,46.75]); // upright I/O shield + Nano + plugs + solder side
     if(id==1) dummy_box([12.35,32,6.5],[0,12.5,47.45]); // Type-C plug boot, up through the head top
-    if(id==2) { dummy_box([45,20,4],[0,-15,14]); for(x=[-13.25,13.25]) translate([x,-15,0]) cylinder(d=16,h=12,$fn=48);
-      dummy_box([12,20,5],[0,-35,14.75]); } // HC-SR04 + downward Dupont plugs
-    if(id==3) { dummy_box([27,27,4],[0,-40,4]); dummy_box([12,4.5,22.5],[0,-51.25,17.25]); } // OLED, header at the bottom + rear plugs
+    if(id==2) { // HC-SR04: board minus its corner holes (the face pegs pass), transducers, downward Dupont plugs
+      difference() { dummy_box([45,20,4],[0,-15,14]); for(x=[-20.5,20.5], y=[-7,-23]) translate([x,y,0]) cylinder(d=2,h=30,$fn=16); }
+      for(x=[-13.25,13.25]) translate([x,-15,0]) cylinder(d=16,h=12,$fn=48);
+      dummy_box([12,20,5],[0,-35,14.75]);
+    }
+    if(id==3) { // OLED upside down: glass, PCB + rear parts minus holes, flex at the top edge, rear plugs at the bottom
+      dummy_box([26.7,19.27,1.5],[0,-37.9,2.75]);
+      difference() { dummy_box([27.3,27.8,2.5],[0,-37.9,4.75]); for(x=[-11.65,11.65], y=[-26,-49.8]) translate([x,y,0]) cylinder(d=2,h=30,$fn=16); }
+      dummy_box([14,4.77,4],[0,-25.885,4]);
+      dummy_box([12,4.5,22.5],[0,-50.3,17.25]);
+    }
   }
   if(part==1) {
     for(s=[0,1]) if(id==s) translate([s==0?-22:22,0,0]) { // hip servo, shaft down

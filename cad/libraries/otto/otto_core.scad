@@ -63,9 +63,27 @@ module usbc_top_slot(clearance=0.25) {
   translate([otto_nano_usb[0],0,0]) rotate([90,0,0]) translate([0,0,-100]) linear_extrude(100+otto_wall+1)
     polygon([[-hw,zc-hh],[hw,zc-hh],[hw,zc+hh],[0,zc+hh+hw],[-hw,zc+hh]]);
 }
+// Face mounts, added after the cavity cuts. HC-SR04: posts from the face plate to the
+// board, pins through its corner holes (secure with a melted tip or a drop of glue).
+module hcsr04_pegs() {
+  for(sx=[-1,1], sy=[-1,1]) translate([sx*otto_sensor_holes[0]/2,otto_sensor_pos[1]+sy*otto_sensor_holes[1]/2,otto_wall-0.01]) {
+    cylinder(d=otto_face_mount[0],h=otto_sensor_pos[2]-otto_wall+0.01,$fn=24);
+    cylinder(d=otto_face_mount[1],h=otto_sensor_pos[2]-otto_wall+otto_sensor[2]-0.9,$fn=16);
+  }
+}
+// OLED (upside down): posts the glass thickness tall carry the PCB; M2 x 4 screws from behind.
+function oled_pcb_y() = otto_oled_pos[1]+otto_oled_offset;
+module oled_posts() {
+  for(sx=[-1,1], sy=[-1,1]) translate([sx*otto_oled_holes[0]/2,oled_pcb_y()+sy*otto_oled_holes[1]/2,otto_wall-0.01])
+    cylinder(d=otto_face_mount[0],h=otto_oled_glass+0.01,$fn=24);
+}
+module oled_pilots() {
+  for(sx=[-1,1], sy=[-1,1]) translate([sx*otto_oled_holes[0]/2,oled_pcb_y()+sy*otto_oled_holes[1]/2,0.6])
+    cylinder(d=otto_face_mount[2],h=10,$fn=16);
+}
+// Visible-area window only: the glass rests flat on the inside of the face plate.
 module oled_window(clearance=0.25) {
   translate([otto_oled_pos[0],otto_oled_pos[1],-1]) fit_box([otto_oled_visible[0],otto_oled_visible[1],otto_wall+2],clearance);
-  translate([otto_oled_pos[0],otto_oled_pos[1],otto_wall]) fit_box([otto_oled[0],otto_oled[1],otto_oled[2]],clearance);
 }
 
 // ---------- back cover (outside face on the bed) ----------

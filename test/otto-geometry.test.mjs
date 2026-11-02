@@ -11,7 +11,7 @@ for(let headStyle=0;headStyle<4;headStyle++) {
   for(const part of [0,1,2,3,4,5,6,8]) variants.push({part,headStyle});
   for(const grow of [0,10]) for(let ears=0;ears<4;ears++) for(let hat=0;hat<4;hat++)
     variants.push({part:0,headStyle,grow,corner:12,ears,hat,antenna:30});
-  for(const mouth of [0,2]) variants.push({part:0,headStyle,mouth});
+  for(const mouth of [0,1,2]) variants.push({part:0,headStyle,mouth});
   variants.push({part:0,headStyle,corner:0});
 }
 for(const part of [4,5]) for(const feet of [1,2]) variants.push({part,feet});
@@ -40,8 +40,8 @@ for(let headStyle=0;headStyle<4;headStyle++) test('Otto assembled view compiles 
   assert.deepEqual({rc:r.rc,error:/ERROR:|WARNING:/i.test(r.log),mesh:!!r.info?.ok},{rc:0,error:false,mesh:true},r.log);
   assert.ok(Math.abs(r.info.min[2])<0.001 && Math.abs(r.info.max[2]-141.5)<0.01,r.log);
 });
-for(const part of [0,1,2,3,4,5,8]) test('Otto default support-free analysis part '+part,async()=> {
-  const r=await compiledPart({part});
+for(const p of [0,1,2,3,4,5,8].map(part=>({part})).concat([{part:0,mouth:1}])) test('Otto default support-free analysis '+JSON.stringify(p),async()=> {
+  const r=await compiledPart(p);
   assert.equal(supportFaces(r.stl),0,'downward faces beyond 45 degrees above the bed');
 });
 for(let kind=0;kind<4;kind++) test('Otto fit-test print compiles '+kind,async()=> {

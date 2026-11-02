@@ -52,7 +52,8 @@ Blank actual fields mean **unmeasured**, not zero. Units: mm.
 | Nano I/O shield | 60 × 42, Ø3 holes at 53.34 × 35.56 | YwRobot Nano Sensor Shield (the ZC board may differ) | |
 | Shield stack in front of the PCB | 28.4 (Nano on female headers + Dupont plugs) | Nov 1 fit check estimate | |
 | Type-C port on the shield | centred, 11.7 in front of the PCB, at the top edge, pointing up | Estimate: 8.5 female header + 1.6 PCB + half the receptacle | |
-| OLED board | about 27 × 27 × 4 | Supplied plan, module drawing needed | |
+| OLED board | 27.3 × 27.8; glass 26.7 × 19.27; 2 mm holes at 23.3 × 23.8; active area 2.1 toward the header | [LCDWiki MC096 drawing](https://www.lcdwiki.com/0.96inch_OLED_Module_SKU:MC096VX) (similar module; YouKeyi unmeasured) | |
+| HC-SR04 corner holes | 2 mm, 41 × 16 centre spacing | Generic module drawings (HNX unmeasured) | |
 | OLED visible screen | 21.74 × 10.86 | Supplied plan, module drawing needed | |
 | Buzzer | Ø12; height 8.5–9.5; pins 6.5 apart | Supplied plan, vendor drawing needed | |
 | Standard 6F22 battery | 48.5 × 26.5 × 17.5 | Energizer, supplied plan | |
@@ -111,6 +112,10 @@ electronics, so 141.5) but are prototype allowances, not measurements of the pur
   before removing the cover (the shield's lower edge is behind the body's rear wall).
 - Provisional horn hub Ø7.4 / single arm 14 long / screw Ø2.5, recessed 2 mm with 45° roofs.
 - Provisional USB opening 12.85×7.0 at clearance 0.25. The real plastic cable boot may be larger.
+- Face mounts: four Ø3.5 posts from the face plate carry the HC-SR04 board, ending in Ø1.7 pins through
+  its corner holes. With the OLED mouth, four Ø3.5 posts the glass thickness tall (1.5) carry the OLED
+  PCB, with Ø1.6 pilots for M2 × 4 self-tapping screws (0.6 mm of face plate left in front).
+  The OLED PCB centre sits 2.1 above the window so the upside-down active area stays centred in it.
 - Every purchased-hardware number above is a reference value. Re-check with calipers when the parts arrive.
 - No claim of V9 or V13 part interchangeability.
 
