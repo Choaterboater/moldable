@@ -11,9 +11,10 @@ otto_body_inner = [64,64];
 otto_body_chamfer = 3; // vertical edges
 // Head prints face down. [width, height, depth incl. back cover]; the bottom
 // otto_head_insert mm sit inside the body. Head-local Y = 0 is the head top.
-otto_head = [63.5,37,63.5];
+// One height for every mouth: the electronics bay behind the face is fixed.
+otto_head = [63.5,61,69.5];
 otto_head_insert = 3;
-otto_oled_extra = 24; // head grows downward by this when the OLED mouth is fitted
+otto_head_band = 63.5; // face-to-rear depth of the insert band; drops into the 64 mm body opening
 otto_cover_lip = 3; // back-cover locating lip depth (design allowance)
 // Leg: [width, length front-back, height]; holds the ankle servo.
 otto_leg = [16.5,29,38.5];
@@ -30,7 +31,14 @@ otto_servo_body = 22.7; // SG90 case height without shaft boss
 otto_servo_ears = 32.5;
 otto_servo_ear_z = 4.2; // shaft face to underside of the mounting ears (provisional)
 otto_servo_shaft = 5.5; // shaft offset from case centre along the long axis (provisional)
-otto_nano = [43.2,18,4]; // board thickness envelope is provisional
+// Nano I/O shield standing upright on the back cover, Nano + Dupont plugs facing the face.
+// YwRobot "Nano Sensor Shield" reference; the ZC board is UNMEASURED.
+otto_shield = [42,60,1.6]; // [width, height, PCB thickness]
+otto_shield_holes = [35.56,53.34]; // hole spacing [across, up]; holes 3 mm
+otto_shield_stack = 28.4; // Nano on female headers + Dupont plugs in front of the PCB (provisional)
+otto_shield_under = 2; // solder joints behind the PCB
+otto_standoff = [6,2.5]; // [post diameter, M3 self-tap pilot]
+otto_nano_usb = [0,11.7]; // Type-C port centre: [x, height in front of the shield PCB] (provisional)
 otto_sensor = [45,20,4]; // HC-SR04 PCB + rear parts, behind the transducers
 otto_transducer = [16,12]; // [diameter, height in front of the PCB]
 otto_oled = [27,27,4];
@@ -38,7 +46,7 @@ otto_oled_visible = [21.74,10.86];
 otto_battery = [48.5,17.5,26.5]; // 6F22 on its side
 otto_clip_size = [18,8,20]; // snap + wire allowance at the battery terminal end
 otto_usb = [12.35,6.5];
-otto_buzzer = [12,9.5];
+otto_buzzer = [12,9.5]; // stands on the body floor, sound side down
 otto_switch = [13,9]; // provisional, measure switch before assembly
 otto_jack_d = 8; // provisional panel socket, not the 5.5mm plug
 otto_horn_hub = 7.4; // provisional, confirm actual supplied horns
@@ -55,13 +63,13 @@ otto_nose_y = -30;
 otto_nose_d = 6;
 otto_grille_y = -28;
 otto_sensor_pos = [0,-15,12]; // PCB front face; transducer fronts flush with the face
+// OLED mounts upside down (pin header at the BOTTOM edge) so its rear plugs pass
+// under the HC-SR04's downward plugs; rotate the display 180 degrees in the sketch.
 otto_oled_pos = [0,-40,2];
-otto_nano_pos = [0,-6.5,37.8]; // lies under the head top, USB end toward the cover
-otto_nano_rail_z = 20;
-// Back-cover-local (x across, y as head, z inward from the outside face):
-otto_usb_pos = [0,-6.5];
-otto_buzzer_pos = [-18,-24];
+otto_shield_top = -3.5; // y of the shield's top edge; clears the dome's rounded ceiling
+otto_shield_standoff = 6.75; // back-cover inner face to the shield PCB back
 // Body-local (x across, y front-to-back, z up from the floor underside):
+otto_buzzer_pos = [-21,-22];
 otto_hip_x = [-22,22];
 otto_hip_y = 0; // shaft axis; the case extends toward the back
 otto_battery_pos = [0,-3.75];

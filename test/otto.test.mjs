@@ -88,10 +88,14 @@ test('Otto intended plate is not warned as broken disconnected geometry',async()
   const {stl}=await compiledPart({part:6});
   assert.equal(validate(stl,{model:'otto',part:6}).warnings.some(w=>w.includes('disconnected pieces')),false);
 });
+test('Otto assembled preview is not warned as broken disconnected geometry',async()=> {
+  const {stl}=await compiledPart({part:7});
+  assert.equal(validate(stl,{model:'otto',part:7}).warnings.some(w=>w.includes('disconnected pieces')),false);
+});
 test('Otto default plate stays seven separate printable components',async()=>assert.equal((await compiledPart({part:6})).info.components,7));
-test('Otto assembled view is Otto height with four servos worth of parts',async()=> {
+test('Otto assembled view is Otto height; the head rests on the body rim',async()=> {
   const i=(await compiledPart({part:7})).info;
-  assert.deepEqual([+(i.max[2]-i.min[2]).toFixed(1),i.components],[117.5,6]);
+  assert.deepEqual([+(i.max[2]-i.min[2]).toFixed(1),i.components],[141.5,5]);
 });
 test('Otto fit notice appears in both view templates',()=>assert.equal((html.match(/\{\{ ottoNotice \}\}/g)||[]).length,2));
 test('Otto fit status is visible in view bindings',async()=> {
@@ -165,5 +169,30 @@ test('Otto assembled colour groups recombine into the full robot',async()=> {
   const stl=ui._concatStl(pieces);
   const tris=b=>new DataView(b.buffer,b.byteOffset,b.byteLength).getUint32(80,true);
   assert.equal(stl.length,84+50*pieces.reduce((n,b)=>n+tris(b),0));
-  assert.ok(Math.abs(ui._printEstimate(stl).dims[2]-117.5)<0.1);
+  assert.ok(Math.abs(ui._printEstimate(stl).dims[2]-141.5)<0.1);
+});
+test('Otto Show and Paint chips have distinct accessible names',async()=> {
+  const {ui}=await createUi();ui.loadGallery(OTTO_PRESETS[0]);
+  const v=ui.renderVals();
+  const names=[...v.ottoParts,...v.paintTargets].map(c=>c.aria);
+  assert.equal(new Set(names).size,names.length);
+  assert.ok(v.ottoParts.every(c=>c.aria.startsWith('Show ')) && v.paintTargets.every(c=>c.aria.startsWith('Paint ')));
+  for(const tpl of ['op','pt']) assert.equal((html.match(new RegExp('aria-label="\\{\\{ '+tpl+'\\.aria \\}\\}"','g'))||[]).length,2);
+});
+test('Otto Paint chips show each part colour as a swatch',async()=> {
+  const {ui}=await createUi();ui.loadGallery(OTTO_PRESETS[0]);
+  ui.setPaintTarget('head');ui.setColor('#3a3a3a');
+  const chips=Object.fromEntries(ui.renderVals().paintTargets.map(c=>[c.aria,c]));
+  assert.match(chips['Paint head'].swatch,/background:#3a3a3a/);
+  assert.match(chips['Paint body'].swatch,new RegExp('background:'+ui.state.color));
+  assert.deepEqual([chips['Paint head'].pressed,chips['Paint body'].pressed],[true,false]);
+  assert.equal((html.match(/\{\{ pt\.swatch \}\}/g)||[]).length,2);
+});
+test('Otto choice slider labels name the selected option and follow the slider',async()=> {
+  const {ui}=await createUi();ui.loadGallery(OTTO_PRESETS[0]);
+  const head=()=>ui.renderVals().paramList.find(p=>p.key==='headStyle');
+  assert.deepEqual([head().value,head().display],[0,'0 · Cube']);
+  ui.setParam('headStyle',2);
+  assert.deepEqual([head().value,head().display],[2,'2 · Bevel']);
+  assert.equal(ui.renderVals().paramList.find(p=>p.key==='clearance').display,'0.25 mm');
 });

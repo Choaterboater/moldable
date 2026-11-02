@@ -7,7 +7,7 @@ export const OTTO_MODEL = { label: 'Otto Robot', cat: 'Robots', tags: ['otto', '
   { key: 'ears', label: 'Ears (0 None · 1 Round · 2 Cat · 3 Bear)', min: 0, max: 3, step: 1, def: 0, unit: '' },
   { key: 'antenna', label: 'Antenna height', min: 0, max: 30, step: 1, def: 0, unit: 'mm' },
   { key: 'hat', label: 'Hat (0 None · 1 Cap · 2 Top hat · 3 Helmet)', min: 0, max: 3, step: 1, def: 0, unit: '' },
-  { key: 'mouth', label: 'Mouth (0 Classic nose · 1 OLED, taller head · 2 Grille)', min: 0, max: 2, step: 1, def: 0, unit: '' },
+  { key: 'mouth', label: 'Mouth (0 Classic nose · 1 OLED screen · 2 Grille)', min: 0, max: 2, step: 1, def: 0, unit: '' },
   { key: 'feet', label: 'Feet (0 Classic · 1 Boot · 2 Wide stable)', min: 0, max: 2, step: 1, def: 0, unit: '' },
   { key: 'clearance', label: 'Fit clearance (extra room around hardware)', min: 0.1, max: 0.5, step: 0.05, def: 0.25, unit: 'mm' },
 ] };

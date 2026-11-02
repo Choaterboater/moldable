@@ -14,7 +14,7 @@ module head_profile(w,h,top,r=4,style=1) {
       if(style==2) rotate(45) square(rr*sqrt(2),center=true); else circle(r=rr,$fn=48);
   }
 }
-function head_h(mouth) = otto_head[1]+(mouth==1?otto_oled_extra:0);
+function head_h(mouth) = otto_head[1];   // same for every mouth: fixed electronics bay
 // Outer outline: styled (and grown) above the insert band, fixed band below it.
 module head_outline(style,r,grow,mouth) {
   h=head_h(mouth);
@@ -56,31 +56,36 @@ module head_part(style=1,r=4,grow=0,ear=0,ant=0,hat=0,mouth=0,c=0.25) {
         linear_extrude(head_depth()) head_outline(style,r,grow,mouth);
         translate([0,0,otto_wall]) linear_extrude(head_depth()) head_cavity_outline(style,r,mouth);
       }
-      nano_rails(head_depth()-otto_cover_lip,c);
       ears(ear,otto_head[0]/2+grow,grow); antenna(ant,grow); hats(hat,grow);
     }
+    // Behind the insert band the head rests on the body's rear rim instead.
+    translate([-100,-head_h(mouth)-1,otto_head_band]) cube([200,otto_head_insert+1,100]);
     hcsr04_eyes(c);
+    usbc_top_slot(c);
     if(mouth==0) translate([0,otto_nose_y,-1]) cylinder(d=otto_nose_d,h=otto_wall+2,$fn=32);
     if(mouth==1) oled_window(c);
     if(mouth==2) for(x=[-8,0,8]) translate([x,otto_grille_y,-1]) fit_box([3,8,otto_wall+2],c);
   }
 }
 // Back cover: outside face on the bed. A U-shaped lip locates it in the head's
-// open rear; the bottom stays open where the head drops into the body.
+// open rear and two posts carry the I/O shield. It sits behind the body, so it
+// stops at the body rim (no insert band); the bottom stays open.
 module head_cover_part(style=1,r=4,grow=0,mouth=0,c=0.25) {
   h=head_h(mouth); iw=otto_head[0]-2*otto_wall;
   difference() {
     union() {
-      linear_extrude(otto_wall) head_outline(style,r,grow,mouth);
+      linear_extrude(otto_wall) difference() {
+        head_outline(style,r,grow,mouth);
+        translate([-200,-h-10]) square([400,10+otto_head_insert]);
+      }
       translate([0,0,otto_wall-0.01]) linear_extrude(otto_cover_lip+0.01) difference() {
         offset(delta=-c) head_cavity_outline(style,r,mouth);
         offset(delta=-c-otto_wall) head_cavity_outline(style,r,mouth);
         translate([-iw,-h-10]) square([2*iw,10+otto_head_insert]);
       }
-      buzzer_ring(c);
+      shield_standoffs();
     }
-    usbc_slot(c);
-    buzzer_seat(c);
+    shield_pilots();
   }
 }
 // Body: open-top box with chamfered vertical edges; hip servos stand on the floor.
@@ -92,9 +97,10 @@ module body_part(grow=0,c=0.25) {
         linear_extrude(otto_body[2]) offset(delta=ch,chamfer=true) square([w-2*ch,d-2*ch],center=true);
         translate([0,0,otto_wall]) linear_extrude(otto_body[2]) square(otto_body_inner,center=true);
       }
-      hip_posts(); battery_ribs(c);
+      hip_posts(); battery_ribs(c); buzzer_ring(c);
     }
     body_cavities(c);
+    buzzer_seat(c);
   }
 }
 // Leg prints top-down (z=0 is the top, against the body). Both legs are identical.
@@ -136,16 +142,17 @@ function leg_bottom_z() = otto_sole+otto_leg_gap;
 function body_z() = leg_bottom_z()+otto_leg[2]+otto_leg_gap;
 module otto_placed(part=0,headStyle=1,corner=4,grow=0,ear=0,ant=0,hat=0,mouth=0,feet=0,clearance=0.25) {
   head_bottom=body_z()+otto_body[2]-otto_head_insert; top=head_bottom+head_h(mouth); d=otto_head[2];
+  face=-otto_head_band/2;   // face plane; the extra head depth goes to the rear
   if(part==2 || part==3) translate([otto_hip_x[part-2],otto_hip_y,body_z()-otto_leg_gap]) rotate([0,180,0])
     otto_single(part,headStyle,corner,grow,ear,ant,hat,mouth,feet,clearance);
   if(part==4 || part==5) translate([otto_hip_x[part-4],otto_hip_y,0])
     otto_single(part,headStyle,corner,grow,ear,ant,hat,mouth,feet,clearance);
   if(part==1) translate([0,0,body_z()]) otto_single(1,headStyle,corner,grow,ear,ant,hat,mouth,feet,clearance);
   // Head: face plate (local z=0) to the front, local y=0 at the head top.
-  if(part==0) multmatrix([[-1,0,0,0],[0,0,1,-d/2],[0,1,0,top],[0,0,0,1]])
+  if(part==0) multmatrix([[-1,0,0,0],[0,0,1,face],[0,1,0,top],[0,0,0,1]])
     otto_single(0,headStyle,corner,grow,ear,ant,hat,mouth,feet,clearance);
   // Cover: outside face (local z=0) to the rear, flush with the head walls.
-  if(part==8) multmatrix([[1,0,0,0],[0,0,-1,d/2],[0,1,0,top],[0,0,0,1]])
+  if(part==8) multmatrix([[1,0,0,0],[0,0,-1,face+d],[0,1,0,top],[0,0,0,1]])
     otto_single(8,headStyle,corner,grow,ear,ant,hat,mouth,feet,clearance);
 }
 module otto_assembled(headStyle=1,corner=4,grow=0,ear=0,ant=0,hat=0,mouth=0,feet=0,clearance=0.25) {

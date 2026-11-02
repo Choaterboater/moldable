@@ -20,16 +20,16 @@ function envelope(model, p) {
   switch (model) {
     case 'otto': {
       if (m.part === 6 || m.part === 7) return null;   // plate, assembled view
-      const wall = 2, extra = m.mouth === 1 ? 24 : 0;
+      const wall = 2;
       if (m.part === 0 || m.part === 8) {
         // Face-down head / flat cover: [width, height incl. insert band, depth].
         let [x, y, z] = ottoSize('head');
-        x += 2*m.grow; y += m.grow + extra;
+        x += 2*m.grow; y += m.grow;
         if (m.part === 0) {
           // Accessories extend upward in the face plane because the head prints face-down.
           y += Math.max(m.antenna ? m.antenna + 4 : 0, m.hat ? 29 : 0, m.ears ? 14 : 0);
           z -= wall;
-        } else z = wall + 3 + 5.7;   // plate + lip + buzzer ring
+        } else { y -= 3; z = wall + 6.75; }   // cover stops at the body rim; plate + shield posts
         return {x, y, z};
       }
       if (m.part === 1) { const [x, y, z] = ottoSize('body'); return {x: x + 2*m.grow, y: y + 2*m.grow, z}; }

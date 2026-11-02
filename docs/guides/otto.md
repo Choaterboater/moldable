@@ -2,8 +2,8 @@
 
 Find **Classic Otto**, **Rounded Otto** and **Cat-ear Otto** in the gallery, or type
 “otto robot”, “make me a dancing robot” or “lego otto”. The model category is Robots.
-Use the **Show** buttons to pick Assembled, Head, Back cover, Body, Leg L, Leg R, Foot L, Foot R or Print plate. Otto opens on Assembled, a look-only view of the whole robot (STL download is disabled there); every part sits on its real interface: feet on the ground, legs between the foot brackets, hip horns just under the body floor, head dropped 3 mm into the body and the cover flush at the rear. The Front/Back/Side/Top buttons in the viewer jump to fixed angles.
-Use **Paint** to pick Whole robot, Head, Back cover, Body, Legs or Feet, then click a color swatch; the Assembled view and single-part views show each part in its own color. Colors are preview only (not saved with designs or links); choose one filament color per part in the slicer.
+Use the **Show** buttons to pick Assembled, Head, Back cover, Body, Leg L, Leg R, Foot L, Foot R or Print plate. Otto opens on Assembled, a look-only view of the whole robot (STL download is disabled there); every part sits on its real interface: feet on the ground, legs between the foot brackets, hip horns just under the body floor, head dropped 3 mm into the body (its rear rests on the body rim) and the cover flush at the rear. The Front/Back/Side/Top buttons in the viewer jump to fixed angles.
+Use **Paint** to pick Whole robot, Head, Back cover, Body, Legs or Feet, then click a color swatch. Each Paint button shows a dot in that part's current color, which tells it apart from the Show buttons of the same name; the Assembled view and single-part views show each part in its own color. Colors are preview only (not saved with designs or links); choose one filament color per part in the slicer.
 
 ## Prototype status
 
@@ -25,7 +25,7 @@ links are recorded in the fit record without assuming their contents.
 
 Head: cube, rounded, bevel or dome. Corners: 0–12 mm. Shell growth:
 0–10 mm per side. Ears: none, round, cat or bear. Antenna: 0–30 mm. Hats: none,
-cap, top hat or helmet. Mouth: classic nose hole (default), OLED window with a taller head, or grille. Feet: classic, boot or
+cap, top hat or helmet. Mouth: classic nose hole (default), OLED window, or grille. Every mouth uses the same 61 mm tall head: the electronics need that room. Feet: classic, boot or
 wide stable. These do not change component positions. Core interfaces are not sliders.
 
 ## Print the small fit tests first
@@ -37,7 +37,8 @@ sample pockets/openings, sometimes called **coupons**, not the printer's corners
 1. Servo pocket: insert the actual MG90S by hand; it should be snug without force.
 2. Sensor eye ring: check the actual transducer fits and remains retained.
 3. Type-C opening: check the actual cable boot, then verify insertion with the Nano
-   on its measured mount. The opening sample alone cannot verify port position.
+   in the shield on the back cover. The cable now enters through the **top of the
+   head**. The opening sample alone cannot verify port position.
 4. Battery bay: check actual cell, clip and wire, then verify closure in the measured
    assembly. A bare standard 9 V envelope is not an actual rechargeable-cell test.
 
@@ -66,6 +67,25 @@ face-down (eyes and screen on the bed) with its underside and rear open; the bac
 flat-backed extensions in the same printable part, not separately colored pieces.
 The analytic 45° check excludes bed-contact faces; real support-free acceptance
 still requires actual slicing and prints. Keep the generated orientation.
+
+## Electronics layout
+
+All of this is coded from reference sizes, not measured parts. See the fit record.
+
+- **Nano + I/O shield:** the shield stands upright on two posts on the back cover
+  (M3 self-tapping screws through its two top holes), Nano and plugs facing the face.
+  The Nano's Type-C port points up, and the cable plugs in through a slot in the head
+  top. The shield's bottom edge reaches about 5 mm into the body, in front of the
+  body's rear wall. The bottom holes are not used.
+- **HC-SR04:** behind the eye holes; its plugs hang straight down behind the OLED.
+- **OLED:** mount it **upside down** (pin header at the bottom) so its plugs pass under
+  the HC-SR04 plugs. Rotate the display 180° in the sketch, for example
+  `U8G2_R2` (U8g2) or `display.setRotation(2)` (Adafruit SSD1306).
+- **Buzzer:** sits sound-side down in a ring on the body floor, front left; it sounds
+  through a floor hole.
+- **Order:** screw the shield to the cover; plug the sensor, OLED, buzzer, servo and
+  battery leads into it; slide the cover into the head; then drop the head into the body. To open it again, lift the head
+  out of the body first: the shield's lower edge sits behind the body's rear wall.
 
 ## Assembly and calibration
 

@@ -52,18 +52,16 @@ module hcsr04_eyes(clearance=0.25) {
   for(x=otto_eyes) translate([x,otto_eye_y,otto_wall-0.01]) cylinder(d=otto_transducer[0]+2*clearance,h=otto_sensor_pos[2]-otto_wall+0.02,$fn=48);
   translate([otto_sensor_pos[0],otto_sensor_pos[1],otto_sensor_pos[2]]) fit_box(otto_sensor,clearance);
 }
-// C-channel rails under the head top: the Nano slides in from the open rear.
-// Rails start with a 45-degree ramp so their front ends don't overhang.
-module nano_rails(end_z, clearance=0.25) {
-  bw=otto_nano[1]/2+clearance; by=otto_nano_pos[1]-otto_nano[2]/2-clearance; top=-otto_wall+0.01;
-  intersection() {
-    translate([0,0,otto_nano_rail_z]) linear_extrude(end_z-otto_nano_rail_z) for(s=[-1,1]) mirror([s<0?1:0,0]) {
-      translate([bw,by-2]) square([2,top-by+2]);
-      translate([bw-2,by-2]) square([4,2]);
-    }
-    rotate([90,0,90]) translate([0,0,-50]) linear_extrude(100)
-      polygon([[top+1,otto_nano_rail_z-1],[top+1,1000],[-100,1000],[-100,otto_nano_rail_z+1.1*(top+100)]]);
-  }
+// Nano I/O shield stands upright on back-cover standoffs, Nano facing the face, its
+// Type-C port pointing UP at the board's top edge. Head-local z of the PCB back:
+function shield_back_z() = otto_head[2]-otto_wall-otto_shield_standoff;
+function usb_z() = shield_back_z()-otto_shield[2]-otto_nano_usb[1];
+// Type-C cable opening through the head top, above the port. Its rear side is a
+// 45-degree gable so the opening prints without support (head prints face down).
+module usbc_top_slot(clearance=0.25) {
+  hw=otto_usb[0]/2+clearance; hh=otto_usb[1]/2+clearance; zc=usb_z();
+  translate([otto_nano_usb[0],0,0]) rotate([90,0,0]) translate([0,0,-100]) linear_extrude(100+otto_wall+1)
+    polygon([[-hw,zc-hh],[hw,zc-hh],[hw,zc+hh],[0,zc+hh+hw],[-hw,zc+hh]]);
 }
 module oled_window(clearance=0.25) {
   translate([otto_oled_pos[0],otto_oled_pos[1],-1]) fit_box([otto_oled_visible[0],otto_oled_visible[1],otto_wall+2],clearance);
@@ -71,15 +69,15 @@ module oled_window(clearance=0.25) {
 }
 
 // ---------- back cover (outside face on the bed) ----------
-module usbc_slot(clearance=0.25) {
-  translate([otto_usb_pos[0],otto_usb_pos[1],-1]) fit_box([otto_usb[0],otto_usb[1],otto_wall+otto_cover_lip+2],clearance);
+// Two posts carry the shield's top mounting holes (M3 self-tapping screws). The
+// bottom holes sit below the body rim, where no post can reach; the body's rear
+// wall backs the lower board edge instead.
+function shield_hole_y() = otto_shield_top-(otto_shield[1]-otto_shield_holes[1])/2;
+module shield_standoffs() {
+  for(s=[-1,1]) translate([s*otto_shield_holes[0]/2,shield_hole_y(),otto_wall-0.01]) cylinder(d=otto_standoff[0],h=otto_shield_standoff+0.01,$fn=32);
 }
-module buzzer_ring(clearance=0.25) {
-  translate([otto_buzzer_pos[0],otto_buzzer_pos[1],0]) cylinder(d=otto_buzzer[0]+2*clearance+3,h=otto_wall+otto_buzzer[1]*0.6,$fn=48);
-}
-module buzzer_seat(clearance=0.25) {
-  translate([otto_buzzer_pos[0],otto_buzzer_pos[1],otto_wall]) cylinder(d=otto_buzzer[0]+2*clearance,h=100,$fn=48);
-  translate([otto_buzzer_pos[0],otto_buzzer_pos[1],-1]) cylinder(d=5,h=otto_wall+2,$fn=24);
+module shield_pilots() {
+  for(s=[-1,1]) translate([s*otto_shield_holes[0]/2,shield_hole_y(),otto_wall+0.5]) cylinder(d=otto_standoff[1],h=100,$fn=24);
 }
 
 // ---------- body (floor on the bed) ----------
@@ -88,6 +86,14 @@ module buzzer_seat(clearance=0.25) {
 function hip_case_y() = otto_hip_y+otto_servo_shaft;
 module hip_posts() {
   for(x=otto_hip_x, dy=[-14,14]) translate([x,hip_case_y()+dy,otto_wall-0.01]) cylinder(d=4.5,h=otto_servo_ear_z+0.01,$fn=24);   // clears the 12 mm shaft hole
+}
+// Buzzer stands sound-side down in a floor ring; it sounds through a floor hole.
+module buzzer_ring(clearance=0.25) {
+  translate([otto_buzzer_pos[0],otto_buzzer_pos[1],0]) cylinder(d=otto_buzzer[0]+2*clearance+3,h=otto_wall+otto_buzzer[1]*0.6,$fn=48);
+}
+module buzzer_seat(clearance=0.25) {
+  translate([otto_buzzer_pos[0],otto_buzzer_pos[1],otto_wall]) cylinder(d=otto_buzzer[0]+2*clearance,h=100,$fn=48);
+  translate([otto_buzzer_pos[0],otto_buzzer_pos[1],-1]) cylinder(d=5,h=otto_wall+2,$fn=24);
 }
 module battery_ribs(clearance=0.25) {
   for(s=[-1,1]) translate([s*(otto_battery[1]/2+clearance+1),otto_battery_pos[1],otto_wall-0.01]) fit_box([2,otto_battery[0],5]);
