@@ -271,7 +271,7 @@
           <div style="font-size:12px;font-weight:600;color:#8e9bab;margin-bottom:8px;">Show</div>
           <div style="display:flex;gap:7px;flex-wrap:wrap;">
             <sc-for list="{{ ottoParts }}" as="op" hint-placeholder-count="9">
-              <button onClick="{{ op.onClick }}" style="{{ op.style }}">{{ op.label }}</button>
+              <button onClick="{{ op.onClick }}" style="{{ op.style }}" aria-label="{{ op.aria }}" aria-pressed="{{ op.pressed }}" title="{{ op.aria }}">{{ op.label }}</button>
             </sc-for>
           </div>
         </div>
@@ -322,7 +322,7 @@
           <div style="grid-column:1/-1;display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:6px;">
             <span style="font-size:13.5px;font-weight:600;color:#3a4654;margin-right:4px;">Paint</span>
             <sc-for list="{{ paintTargets }}" as="pt" hint-placeholder-count="6">
-              <button onClick="{{ pt.onClick }}" style="{{ pt.style }}">{{ pt.label }}</button>
+              <button onClick="{{ pt.onClick }}" style="{{ pt.style }}" aria-label="{{ pt.aria }}" aria-pressed="{{ pt.pressed }}" title="{{ pt.aria }}"><span aria-hidden="true" style="{{ pt.swatch }}"></span>{{ pt.label }}</button>
             </sc-for>
           </div>
         </sc-if>
@@ -455,7 +455,7 @@
           <div style="font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#8e9bab;margin-bottom:10px;">Show</div>
           <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:22px;">
             <sc-for list="{{ ottoParts }}" as="op" hint-placeholder-count="9">
-              <button onClick="{{ op.onClick }}" style="{{ op.style }}">{{ op.label }}</button>
+              <button onClick="{{ op.onClick }}" style="{{ op.style }}" aria-label="{{ op.aria }}" aria-pressed="{{ op.pressed }}" title="{{ op.aria }}">{{ op.label }}</button>
             </sc-for>
           </div>
         </sc-if>
@@ -479,7 +479,7 @@
             <div style="margin-bottom:10px;display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:6px;">
               <span style="font-size:13.5px;font-weight:600;color:#3a4654;margin-right:4px;">Paint</span>
               <sc-for list="{{ paintTargets }}" as="pt" hint-placeholder-count="6">
-                <button onClick="{{ pt.onClick }}" style="{{ pt.style }}">{{ pt.label }}</button>
+                <button onClick="{{ pt.onClick }}" style="{{ pt.style }}" aria-label="{{ pt.aria }}" aria-pressed="{{ pt.pressed }}" title="{{ pt.aria }}"><span aria-hidden="true" style="{{ pt.swatch }}"></span>{{ pt.label }}</button>
               </sc-for>
             </div>
           </sc-if>
@@ -1400,6 +1400,13 @@ class Component extends DCLogic {
     else this.setState({ color: hex, ottoColors: {} });   // "Whole robot" repaints every part
   }
   setPaintTarget(t) { this.setState({ paintTarget: t }); }
+  // Choice sliders carry their options in the label, e.g. "Head (0 Cube · 1 Rounded · 2 Bevel)".
+  // Show the chosen option's name next to the number: "2 · Bevel".
+  _optionDisplay(label, val) {
+    const m = /\(([^()]*)\)\s*$/.exec(label || '');
+    const opt = m && m[1].split('·').map(o => /^\s*(\d+)\s+(.+?)\s*$/.exec(o)).find(o => o && +o[1] === Number(val));
+    return opt ? val + ' · ' + opt[2] : '' + val;
+  }
   // Otto colour groups: part number -> group key. Legs and feet share a colour per pair.
   _ottoGroup(part) { return ({ 0: 'head', 8: 'cover', 1: 'body', 2: 'legs', 3: 'legs', 4: 'feet', 5: 'feet' })[part] || null; }
   _groupColor(g) { return (g && this.state.model === 'otto' && (this.state.ottoColors || {})[g]) || this.state.color; }
@@ -2021,7 +2028,7 @@ class Component extends DCLogic {
           const val = s.modelParams[s.model][pm.key];
           return {
             key: pm.key, label: pm.label, min: pm.min, max: pm.max, step: pm.step, value: val,
-            display: pm.unit ? (val + ' ' + pm.unit) : ('' + val),
+            display: pm.unit ? (val + ' ' + pm.unit) : this._optionDisplay(pm.label, val),
             onInput: (e) => this.setParam(pm.key, +e.target.value),
           };
         });
@@ -2057,16 +2064,18 @@ class Component extends DCLogic {
     // Otto part picker, in build order; values are the generator's part numbers.
     const ottoPart = Number((s.modelParams.otto || {}).part);
     const ottoParts = [[7,'Assembled'],[0,'Head'],[8,'Back cover'],[1,'Body'],[2,'Leg L'],[3,'Leg R'],[4,'Foot L'],[5,'Foot R'],[6,'Print plate']].map(([v, label]) => ({
-      label, onClick: () => this.setParam('part', v),
+      label, aria: 'Show ' + label.toLowerCase(), pressed: ottoPart === v, onClick: () => this.setParam('part', v),
       style: tchip + (ottoPart === v
         ? 'background:#19222d;color:#fff;border:1.5px solid #19222d;'
         : 'background:#fff;color:#41505f;border:1.5px solid #d0d8e2;')
     }));
 
-    // Otto paint targets: which part group the colour swatches apply to.
+    // Otto paint targets: which part group the colour swatches apply to. Each chip
+    // carries its current colour as a dot so it can't be mistaken for a Show chip.
     const paintTargets = [['all','Whole robot'],['head','Head'],['cover','Back cover'],['body','Body'],['legs','Legs'],['feet','Feet']].map(([k, label]) => ({
-      label, onClick: () => this.setPaintTarget(k),
-      style: tchip + 'box-shadow:inset 0 -4px 0 ' + (k === 'all' ? s.color : this._groupColor(k)) + ';' + (paintTarget === k
+      label, aria: 'Paint ' + label.toLowerCase(), pressed: paintTarget === k, onClick: () => this.setPaintTarget(k),
+      swatch: 'display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:6px;vertical-align:-1px;box-shadow:0 0 0 1.5px #fff,0 0 0 2.5px rgba(0,0,0,.25);background:' + (k === 'all' ? s.color : this._groupColor(k)) + ';',
+      style: tchip + (paintTarget === k
         ? 'background:#19222d;color:#fff;border:1.5px solid #19222d;'
         : 'background:#fff;color:#41505f;border:1.5px solid #d0d8e2;')
     }));

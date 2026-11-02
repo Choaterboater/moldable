@@ -29,7 +29,7 @@ Moldable code or resolve the repository's other third-party licensing questions.
 ## Files
 
 - `otto_fit.scad`: fixed reference sizes and explicitly provisional design positions.
-- `otto_core.scad`: cavities, rail cradle, locating rim and four fit-test samples.
+- `otto_core.scad`: cavities, top Type-C slot, shield posts, buzzer seat and four fit-test samples.
 - `otto_shells.scad`: six parts, exterior styles and nonoverlapping plate layout.
 
 All modules accept parameters explicitly; built-in templates use the existing
@@ -44,3 +44,6 @@ an 80-byte credit/license header; keep this README and source with redistributio
 - Access channels remain open toward print-up; horn and socket transitions taper
   rather than introducing unsupported internal ceilings.
 - Physical measurements, V13 articulation comparison and real prints pending.
+- Electronics fit (Nov 2026): head 61 tall for every mouth and 6 mm deeper at the rear;
+  Nano rails replaced by an upright I/O shield on back-cover posts with the Type-C slot
+  in the head top; OLED mounted upside down; buzzer moved to the body floor.

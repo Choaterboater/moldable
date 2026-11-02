@@ -14,10 +14,10 @@ function solid(result, components = 1, onBed = true) {
   if (onBed) assert.ok(Math.abs(result.info.min[2]) < 0.05, 'not resting on the bed');
   return result.info;
 }
-// Otto plate has 7 pieces; assembled = head+cover, body, 2 legs, 2 feet (a grown head rests on the body rim).
+// Otto plate has 7 pieces; assembled = head+cover resting on the body rim, 2 legs, 2 feet.
 function components(model, p) {
   if (model !== 'otto') return 1;
-  return p.part === 6 ? 7 : p.part === 7 ? (p.grow > 0 ? 5 : 6) : 1;
+  return p.part === 6 ? 7 : p.part === 7 ? 5 : 1;
 }
 async function modelSolid(model, params) {
   const g = generate(model, params);

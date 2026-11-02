@@ -107,7 +107,8 @@ export function validate(stl, constraints = {}) {
   // the #1 freeform failure: parts placed at uncoordinated positions come out as separate floating
   // solids ("random pieces"). Each is independently watertight so the hard gates above pass — flag it
   // here so the freeform repair loop reconnects them (the library route ignores warnings).
-  const isOttoPlate = constraints.model === 'otto' && Number(constraints.part) === 6;
+  // Otto's print plate and assembled preview are separate parts by design.
+  const isOttoPlate = constraints.model === 'otto' && [6, 7].includes(Number(constraints.part));
   if (info.components > 1 && !isOttoPlate) warnings.push(`the model is in ${info.components} disconnected pieces — they must overlap/connect into a single solid`);
   if (constraints.buildVolume) {
     const fit = checkBuildVolume(info.size, constraints.buildVolume);

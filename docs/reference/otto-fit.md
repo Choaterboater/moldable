@@ -5,6 +5,12 @@ were performed during this build. A passing collision test proves only that the
 coded component envelopes do not overlap plastic; it cannot prove actual fit,
 retention, assembly, horn alignment or walking kinematics.
 
+`test/otto-electronics.test.mjs` places every component **with its plugs** in the
+assembled robot (`test/fixtures/otto-electronics.mjs`, independent numbers) and checks
+it against every printed part, for every head style × mouth × shell extreme and both
+clearance limits, and against every other component. A control case proves a real
+collision is detected.
+
 ## Source ledger
 
 - User build plan: `C:\Users\choat\Desktop\moldable-otto-plan.md` and accepted
@@ -43,6 +49,9 @@ Blank actual fields mean **unmeasured**, not zero. Units: mm.
 | HC-SR04 board envelope | 45 × 20 × 15 | ElecFreaks, supplied plan | |
 | Nano board | 43.2 × 18; clone about 43 × 18 | Arduino, supplied plan | |
 | Nano mounting holes | Ø1.8 | Arduino, supplied plan | |
+| Nano I/O shield | 60 × 42, Ø3 holes at 53.34 × 35.56 | YwRobot Nano Sensor Shield (the ZC board may differ) | |
+| Shield stack in front of the PCB | 28.4 (Nano on female headers + Dupont plugs) | Nov 1 fit check estimate | |
+| Type-C port on the shield | centred, 11.7 in front of the PCB, at the top edge, pointing up | Estimate: 8.5 female header + 1.6 PCB + half the receptacle | |
 | OLED board | about 27 × 27 × 4 | Supplied plan, module drawing needed | |
 | OLED visible screen | 21.74 × 10.86 | Supplied plan, module drawing needed | |
 | Buzzer | Ø12; height 8.5–9.5; pins 6.5 apart | Supplied plan, vendor drawing needed | |
@@ -56,6 +65,9 @@ Blank actual fields mean **unmeasured**, not zero. Units: mm.
 | Cable plastic boot and bend space | | |
 | Type-C port position on HNX Nano | | |
 | ZC shield outline and mounting holes | | |
+| ZC shield: Nano position and USB direction, header heights, solder-side depth | | |
+| OLED header side (pins out the back assumed) and plug length | | |
+| HC-SR04 header plug length below the board | | |
 | HC-SR04 eye diameters and spacing | | |
 | HC-SR04 retaining details | | |
 | OLED mounting holes | | |
@@ -69,26 +81,41 @@ Blank actual fields mean **unmeasured**, not zero. Units: mm.
 ## New design choices (V9 proportions, not V9 measurements)
 
 `cad/libraries/otto/otto_fit.scad` keeps these fixed. They follow Otto V9's overall
-proportions (assembled height 117.5) but are prototype allowances, not
-measurements of the purchased parts:
+proportions (V9 assembled height 117.5; this head is 24 mm taller for the
+electronics, so 141.5) but are prototype allowances, not measurements of the purchased parts:
 
-- Head 63.5 wide × 37 tall × 63.5 deep including the 2 mm back cover; OLED mouth adds 24 mm height.
-  Its bottom 3 mm drops inside the body. Body 68×68×38 with 3 mm chamfered vertical edges, cavity 64×64.
+- Head 63.5 wide × 61 tall × 69.5 deep including the 2 mm back cover, the same for every mouth.
+  Its bottom 3 mm band (63.5 deep from the face) drops inside the body; behind the band the head
+  rests on the body's rear rim. The face plane is unchanged; the extra 6 mm depth is at the rear. Body 68×68×38 with 3 mm chamfered vertical edges, cavity 64×64.
   Leg 16.5×29×38.5; foot sole 40×62×5 with front/rear brackets, sitting 10 mm outboard of the leg.
 - Four MG90S servos: two hip servos stand shaft-down on the body floor at X ±22 (posts carry the ears,
   the shaft passes the floor into the leg's horn recess); one ankle servo inside each leg, shaft forward,
   driving a horn recessed in the foot's front bracket, with a Ø2.5 pivot pin through the rear bracket.
-- Head prints face-down with open underside and rear; the Nano slides along rails under the head top
-  from the rear. HC-SR04 eyes at X ±13.25, Y −15 from the head top, Ø16.5 holes. Nose Ø6 at Y −30,
+- Head prints face-down with open underside and rear. HC-SR04 eyes at X ±13.25, Y −15 from the head
+  top, Ø16.5 holes; its 4-pin header points down, plugs hang 20 mm below the board. Nose Ø6 at Y −30,
   OLED window centre Y −40 (mouth 1) or three grille slots (mouth 2).
-- Back cover: U-shaped 3 mm lip, USB-C opening at Y −6.5, buzzer seat at X −18, Y −24.
-- Body floor: battery between ribs at Y −3.75 with clip allowance, Ø8 jack and 13×9 switch openings at the rear.
+- OLED mounts upside down (header at the bottom edge) so its rear plugs pass 4 mm under the HC-SR04
+  plugs; rotate the display 180° in software. With the header at the top the two sets of plugs
+  crossed (12 × 5 × 4.5 mm), found by the Nov 1 fit check.
+- Nano I/O shield stands upright, 42 wide × 60 tall, PCB back 6.75 mm in front of the back cover, top
+  edge 3.5 mm under the head top (clears the dome's rounded ceiling). The stack in front reaches
+  y −1 in the assembled frame, 2.25 mm behind the OLED plugs. Its lower 5 mm sits in the body in front of the
+  rear wall, 4 mm above the battery. Two Ø6 cover posts with Ø2.5 pilots take its top holes;
+  the bottom holes sit below the body rim and are unused.
+- The Nano's Type-C port points up; a 12.85 × 7.0 slot with a 45° rear gable passes through the head top.
+  The old rails could not take a Nano with soldered headers (pin rows hit the rail lips), so they are gone.
+- Back cover: U-shaped 3 mm lip and the two shield posts; it stops at the body rim.
+- Body floor: battery between ribs at Y −3.75 with clip allowance, Ø8 jack and 13×9 switch openings at the rear,
+  buzzer ring at X −21, Y −22 with a Ø5 sound hole through the floor.
+- Assembly order: shield on cover, leads plugged in, cover into head, head into body. Lift the head out
+  before removing the cover (the shield's lower edge is behind the body's rear wall).
 - Provisional horn hub Ø7.4 / single arm 14 long / screw Ø2.5, recessed 2 mm with 45° roofs.
 - Provisional USB opening 12.85×7.0 at clearance 0.25. The real plastic cable boot may be larger.
+- Every purchased-hardware number above is a reference value. Re-check with calipers when the parts arrive.
 - No claim of V9 or V13 part interchangeability.
 
 Shell growth changes XY exterior only. Rounded, bevel and dome styles shape the head's top corners
-outside the fixed core; the dome radius is capped at 14 mm so the sensor board stays enclosed.
+outside the fixed core; the dome radius is capped at 14 mm so the sensor board and shield stay enclosed.
 Accessories are flat-backed extensions printed on the bed, not floating hats.
 The fixed cavity subtraction is applied after accessories are added.
 
