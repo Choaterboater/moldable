@@ -57,6 +57,38 @@
               linear-gradient(var(--accent,#ff5a1f),var(--accent,#ff5a1f)) center/1.5px 100% no-repeat;}
   .mw-grid::before{top:13px;left:13px}
   .mw-grid::after{right:13px;bottom:13px}
+  /* result screen: model left (stays in view), controls right (own scroll) */
+  .mw-result{display:grid;grid-template-columns:minmax(0,1fr) minmax(340px,410px);gap:20px;height:100%;padding:16px 20px;max-width:1700px;margin:0 auto;}
+  .mw-stage{display:flex;flex-direction:column;gap:10px;min-height:0;}
+  .mw-viewer{flex:1;min-height:0;border-radius:18px;overflow:hidden;border:1px solid #dde3ea;}
+  .mw-panel{min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:18px;padding:4px 6px 40px 2px;}
+  .mw-sec{display:flex;flex-direction:column;gap:14px;padding-top:18px;border-top:1px solid #dde3ea;}
+  .mw-sec h2{margin:0;font-size:15px;font-weight:700;color:#2b3340;font-family:'Space Grotesk',sans-serif;}
+  .mw-sec h3{margin:6px 0 10px;font-size:12.5px;font-weight:700;color:#586575;}
+  .mw-showrow{display:flex;align-items:center;gap:6px;overflow-x:auto;padding-bottom:2px;}
+  .mw-showrow>span{font-size:12.5px;font-weight:600;color:#586575;margin-right:4px;}
+  .mw-showrow button{flex:0 0 auto;}
+  .mw-select{appearance:none;-webkit-appearance:none;width:100%;padding:11px 38px 11px 13px;border:1.5px solid #d0d8e2;border-radius:11px;font-size:14.5px;font-weight:600;color:#19222d;cursor:pointer;
+    background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%23586575' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 14px center;}
+  .mw-select:focus-visible,.mw-zoom button:focus-visible,.mw-views button:focus-visible,.mw-viewtools button:focus-visible{outline:2px solid var(--accent,#ff5a1f);outline-offset:2px;}
+  .mw-viewtools{position:absolute;top:14px;right:14px;display:flex;gap:8px;z-index:4;}
+  .mw-viewtools button,.mw-zoom button,.mw-views{background:rgba(255,255,255,.94);border:1px solid #d6dde6;border-radius:9px;color:#41505f;cursor:pointer;box-shadow:0 1px 3px rgba(25,34,45,.08);}
+  .mw-viewtools button{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;padding:8px 12px;}
+  .mw-zoom{position:absolute;right:14px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:6px;z-index:4;}
+  .mw-zoom button{width:38px;height:38px;display:flex;align-items:center;justify-content:center;padding:0;}
+  .mw-zoom button:hover,.mw-viewtools button:hover,.mw-views button:hover{background:#fff;color:#19222d;}
+  .mw-views{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);display:flex;gap:2px;padding:4px;z-index:4;}
+  .mw-views button{font-size:12.5px;font-weight:600;color:#41505f;background:transparent;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;}
+  .mw-hint{position:absolute;left:14px;top:14px;font-size:11px;color:#586575;background:rgba(255,255,255,.88);padding:5px 10px;border-radius:8px;font-weight:500;z-index:3;pointer-events:none;max-width:45%;}
+  .mw-studio{flex:1;display:grid;grid-template-columns:288px 1fr 348px;overflow:hidden;}
+  @media(max-width:1280px){ .mw-studio{grid-template-columns:240px 1fr 300px;} }
+  @media(max-width:1099px){
+    .mw-result{display:block;height:auto;max-width:920px;padding:18px 18px 60px;}
+    .mw-viewer{flex:none;height:clamp(360px,60vh,620px);}
+    .mw-panel{overflow:visible;margin-top:18px;padding:0;}
+    .mw-studio{grid-template-columns:1fr;overflow-y:auto;}
+    .mw-studio>section{min-height:440px;}
+  }
   /* dimension-callout sliders: tick the rule at both ends */
   input[type=range]{background:
       linear-gradient(#9aa6b6,#9aa6b6) left/1.5px 11px no-repeat,
@@ -244,115 +276,132 @@
 
     <!-- RESULT -->
     <sc-if value="{{ isResult }}" hint-placeholder-val="{{ false }}">
-    <section data-screen-label="Guided — result" style="max-width:920px;margin:0 auto;padding:24px 24px 60px;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:12px;">
-        <div style="display:flex;align-items:center;gap:12px;min-width:0;">
-          <input value="{{ title }}" onInput="{{ onTitleInput }}" style="font-size:25px;font-weight:700;letter-spacing:-.02em;border:none;background:transparent;color:#19222d;max-width:100%;font-family:'Space Grotesk',sans-serif;" />
-          <span style="flex:0 0 auto;font-size:12px;font-weight:700;color:var(--accent,#ff5a1f);background:rgba(255,90,31,.1);padding:5px 11px;border-radius:99px;">{{ modelLabel }}</span>
-        </div>
-        <button onClick="{{ newModel }}" style="flex:0 0 auto;font-size:14px;font-weight:600;color:#586575;background:#fff;border:1.5px solid #d0d8e2;padding:9px 15px;border-radius:10px;cursor:pointer;">+ New</button>
-      </div>
-
-      <sc-if value="{{ showUnrecognized }}" hint-placeholder-val="{{ false }}">
-        <div style="display:flex;gap:10px;align-items:flex-start;background:#fbeede;border:1px solid #f0d9b8;border-radius:13px;padding:13px 15px;margin-bottom:14px;color:#8a5a22;font-size:14px;line-height:1.45;">
-          <span style="font-size:17px;line-height:1;">&#9888;</span><span>{{ unrecognizedText }}</span>
-        </div>
-      </sc-if>
-      <div style="margin-bottom:14px;">
-        <div style="font-size:12px;font-weight:600;color:#8e9bab;margin-bottom:8px;">Model type</div>
-        <div style="display:flex;gap:7px;flex-wrap:wrap;">
-          <sc-for list="{{ typeList }}" as="ty" hint-placeholder-count="6">
-            <button onClick="{{ ty.onClick }}" style="{{ ty.style }}">{{ ty.label }}</button>
-          </sc-for>
-        </div>
-      </div>
-      <sc-if value="{{ isOtto }}" hint-placeholder-val="{{ false }}">
-        <div style="margin-bottom:14px;">
-          <div style="font-size:12px;font-weight:600;color:#8e9bab;margin-bottom:8px;">Show</div>
-          <div style="display:flex;gap:7px;flex-wrap:wrap;">
+    <section data-screen-label="Guided — result" class="mw-result">
+      <!-- left: the model stays in view -->
+      <div class="mw-stage">
+        <sc-if value="{{ isOtto }}" hint-placeholder-val="{{ false }}">
+          <div class="mw-showrow" role="group" aria-label="Show part">
+            <span>Show</span>
             <sc-for list="{{ ottoParts }}" as="op" hint-placeholder-count="9">
               <button onClick="{{ op.onClick }}" style="{{ op.style }}" aria-label="{{ op.aria }}" aria-pressed="{{ op.pressed }}" title="{{ op.aria }}">{{ op.label }}</button>
             </sc-for>
           </div>
+        </sc-if>
+        <div class="mw-grid mw-viewer">
+          <canvas ref="{{ setCanvas }}" style="width:100%;height:100%;display:block;touch-action:none;"></canvas>
+          <sc-if value="{{ rendering }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;top:14px;left:14px;display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:#41505f;background:rgba(255,255,255,.92);border:1px solid #d6dde6;padding:8px 12px;border-radius:9px;backdrop-filter:blur(4px);z-index:6;"><span style="width:13px;height:13px;border:2px solid #ccd4df;border-top-color:var(--accent,#ff5a1f);border-radius:50%;animation:mw-spin .8s linear infinite;display:inline-block;"></span>Rendering&hellip;</div></sc-if>
+          <sc-if value="{{ hasRenderError }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;left:14px;right:14px;bottom:46px;font-size:12.5px;font-weight:600;color:#fff;background:rgba(176,0,32,.92);padding:9px 12px;border-radius:9px;z-index:6;">&#9888; {{ renderError }}</div></sc-if>
+          <div class="mw-viewtools">
+            <button onClick="{{ toggleHeatmap }}" title="Colour the model where it overhangs more than 45&deg; and may need supports (works for parts and sculpts)" style="display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:{{ heatmapBtnColor }};background:rgba(255,255,255,.92);border:1px solid #d6dde6;padding:8px 12px;border-radius:9px;cursor:pointer;backdrop-filter:blur(4px);">&#9968; {{ heatmapLabel }}</button>
+            <button onClick="{{ resetView }}" title="Back to the starting angle, whole model in view">&#8635; Reset view</button>
+          </div>
+        <div class="mw-zoom">
+          <button onClick="{{ zoomIn }}" aria-label="Zoom in" title="Zoom in"><svg sc-camel-view-box="0 0 16 16" width="16" height="16" aria-hidden="true" style="fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;"><path d="M8 3v10M3 8h10"></path></svg></button>
+          <button onClick="{{ zoomOut }}" aria-label="Zoom out" title="Zoom out"><svg sc-camel-view-box="0 0 16 16" width="16" height="16" aria-hidden="true" style="fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;"><path d="M3 8h10"></path></svg></button>
+          <button onClick="{{ fitView }}" aria-label="Fit model in view" title="Fit model in view"><svg sc-camel-view-box="0 0 16 16" width="16" height="16" aria-hidden="true" style="fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"></path></svg></button>
         </div>
-      </sc-if>
-      <div class="mw-grid" style="height:clamp(430px,68vh,760px);border-radius:20px;overflow:hidden;position:relative;border:1px solid #dde3ea;">
-        <canvas ref="{{ setCanvas }}" style="width:100%;height:100%;display:block;touch-action:none;"></canvas>
-        <sc-if value="{{ rendering }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;top:14px;left:14px;display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:#41505f;background:rgba(255,255,255,.92);border:1px solid #d6dde6;padding:8px 12px;border-radius:9px;backdrop-filter:blur(4px);z-index:6;"><span style="width:13px;height:13px;border:2px solid #ccd4df;border-top-color:var(--accent,#ff5a1f);border-radius:50%;animation:mw-spin .8s linear infinite;display:inline-block;"></span>Rendering&hellip;</div></sc-if>
-        <sc-if value="{{ hasRenderError }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;left:14px;right:14px;bottom:46px;font-size:12.5px;font-weight:600;color:#fff;background:rgba(176,0,32,.92);padding:9px 12px;border-radius:9px;z-index:6;">&#9888; {{ renderError }}</div></sc-if>
-        <button onClick="{{ resetView }}" style="position:absolute;top:14px;right:14px;display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:#41505f;background:rgba(255,255,255,.92);border:1px solid #d6dde6;padding:8px 12px;border-radius:9px;cursor:pointer;backdrop-filter:blur(4px);">&#8635; Reset view</button>
-        <div style="position:absolute;top:58px;right:14px;display:inline-flex;gap:4px;background:rgba(255,255,255,.92);border:1px solid #d6dde6;padding:4px;border-radius:9px;backdrop-filter:blur(4px);">
-          <button onClick="{{ viewFront }}" style="font-size:12px;font-weight:600;color:#41505f;background:transparent;border:none;padding:5px 8px;border-radius:6px;cursor:pointer;">Front</button>
-          <button onClick="{{ viewBack }}" style="font-size:12px;font-weight:600;color:#41505f;background:transparent;border:none;padding:5px 8px;border-radius:6px;cursor:pointer;">Back</button>
-          <button onClick="{{ viewSide }}" style="font-size:12px;font-weight:600;color:#41505f;background:transparent;border:none;padding:5px 8px;border-radius:6px;cursor:pointer;">Side</button>
-          <button onClick="{{ viewTop }}" style="font-size:12px;font-weight:600;color:#41505f;background:transparent;border:none;padding:5px 8px;border-radius:6px;cursor:pointer;">Top</button>
+        <div class="mw-views">
+          <button onClick="{{ viewFront }}">Front</button><button onClick="{{ viewBack }}">Back</button><button onClick="{{ viewSide }}">Side</button><button onClick="{{ viewTop }}">Top</button>
         </div>
-        <button onClick="{{ toggleHeatmap }}" title="Colour the model where it overhangs more than 45&deg; and may need supports (works for parts and sculpts)" style="position:absolute;top:14px;right:127px;display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:{{ heatmapBtnColor }};background:rgba(255,255,255,.92);border:1px solid #d6dde6;padding:8px 12px;border-radius:9px;cursor:pointer;backdrop-filter:blur(4px);">&#9968; {{ heatmapLabel }}</button>
-        <sc-if value="{{ heatmap }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;right:14px;bottom:14px;display:inline-flex;align-items:center;gap:8px;font-size:10.5px;color:#41505f;background:rgba(255,255,255,.9);padding:6px 10px;border-radius:8px;font-family:'IBM Plex Mono',monospace;">overhang angle (45&deg;)<span style="display:inline-block;width:60px;height:8px;border-radius:4px;background:linear-gradient(90deg,#4dc75c,#f5cc33,#dc3636);"></span></div></sc-if>
-        <div style="position:absolute;left:14px;bottom:14px;font-size:10.5px;color:#586575;font-family:'IBM Plex Mono',monospace;letter-spacing:.06em;text-transform:uppercase;background:rgba(255,255,255,.85);padding:5px 10px;border-radius:8px;font-weight:500;">drag to rotate &middot; scroll to zoom</div>
+        <div class="mw-hint">{{ viewerHint }}</div>
+          <sc-if value="{{ heatmap }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;right:14px;bottom:14px;display:inline-flex;align-items:center;gap:8px;font-size:10.5px;color:#41505f;background:rgba(255,255,255,.9);padding:6px 10px;border-radius:8px;font-family:'IBM Plex Mono',monospace;">overhang angle (45&deg;)<span style="display:inline-block;width:60px;height:8px;border-radius:4px;background:linear-gradient(90deg,#4dc75c,#f5cc33,#dc3636);"></span></div></sc-if>
+        </div>
       </div>
 
-      <!-- refine -->
-      <sc-if value="{{ hasCode }}" hint-placeholder-val="{{ true }}">
-        <div style="margin-top:18px;display:flex;gap:10px;align-items:center;">
-          <input value="{{ refineText }}" onInput="{{ onRefineInput }}" placeholder="Refine with words — &ldquo;make the base wider&rdquo;, &ldquo;add a screw hole&rdquo;, &ldquo;20% taller&rdquo;" style="flex:1;border:1.5px solid #d6dde6;border-radius:12px;padding:12px 14px;font-size:14px;color:#19222d;background:#fff;" />
-          <button onClick="{{ refine }}" style="{{ refineBtnStyle }}">{{ refineLabel }}</button>
+      <!-- right: controls scroll on their own -->
+      <div class="mw-panel">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+          <input value="{{ title }}" onInput="{{ onTitleInput }}" aria-label="Design name" style="flex:1;min-width:0;font-size:23px;font-weight:700;letter-spacing:-.02em;border:none;background:transparent;color:#19222d;font-family:'Space Grotesk',sans-serif;" />
+          <button onClick="{{ newModel }}" style="flex:0 0 auto;font-size:14px;font-weight:600;color:#586575;background:#fff;border:1.5px solid #d0d8e2;padding:9px 15px;border-radius:10px;cursor:pointer;">+ New</button>
+        </div>
+        <sc-if value="{{ showUnrecognized }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;gap:10px;align-items:flex-start;background:#fbeede;border:1px solid #f0d9b8;border-radius:13px;padding:13px 15px;margin-bottom:14px;color:#8a5a22;font-size:14px;line-height:1.45;">
+          <span style="font-size:17px;line-height:1;">&#9888;</span><span>{{ unrecognizedText }}</span>
         </div>
       </sc-if>
+        <label style="display:flex;flex-direction:column;gap:6px;font-size:12.5px;font-weight:600;color:#586575;">Model type
+          <select value="{{ modelTypeValue }}" onChange="{{ onTypeChange }}" class="mw-select">
+            <option value="" disabled>Custom design</option>
+            <option value="otto">Otto robot</option>
+            <option value="vase">Vase</option>
+            <option value="organizer">Organizer</option>
+            <option value="box">Box</option>
+            <option value="coaster">Coaster</option>
+            <option value="bracket">L-bracket</option>
+            <option value="cableclip">Cable clip</option>
+            <option value="knob">Knob</option>
+            <option value="cupadapter">Cupholder adapter</option>
+            <option value="funnel">Funnel</option>
+            <option value="soapdish">Soap dish</option>
+            <option value="peghook">Pegboard hook</option>
+            <option value="wallhook">Wall hook</option>
+            <option value="brick">Building brick</option>
+            <option value="stand">Phone stand</option>
+            <option value="gridfinity">Gridfinity</option>
+            <option value="baseplate">Baseplate</option>
+            <option value="apmount">AP-515 mount</option>
+            <option value="wallbin">Wall bin</option>
+            <option value="walldock">Wall dock</option>
+            <option value="stackingtray">Stacking tray</option>
+            <option value="cableenclosure">Cable raceway</option>
+            <option value="hingebox">Hinge box</option>
+            <option value="holder">HSW cup</option>
+            <option value="hook">HSW hook</option>
+            <option value="shelf">HSW shelf</option>
+          </select>
+        </label>
 
-      <!-- params -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px 30px;margin-top:18px;background:#f6f8fb;border:1px solid #dde3ea;border-radius:18px;padding:22px 24px;">
-        <div style="grid-column:1/-1;font-weight:700;font-size:15px;color:#2b3340;margin-bottom:-2px;">Adjust your model</div>
-        <sc-if value="{{ isFreeform }}" hint-placeholder-val="{{ false }}">
-          <div style="grid-column:1/-1;font-size:13px;color:#586575;line-height:1.5;">{{ freeformNote }}</div>
-        </sc-if>
-        <sc-if value="{{ isMeshMode }}" hint-placeholder-val="{{ false }}">
-          <div style="grid-column:1/-1;"><button onClick="{{ addBase }}" title="Generate a printable base/stand sized to this sculpt" style="display:inline-flex;align-items:center;gap:8px;padding:11px 16px;border-radius:12px;border:1.5px solid #d0d8e2;background:#fff;color:#41505f;font-weight:600;font-size:14px;cursor:pointer;">&#127963; Add a base / stand</button></div>
-        </sc-if>
-        <sc-for list="{{ paramList }}" as="p" hint-placeholder-count="4">
-          <div>
-            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px;">
-              <span style="font-size:13.5px;font-weight:600;color:#3a4654;">{{ p.label }}</span>
-              <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8e9bab;">{{ p.display }}</span>
+        <div class="mw-sec">
+          <h2>Adjust</h2>
+          <sc-if value="{{ isFreeform }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size:13px;color:#586575;line-height:1.5;">{{ freeformNote }}</div>
+          </sc-if>
+          <sc-if value="{{ isMeshMode }}" hint-placeholder-val="{{ false }}">
+            <div><button onClick="{{ addBase }}" title="Generate a printable base/stand sized to this sculpt" style="display:inline-flex;align-items:center;gap:8px;padding:11px 16px;border-radius:12px;border:1.5px solid #d0d8e2;background:#fff;color:#41505f;font-weight:600;font-size:14px;cursor:pointer;">&#127963; Add a base / stand</button></div>
+          </sc-if>
+          <sc-for list="{{ paramList }}" as="p" hint-placeholder-count="4">
+            <div>
+              <sc-if value="{{ p.heading }}" hint-placeholder-val="{{ false }}"><h3>{{ p.heading }}</h3></sc-if>
+              <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:7px;">
+                <span style="font-size:13.5px;font-weight:600;color:#3a4654;">{{ p.label }}</span>
+                <span style="flex:0 0 auto;font-family:'IBM Plex Mono',monospace;font-size:12px;color:#586575;">{{ p.display }}</span>
+              </div>
+              <input type="range" min="{{ p.min }}" max="{{ p.max }}" step="{{ p.step }}" value="{{ p.value }}" onInput="{{ p.onInput }}" aria-label="{{ p.label }}" style="width:100%;" />
             </div>
-            <input type="range" min="{{ p.min }}" max="{{ p.max }}" step="{{ p.step }}" value="{{ p.value }}" onInput="{{ p.onInput }}" style="width:100%;" />
-          </div>
-        </sc-for>
-        <sc-if value="{{ isOtto }}" hint-placeholder-val="{{ false }}">
-          <div style="grid-column:1/-1;display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:6px;">
-            <span style="font-size:13.5px;font-weight:600;color:#3a4654;margin-right:4px;">Paint</span>
-            <sc-for list="{{ paintTargets }}" as="pt" hint-placeholder-count="6">
+          </sc-for>
+        </div>
+
+        <div class="mw-sec">
+          <h2>Color</h2>
+          <sc-if value="{{ isOtto }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;">
+              <span style="font-size:13.5px;font-weight:600;color:#3a4654;margin-right:4px;">Paint</span>
+              <sc-for list="{{ paintTargets }}" as="pt" hint-placeholder-count="6">
               <button onClick="{{ pt.onClick }}" style="{{ pt.style }}" aria-label="{{ pt.aria }}" aria-pressed="{{ pt.pressed }}" title="{{ pt.aria }}"><span aria-hidden="true" style="{{ pt.swatch }}"></span>{{ pt.label }}</button>
             </sc-for>
-          </div>
-        </sc-if>
-        <div style="grid-column:1/-1;display:flex;align-items:center;gap:14px;margin-top:6px;">
-          <span style="font-size:13.5px;font-weight:600;color:#3a4654;">Color</span>
-          <div style="display:flex;gap:9px;">
+            </div>
+          </sc-if>
+          <div style="display:flex;gap:9px;flex-wrap:wrap;">
             <sc-for list="{{ colorList }}" as="c" hint-placeholder-count="6">
               <button onClick="{{ c.onClick }}" title="{{ c.name }}" style="{{ c.style }}"></button>
             </sc-for>
           </div>
         </div>
-      </div>
 
-      <!-- code (OpenSCAD only — meshes have no source) -->
-      <sc-if value="{{ hasCode }}" hint-placeholder-val="{{ true }}">
-      <button onClick="{{ toggleCode }}" style="margin-top:16px;display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:#586575;background:none;border:none;cursor:pointer;">
-        <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;background:#e6ebf1;border-radius:6px;padding:2px 7px;">&lt;/&gt;</span>
-        {{ codeToggleLabel }}
-      </button>
-      <sc-if value="{{ codeOpen }}" hint-placeholder-val="{{ false }}">
-        <div style="margin-top:10px;background:#10151b;border-radius:14px;overflow:hidden;">
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid #222a34;">
-            <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8e9bab;">model.scad &middot; OpenSCAD</span>
-            <span style="font-size:11px;color:#7d8a9a;">read-only &middot; tweak sliders above to change</span>
-          </div>
-          <pre style="margin:0;padding:16px 18px;overflow-x:auto;font-family:'IBM Plex Mono',monospace;font-size:12.5px;line-height:1.65;color:#dde5ef;">{{ code }}</pre>
+        <sc-if value="{{ hasCode }}" hint-placeholder-val="{{ true }}">
+          <div class="mw-sec">
+            <h2>Refine with words</h2>
+            <sc-if value="{{ hasCode }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;gap:10px;align-items:center;">
+          <input value="{{ refineText }}" onInput="{{ onRefineInput }}" placeholder="Refine with words — &ldquo;make the base wider&rdquo;, &ldquo;add a screw hole&rdquo;, &ldquo;20% taller&rdquo;" style="flex:1;border:1.5px solid #d6dde6;border-radius:12px;padding:12px 14px;font-size:14px;color:#19222d;background:#fff;" />
+          <button onClick="{{ refine }}" style="{{ refineBtnStyle }}">{{ refineLabel }}</button>
         </div>
       </sc-if>
-      </sc-if>
+          </div>
+        </sc-if>
 
+        <div class="mw-sec">
+          <h2>Print &amp; export</h2>
       <!-- actions -->
       <sc-if value="{{ hasPrintEst }}" hint-placeholder-val="{{ false }}">
         <div style="margin-top:22px;display:inline-flex;align-items:center;gap:9px;font-size:13px;font-weight:600;color:#41505f;background:#f6f8fb;border:1px solid #dde3ea;border-radius:11px;padding:9px 14px;">&#128424; {{ printEstText }} <span style="font-weight:400;color:#9aa7b6;">&middot; rough estimate</span></div>
@@ -377,6 +426,28 @@
           <button onClick="{{ shareLink }}" title="Copy a link that opens this exact model — no account, no upload" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px;border-radius:12px;border:1.5px dashed #c6d0db;background:#fff;color:#586575;font-weight:600;font-size:14px;cursor:pointer;">&#128279; Copy link</button>
         </div>
       </sc-if>
+
+        </div>
+
+        <div class="mw-sec">
+      <!-- code (OpenSCAD only — meshes have no source) -->
+      <sc-if value="{{ hasCode }}" hint-placeholder-val="{{ true }}">
+      <button onClick="{{ toggleCode }}" style="margin-top:16px;display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:#586575;background:none;border:none;cursor:pointer;">
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;background:#e6ebf1;border-radius:6px;padding:2px 7px;">&lt;/&gt;</span>
+        {{ codeToggleLabel }}
+      </button>
+      <sc-if value="{{ codeOpen }}" hint-placeholder-val="{{ false }}">
+        <div style="margin-top:10px;background:#10151b;border-radius:14px;overflow:hidden;">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid #222a34;">
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8e9bab;">model.scad &middot; OpenSCAD</span>
+            <span style="font-size:11px;color:#7d8a9a;">read-only &middot; tweak sliders above to change</span>
+          </div>
+          <pre style="margin:0;padding:16px 18px;overflow-x:auto;font-family:'IBM Plex Mono',monospace;font-size:12.5px;line-height:1.65;color:#dde5ef;">{{ code }}</pre>
+        </div>
+      </sc-if>
+      </sc-if>
+        </div>
+      </div>
     </section>
     </sc-if>
 
@@ -385,7 +456,7 @@
 
   <!-- ============ STUDIO FLOW ============ -->
   <sc-if value="{{ isStudio }}" hint-placeholder-val="{{ false }}">
-  <main data-screen-label="Studio workspace" style="flex:1;display:grid;grid-template-columns:288px 1fr 348px;overflow:hidden;">
+  <main data-screen-label="Studio workspace" class="mw-studio">
 
     <!-- LEFT RAIL -->
     <aside style="border-right:1px solid #dde3ea;background:#f6f8fb;display:flex;flex-direction:column;overflow:hidden;">
@@ -425,7 +496,15 @@
         <canvas ref="{{ setCanvas }}" style="width:100%;height:100%;display:block;touch-action:none;"></canvas>
         <sc-if value="{{ rendering }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;top:14px;left:14px;display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:#41505f;background:rgba(255,255,255,.92);border:1px solid #d6dde6;padding:8px 12px;border-radius:9px;backdrop-filter:blur(4px);z-index:6;"><span style="width:13px;height:13px;border:2px solid #ccd4df;border-top-color:var(--accent,#ff5a1f);border-radius:50%;animation:mw-spin .8s linear infinite;display:inline-block;"></span>Rendering&hellip;</div></sc-if>
         <sc-if value="{{ hasRenderError }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;left:14px;right:14px;bottom:46px;font-size:12.5px;font-weight:600;color:#fff;background:rgba(176,0,32,.92);padding:9px 12px;border-radius:9px;z-index:6;">&#9888; {{ renderError }}</div></sc-if>
-        <div style="position:absolute;left:20px;bottom:16px;font-size:10.5px;color:#586575;font-family:'IBM Plex Mono',monospace;letter-spacing:.06em;text-transform:uppercase;background:rgba(255,255,255,.8);padding:5px 10px;border-radius:8px;font-weight:500;">drag to rotate &middot; scroll to zoom</div>
+        <div class="mw-zoom">
+          <button onClick="{{ zoomIn }}" aria-label="Zoom in" title="Zoom in"><svg sc-camel-view-box="0 0 16 16" width="16" height="16" aria-hidden="true" style="fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;"><path d="M8 3v10M3 8h10"></path></svg></button>
+          <button onClick="{{ zoomOut }}" aria-label="Zoom out" title="Zoom out"><svg sc-camel-view-box="0 0 16 16" width="16" height="16" aria-hidden="true" style="fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;"><path d="M3 8h10"></path></svg></button>
+          <button onClick="{{ fitView }}" aria-label="Fit model in view" title="Fit model in view"><svg sc-camel-view-box="0 0 16 16" width="16" height="16" aria-hidden="true" style="fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"></path></svg></button>
+        </div>
+        <div class="mw-views">
+          <button onClick="{{ viewFront }}">Front</button><button onClick="{{ viewBack }}">Back</button><button onClick="{{ viewSide }}">Side</button><button onClick="{{ viewTop }}">Top</button>
+        </div>
+        <div class="mw-hint">{{ viewerHint }}</div>
         <sc-if value="{{ isGenerating }}" hint-placeholder-val="{{ false }}">
           <div style="position:absolute;inset:0;background:rgba(236,240,246,.82);backdrop-filter:blur(3px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;">
             <div style="width:70px;height:70px;border-radius:20px;background:var(--accent,#ff5a1f);display:flex;align-items:center;justify-content:center;animation:mw-floaty 2.4s ease-in-out infinite;">
@@ -445,12 +524,37 @@
             <span style="font-size:15px;line-height:1;">&#9888;</span><span>{{ unrecognizedText }}</span>
           </div>
         </sc-if>
-        <div style="font-size:12px;font-weight:600;color:#8e9bab;margin-bottom:8px;">Model type</div>
-        <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:20px;">
-          <sc-for list="{{ typeList }}" as="ty" hint-placeholder-count="6">
-            <button onClick="{{ ty.onClick }}" style="{{ ty.style }}">{{ ty.label }}</button>
-          </sc-for>
-        </div>
+        <div style="margin-bottom:20px;"><label style="display:flex;flex-direction:column;gap:6px;font-size:12.5px;font-weight:600;color:#586575;">Model type
+            <select value="{{ modelTypeValue }}" onChange="{{ onTypeChange }}" class="mw-select">
+              <option value="" disabled>Custom design</option>
+              <option value="otto">Otto robot</option>
+              <option value="vase">Vase</option>
+              <option value="organizer">Organizer</option>
+              <option value="box">Box</option>
+              <option value="coaster">Coaster</option>
+              <option value="bracket">L-bracket</option>
+              <option value="cableclip">Cable clip</option>
+              <option value="knob">Knob</option>
+              <option value="cupadapter">Cupholder adapter</option>
+              <option value="funnel">Funnel</option>
+              <option value="soapdish">Soap dish</option>
+              <option value="peghook">Pegboard hook</option>
+              <option value="wallhook">Wall hook</option>
+              <option value="brick">Building brick</option>
+              <option value="stand">Phone stand</option>
+              <option value="gridfinity">Gridfinity</option>
+              <option value="baseplate">Baseplate</option>
+              <option value="apmount">AP-515 mount</option>
+              <option value="wallbin">Wall bin</option>
+              <option value="walldock">Wall dock</option>
+              <option value="stackingtray">Stacking tray</option>
+              <option value="cableenclosure">Cable raceway</option>
+              <option value="hingebox">Hinge box</option>
+              <option value="holder">HSW cup</option>
+              <option value="hook">HSW hook</option>
+              <option value="shelf">HSW shelf</option>
+            </select>
+        </label></div>
         <sc-if value="{{ isOtto }}" hint-placeholder-val="{{ false }}">
           <div style="font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#8e9bab;margin-bottom:10px;">Show</div>
           <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:22px;">
@@ -1232,8 +1336,7 @@ class Component extends DCLogic {
       const box = new T.Box3().setFromObject(this.modelGroup), ctr = box.getCenter(new T.Vector3()), size = box.getSize(new T.Vector3());
       this._meshSize = { x: size.x, y: size.y, z: size.z, provider: (this._mesh && this._mesh.getMeshProvider) ? this._mesh.getMeshProvider() : '' };   // footprint = X×Z (viewer is Y-up); feeds "Add a base"
       this.modelGroup.position.set(-ctr.x, -box.min.y, -ctr.z);   // sit on the floor (GLB is Y-up like the viewer)
-      const maxd = Math.max(size.x, size.y, size.z) || 50;
-      this.view.radius = maxd * 2 + 50; this.view.target.set(0, size.y * 0.45, 0); this.view.theta = 0.9; this.view.phi = 1.02;
+      this._frameView(true);
       this._meshObj = gltf.scene; this.setState({ rendering: false }); if (this.state.heatmap) this._applyHeatmap(); else this._draw();
       // a fresh sculpt (not a recall) auto-saves to "Your sculpts" with a thumbnail snapped from the rendered canvas
       if (this._pendingSave) { const ps = this._pendingSave; this._pendingSave = null; this._saveSculpt(ps.glb, ps.title, this._captureThumb()); }
@@ -1400,6 +1503,8 @@ class Component extends DCLogic {
     else this.setState({ color: hex, ottoColors: {} });   // "Whole robot" repaints every part
   }
   setPaintTarget(t) { this.setState({ paintTarget: t }); }
+  // Otto sliders in three groups: the heading shows above the first slider of each group.
+  get OTTO_GROUPS() { return { headStyle: 'Shape', ears: 'Details', clearance: 'Fit' }; }
   // Choice sliders carry their options in the label, e.g. "Head (0 Cube · 1 Rounded · 2 Bevel)".
   // Show the chosen option's name next to the number: "2 · Bevel".
   _optionDisplay(label, val) {
@@ -1659,15 +1764,57 @@ class Component extends DCLogic {
     this.viewer = { renderer, scene, cam }; this.modelGroup = grp;
     this.view = { theta: 0.9, phi: 1.02, radius: 320, target: new T.Vector3(0, 50, 0) };
 
-    this._onDown = (e) => { this._dragging = true; this._userView = true; this._px = e.clientX; this._py = e.clientY; try { canvas.setPointerCapture(e.pointerId); } catch (x) {} };
-    this._onMove = (e) => { if (!this._dragging) return; const dx = e.clientX - this._px, dy = e.clientY - this._py; this._px = e.clientX; this._py = e.clientY; this.view.theta -= dx * 0.012; this.view.phi = Math.max(0.22, Math.min(1.46, this.view.phi - dy * 0.006)); this._draw(); };
-    this._onUp = () => { this._dragging = false; };
-    this._onWheel = (e) => { e.preventDefault(); this.view.radius = Math.max(70, Math.min(1300, this.view.radius * (1 + (e.deltaY > 0 ? 0.1 : -0.1)))); this._draw(); };
+    // Pointer navigation: left-drag rotates, right/middle-drag pans, two fingers pinch-zoom + pan.
+    this._ptrs = new Map();
+    this._onDown = (e) => {
+      this._viewerArmed = true; this._userView = true;
+      this._ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      this._panDrag = e.button === 1 || e.button === 2;
+      this._dragging = true;
+      try { canvas.setPointerCapture(e.pointerId); } catch (x) {}
+    };
+    this._onMove = (e) => {
+      const prev = this._ptrs.get(e.pointerId); if (!prev) return;
+      if (this._ptrs.size >= 2) {
+        const [a, b] = [...this._ptrs.values()];
+        const before = { d: Math.hypot(a.x - b.x, a.y - b.y), mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2 };
+        this._ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        const [c, d] = [...this._ptrs.values()];
+        const after = { d: Math.hypot(c.x - d.x, c.y - d.y), mx: (c.x + d.x) / 2, my: (c.y + d.y) / 2 };
+        if (before.d > 0 && after.d > 0) this._zoomAt(before.d / after.d, after.mx, after.my);
+        this._pan(after.mx - before.mx, after.my - before.my);
+      } else {
+        const dx = e.clientX - prev.x, dy = e.clientY - prev.y;
+        this._ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        if (this._panDrag) this._pan(dx, dy); else this._orbit(dx, dy);
+      }
+      this._draw();
+    };
+    this._onUp = (e) => { this._ptrs.delete(e.pointerId); if (!this._ptrs.size) { this._dragging = false; this._panDrag = false; } };
+    this._onLeave = () => { if (!this._ptrs.size) this._viewerArmed = false; };
+    this._onMenu = (e) => e.preventDefault();   // right-drag pans instead of opening the menu
+    this._onWheel = (e) => {
+      // On the stacked (narrow) Guided page a plain scroll keeps scrolling the page until the
+      // model is clicked; trackpad pinch (ctrl+wheel) always zooms.
+      if (!e.ctrlKey && !this._viewerArmed && this._wheelScrollsPage()) return;
+      e.preventDefault(); this._userView = true;
+      this._zoomAt(this._wheelZoomFactor(e.deltaY, e.deltaMode, e.ctrlKey), e.clientX, e.clientY);
+      this._draw();
+    };
     canvas.addEventListener('pointerdown', this._onDown);
-    window.addEventListener('pointermove', this._onMove);
-    window.addEventListener('pointerup', this._onUp);
+    canvas.addEventListener('pointermove', this._onMove);
+    canvas.addEventListener('pointerup', this._onUp);
+    canvas.addEventListener('pointercancel', this._onUp);
+    canvas.addEventListener('pointerleave', this._onLeave);
+    canvas.addEventListener('contextmenu', this._onMenu);
     canvas.addEventListener('wheel', this._onWheel, { passive: false });
     this._evtCanvas = canvas;
+    // Re-render when the layout switches between side-by-side and stacked (hint text, scroll rule).
+    if (typeof window.matchMedia === 'function') {
+      this._mq = window.matchMedia('(max-width: 1099px)');
+      this._onMq = () => this.setState({ narrowLayout: this._mq.matches });
+      this._mq.addEventListener('change', this._onMq);
+    }
 
     this._ro = new ResizeObserver(() => this._resize());
     this._ro.observe(canvas.parentElement || canvas);
@@ -1694,7 +1841,80 @@ class Component extends DCLogic {
       v.target.z + v.radius * Math.sin(v.phi) * Math.sin(v.theta)
     );
     c.lookAt(v.target);
+    // Close-ups need a near plane that scales with distance, or the model clips away.
+    const near = Math.min(10, Math.max(0.05, v.radius * 0.01)), far = v.radius * 40 + 3000;
+    if (c.near !== near || c.far !== far) { c.near = near; c.far = far; c.updateProjectionMatrix(); }
   }
+  /* ---------- camera navigation ---------- */
+  // Scroll amount -> zoom factor (>1 zooms out). Lines/pages are converted to pixels so a
+  // mouse notch is ~14% while a trackpad's many small deltas zoom smoothly. Pinch (ctrl) is stronger.
+  _wheelZoomFactor(deltaY, deltaMode, ctrlKey) {
+    const px = deltaY * (deltaMode === 1 ? 16 : deltaMode === 2 ? 400 : 1);
+    return Math.min(2, Math.max(0.5, Math.exp(px * (ctrlKey ? 0.01 : 0.0015))));
+  }
+  _wheelScrollsPage() {
+    return this.state.flow === 'guided' && typeof window.matchMedia === 'function' && window.matchMedia('(max-width: 1099px)').matches;
+  }
+  // Bounding sphere of the shown model in viewer space, or null when nothing is loaded.
+  _viewBounds() {
+    const T = this.THREE; if (!T || !this.modelGroup || !this.modelGroup.children.length) return null;
+    const box = new T.Box3().setFromObject(this.modelGroup); if (box.isEmpty()) return null;
+    const sphere = box.getBoundingSphere(new T.Sphere());
+    return { center: sphere.center, radius: Math.max(1, sphere.radius) };
+  }
+  // Camera distance limits follow the model: close enough for small details, never lost far away.
+  _zoomLimits(radius) { return { min: Math.max(0.5, radius * 0.04), max: Math.max(200, radius * 12) }; }
+  _fitDistance(radius) {
+    const c = this.viewer && this.viewer.cam, vfov = ((c && c.fov) || 38) * Math.PI / 180, aspect = (c && c.aspect) || 1;
+    const half = Math.min(vfov / 2, Math.atan(Math.tan(vfov / 2) * aspect));
+    return radius / Math.sin(half) * 1.08;
+  }
+  // Frame the whole model; optionally return to the default 3/4 angle.
+  _frameView(resetAngles) {
+    const b = this._viewBounds(); if (!b || !this.view) return;
+    this.view.target.copy(b.center); this.view.radius = this._fitDistance(b.radius);
+    if (resetAngles) { this.view.theta = 0.9; this.view.phi = 1.02; }
+  }
+  _clampRadius(r) {
+    const b = this._viewBounds(); if (!b) return r;
+    const lim = this._zoomLimits(b.radius); return Math.min(lim.max, Math.max(lim.min, r));
+  }
+  // Zoom by factor (<1 = closer) toward the point under (clientX, clientY): the model surface
+  // when the pointer is on it, otherwise the plane through the orbit target.
+  _zoomAt(factor, clientX, clientY) {
+    if (!this.view || !this.viewer) return;
+    const r0 = this.view.radius, r1 = this._clampRadius(r0 * factor), f = r1 / r0;
+    const p = clientX == null ? null : this._pointUnder(clientX, clientY);
+    if (p) this.view.target.sub(p).multiplyScalar(f).add(p);
+    this.view.radius = r1;
+  }
+  _pointUnder(clientX, clientY) {
+    const T = this.THREE, el = this.canvasEl; if (!T || !el || !this.viewer) return null;
+    const rect = el.getBoundingClientRect(); if (!rect.width || !rect.height) return null;
+    this._applyCam();
+    const ndc = new T.Vector2(((clientX - rect.left) / rect.width) * 2 - 1, -((clientY - rect.top) / rect.height) * 2 + 1);
+    const ray = new T.Raycaster(); ray.setFromCamera(ndc, this.viewer.cam);
+    const hit = this.modelGroup && ray.intersectObject(this.modelGroup, true)[0];
+    if (hit) return hit.point;
+    const dir = this.viewer.cam.getWorldDirection(new T.Vector3());
+    return ray.ray.intersectPlane(new T.Plane().setFromNormalAndCoplanarPoint(dir, this.view.target), new T.Vector3());
+  }
+  _orbit(dx, dy) {
+    this.view.theta -= dx * 0.012;
+    this.view.phi = Math.max(0.01, Math.min(Math.PI - 0.15, this.view.phi - dy * 0.006));   // straight down to slightly below
+  }
+  // Pan the orbit target with the pointer (screen pixels -> world units at the target depth).
+  _pan(dx, dy) {
+    const T = this.THREE, el = this.canvasEl; if (!T || !el || !this.viewer) return;
+    const h = el.clientHeight || 1, cam = this.viewer.cam;
+    const per = 2 * this.view.radius * Math.tan(cam.fov * Math.PI / 360) / h;
+    const right = new T.Vector3().setFromMatrixColumn(cam.matrix, 0), up = new T.Vector3().setFromMatrixColumn(cam.matrix, 1);
+    this.view.target.addScaledVector(right, -dx * per).addScaledVector(up, dy * per);
+    const b = this._viewBounds();   // keep the model reachable: the target stays near it
+    if (b && this.view.target.distanceTo(b.center) > b.radius * 3) this.view.target.sub(b.center).setLength(b.radius * 3).add(b.center);
+  }
+  zoomStep(dir) { if (!this.view) return; this._userView = true; this._zoomAt(dir > 0 ? 1 / 1.35 : 1.35); this._draw(); }
+  fitView() { if (!this.view) return; this._userView = true; this._frameView(false); this._draw(); }
   _resize() {
     if (!this.viewer || !this.canvasEl) return;
     const el = this.canvasEl, par = el.parentElement || el;
@@ -1708,12 +1928,15 @@ class Component extends DCLogic {
     if (this._raf) cancelAnimationFrame(this._raf);
     if (this._ro) { try { this._ro.disconnect(); } catch (x) {} this._ro = null; }
     if (this._evtCanvas) {
-      this._evtCanvas.removeEventListener('pointerdown', this._onDown);
-      this._evtCanvas.removeEventListener('wheel', this._onWheel);
+      const c = this._evtCanvas;
+      c.removeEventListener('pointerdown', this._onDown); c.removeEventListener('pointermove', this._onMove);
+      c.removeEventListener('pointerup', this._onUp); c.removeEventListener('pointercancel', this._onUp);
+      c.removeEventListener('pointerleave', this._onLeave); c.removeEventListener('contextmenu', this._onMenu);
+      c.removeEventListener('wheel', this._onWheel);
       this._evtCanvas = null;
     }
-    window.removeEventListener('pointermove', this._onMove);
-    window.removeEventListener('pointerup', this._onUp);
+    if (this._ptrs) this._ptrs.clear();
+    if (this._mq) { this._mq.removeEventListener('change', this._onMq); this._mq = null; }
     if (this.viewer) { try { this.viewer.renderer.dispose(); } catch (x) {} }
     this.viewer = null; this.modelGroup = null; this._geomSig = null; this._lastModel = null;
   }
@@ -1880,11 +2103,7 @@ class Component extends DCLogic {
     const box = new T.Box3().setFromObject(this.modelGroup);
     const ctr = box.getCenter(new T.Vector3()), size = box.getSize(new T.Vector3());
     this.modelGroup.position.set(-ctr.x, -box.min.y, -ctr.z);
-    if (reframe) {
-      const maxd = Math.max(size.x, size.y, size.z);
-      this.view.radius = maxd * 2.0 + 50; this.view.target.set(0, size.y * 0.45, 0);
-      this.view.theta = 0.9; this.view.phi = 1.02;
-    }
+    if (reframe) this._frameView(true);
     this._colorSig = this._colorKey();
     if (this.state.heatmap) this._applyHeatmap(); else this._draw();
   }
@@ -1952,19 +2171,16 @@ class Component extends DCLogic {
   }
 
   resetView() {
-    if (!this.modelGroup || !this.THREE) return;
-    const T = this.THREE, box = new T.Box3().setFromObject(this.modelGroup), size = box.getSize(new T.Vector3());
-    const maxd = Math.max(size.x, size.y, size.z);
-    this.view.radius = maxd * 2.0 + 50; this.view.target.set(0, size.y * 0.45, 0);
-    this.view.theta = 0.9; this.view.phi = 1.02;
-    this._userView = false;
+    if (!this.view) return;
+    this._frameView(true); this._userView = false; this._draw();
   }
-  // OpenSCAD -Y (model front) maps to viewer +Z, which theta = PI/2 looks at.
+  // OpenSCAD -Y (model front) maps to viewer +Z, which theta = PI/2 looks at. Each view re-fits
+  // the whole model, so a view button always recovers from a deep zoom.
   setView(which) {
     if (!this.view) return;
-    const angles = { front: [Math.PI / 2, 1.3], back: [-Math.PI / 2, 1.3], side: [0, 1.3], top: [Math.PI / 2, 0.22] };
+    const angles = { front: [Math.PI / 2, Math.PI / 2], back: [-Math.PI / 2, Math.PI / 2], side: [0, Math.PI / 2], top: [Math.PI / 2, 0.01] };
     const [theta, phi] = angles[which] || angles.front;
-    this.view.theta = theta; this.view.phi = phi; this._userView = true;
+    this._frameView(false); this.view.theta = theta; this.view.phi = phi; this._userView = true;
     this._draw();
   }
 
@@ -2028,6 +2244,7 @@ class Component extends DCLogic {
           const val = s.modelParams[s.model][pm.key];
           return {
             key: pm.key, label: pm.label, min: pm.min, max: pm.max, step: pm.step, value: val,
+            heading: s.model === 'otto' ? (this.OTTO_GROUPS[pm.key] || '') : '',
             display: pm.unit ? (val + ' ' + pm.unit) : this._optionDisplay(pm.label, val),
             onInput: (e) => this.setParam(pm.key, +e.target.value),
           };
@@ -2206,7 +2423,10 @@ class Component extends DCLogic {
       openGallery: () => this.openGallery(), closeGallery: () => this.closeGallery(), stop: (e) => this.stop(e),
       openPublish: () => this.openPublish(), closePublish: () => this.closePublish(), doPublish: () => this.doPublish(),
       toggleParametric: () => this.toggleParametric(),
-      resetView: () => this.resetView(), viewFront: () => this.setView('front'), viewBack: () => this.setView('back'), viewSide: () => this.setView('side'), viewTop: () => this.setView('top'), downloadSTL: () => this.downloadSTL(), downloadSCAD: () => this.downloadSCAD(), shareLink: () => this.shareLink(), saveDesign: () => this.saveDesign(), newModel: () => this.newModel(),
+      resetView: () => this.resetView(), zoomIn: () => this.zoomStep(1), zoomOut: () => this.zoomStep(-1), fitView: () => this.fitView(),
+      modelTypeValue: (s.freeform || s.meshMode) ? '' : s.model,
+      onTypeChange: (e) => { if (e.target.value) this.switchType(e.target.value); },
+      viewerHint: this._wheelScrollsPage() ? 'Drag to rotate · click the model, then scroll to zoom · right-drag to pan' : 'Drag to rotate · scroll or pinch to zoom · right-drag to pan', viewFront: () => this.setView('front'), viewBack: () => this.setView('back'), viewSide: () => this.setView('side'), viewTop: () => this.setView('top'), downloadSTL: () => this.downloadSTL(), downloadSCAD: () => this.downloadSCAD(), shareLink: () => this.shareLink(), saveDesign: () => this.saveDesign(), newModel: () => this.newModel(),
       heatmap: s.heatmap, toggleHeatmap: () => this.toggleHeatmap(), heatmapLabel: s.heatmap ? 'Solid' : 'Overhangs', heatmapBtnColor: s.heatmap ? 'var(--accent,#ff5a1f)' : '#41505f',
       isMeshMode: s.meshMode, addBase: () => this.addBase(),
       refine: () => this.refine(), onRefineInput: (e) => this.onRefineInput(e), refineText: s.refineText || '',
