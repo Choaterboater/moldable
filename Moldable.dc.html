@@ -25,6 +25,11 @@
 <style>
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
+  .mw-header{height:62px;padding:0 22px;}
+  @media(max-width:540px){
+    .mw-header{height:auto;flex-wrap:wrap;gap:10px;padding:12px;}
+    .mw-header>div:first-child{flex-basis:100%;}
+  }
   @keyframes mw-spin{to{transform:rotate(360deg)}}
   @keyframes mw-floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
   @keyframes mw-fadeup{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
@@ -63,7 +68,7 @@
 <div data-screen-label="Moldable app" style="height:100vh;display:flex;flex-direction:column;overflow:hidden;background:#e8ebf0;color:#19222d;font-family:'IBM Plex Sans',system-ui,sans-serif;">
 
   <!-- ============ TOP BAR ============ -->
-  <header style="flex:0 0 auto;height:62px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;background:#f6f8fb;border-bottom:1px solid #dde3ea;z-index:30;">
+  <header class="mw-header" style="flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;background:#f6f8fb;border-bottom:1px solid #dde3ea;z-index:30;">
     <div style="display:flex;align-items:center;gap:11px;">
       <div style="width:30px;height:30px;border-radius:9px;background:var(--accent,#ff5a1f);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.14);">
         <div style="width:13px;height:13px;border:2.5px solid #fff;border-radius:4px;transform:rotate(45deg);"></div>
@@ -261,11 +266,27 @@
           </sc-for>
         </div>
       </div>
-      <div class="mw-grid" style="height:430px;border-radius:20px;overflow:hidden;position:relative;border:1px solid #dde3ea;">
+      <sc-if value="{{ isOtto }}" hint-placeholder-val="{{ false }}">
+        <div style="margin-bottom:14px;">
+          <div style="font-size:12px;font-weight:600;color:#8e9bab;margin-bottom:8px;">Show</div>
+          <div style="display:flex;gap:7px;flex-wrap:wrap;">
+            <sc-for list="{{ ottoParts }}" as="op" hint-placeholder-count="9">
+              <button onClick="{{ op.onClick }}" style="{{ op.style }}">{{ op.label }}</button>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+      <div class="mw-grid" style="height:clamp(430px,68vh,760px);border-radius:20px;overflow:hidden;position:relative;border:1px solid #dde3ea;">
         <canvas ref="{{ setCanvas }}" style="width:100%;height:100%;display:block;touch-action:none;"></canvas>
         <sc-if value="{{ rendering }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;top:14px;left:14px;display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:#41505f;background:rgba(255,255,255,.92);border:1px solid #d6dde6;padding:8px 12px;border-radius:9px;backdrop-filter:blur(4px);z-index:6;"><span style="width:13px;height:13px;border:2px solid #ccd4df;border-top-color:var(--accent,#ff5a1f);border-radius:50%;animation:mw-spin .8s linear infinite;display:inline-block;"></span>Rendering&hellip;</div></sc-if>
         <sc-if value="{{ hasRenderError }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;left:14px;right:14px;bottom:46px;font-size:12.5px;font-weight:600;color:#fff;background:rgba(176,0,32,.92);padding:9px 12px;border-radius:9px;z-index:6;">&#9888; {{ renderError }}</div></sc-if>
         <button onClick="{{ resetView }}" style="position:absolute;top:14px;right:14px;display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:#41505f;background:rgba(255,255,255,.92);border:1px solid #d6dde6;padding:8px 12px;border-radius:9px;cursor:pointer;backdrop-filter:blur(4px);">&#8635; Reset view</button>
+        <div style="position:absolute;top:58px;right:14px;display:inline-flex;gap:4px;background:rgba(255,255,255,.92);border:1px solid #d6dde6;padding:4px;border-radius:9px;backdrop-filter:blur(4px);">
+          <button onClick="{{ viewFront }}" style="font-size:12px;font-weight:600;color:#41505f;background:transparent;border:none;padding:5px 8px;border-radius:6px;cursor:pointer;">Front</button>
+          <button onClick="{{ viewBack }}" style="font-size:12px;font-weight:600;color:#41505f;background:transparent;border:none;padding:5px 8px;border-radius:6px;cursor:pointer;">Back</button>
+          <button onClick="{{ viewSide }}" style="font-size:12px;font-weight:600;color:#41505f;background:transparent;border:none;padding:5px 8px;border-radius:6px;cursor:pointer;">Side</button>
+          <button onClick="{{ viewTop }}" style="font-size:12px;font-weight:600;color:#41505f;background:transparent;border:none;padding:5px 8px;border-radius:6px;cursor:pointer;">Top</button>
+        </div>
         <button onClick="{{ toggleHeatmap }}" title="Colour the model where it overhangs more than 45&deg; and may need supports (works for parts and sculpts)" style="position:absolute;top:14px;right:127px;display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:{{ heatmapBtnColor }};background:rgba(255,255,255,.92);border:1px solid #d6dde6;padding:8px 12px;border-radius:9px;cursor:pointer;backdrop-filter:blur(4px);">&#9968; {{ heatmapLabel }}</button>
         <sc-if value="{{ heatmap }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;right:14px;bottom:14px;display:inline-flex;align-items:center;gap:8px;font-size:10.5px;color:#41505f;background:rgba(255,255,255,.9);padding:6px 10px;border-radius:8px;font-family:'IBM Plex Mono',monospace;">overhang angle (45&deg;)<span style="display:inline-block;width:60px;height:8px;border-radius:4px;background:linear-gradient(90deg,#4dc75c,#f5cc33,#dc3636);"></span></div></sc-if>
         <div style="position:absolute;left:14px;bottom:14px;font-size:10.5px;color:#586575;font-family:'IBM Plex Mono',monospace;letter-spacing:.06em;text-transform:uppercase;background:rgba(255,255,255,.85);padding:5px 10px;border-radius:8px;font-weight:500;">drag to rotate &middot; scroll to zoom</div>
@@ -297,6 +318,14 @@
             <input type="range" min="{{ p.min }}" max="{{ p.max }}" step="{{ p.step }}" value="{{ p.value }}" onInput="{{ p.onInput }}" style="width:100%;" />
           </div>
         </sc-for>
+        <sc-if value="{{ isOtto }}" hint-placeholder-val="{{ false }}">
+          <div style="grid-column:1/-1;display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:6px;">
+            <span style="font-size:13.5px;font-weight:600;color:#3a4654;margin-right:4px;">Paint</span>
+            <sc-for list="{{ paintTargets }}" as="pt" hint-placeholder-count="6">
+              <button onClick="{{ pt.onClick }}" style="{{ pt.style }}">{{ pt.label }}</button>
+            </sc-for>
+          </div>
+        </sc-if>
         <div style="grid-column:1/-1;display:flex;align-items:center;gap:14px;margin-top:6px;">
           <span style="font-size:13.5px;font-weight:600;color:#3a4654;">Color</span>
           <div style="display:flex;gap:9px;">
@@ -330,6 +359,10 @@
       </sc-if>
       <sc-if value="{{ hasPrintFit }}" hint-placeholder-val="{{ false }}">
         <div style="margin-top:10px;display:flex;align-items:flex-start;gap:8px;font-size:13px;font-weight:600;color:#8a5a22;background:#fbeede;border:1px solid #f0d9b8;border-radius:11px;padding:10px 14px;">{{ printFit }}</div>
+      </sc-if>
+      <sc-if value="{{ isOtto }}" hint-placeholder-val="{{ false }}">
+        <div style="margin-top:12px;padding:12px;border:1px solid #f0d9b8;border-radius:11px;background:#fbeede;color:#704b24;font-size:13px;">{{ ottoNotice }} <a href="docs/guides/otto.md" target="_blank" rel="noopener">Fit and assembly guide</a></div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;"><sc-for list="{{ ottoFitTests }}" as="fit"><button onClick="{{ fit.onClick }}" style="padding:8px;border:1px solid #d0d8e2;border-radius:8px;background:#fff;cursor:pointer;">{{ fit.name }} .scad</button></sc-for></div>
       </sc-if>
       <div style="display:flex;gap:12px;margin-top:16px;">
         <button onClick="{{ downloadSTL }}" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:15px;border-radius:14px;border:1.5px solid #d0d8e2;background:#fff;color:#19222d;font-weight:700;font-size:15px;cursor:pointer;">&darr; STL</button>
@@ -418,6 +451,14 @@
             <button onClick="{{ ty.onClick }}" style="{{ ty.style }}">{{ ty.label }}</button>
           </sc-for>
         </div>
+        <sc-if value="{{ isOtto }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#8e9bab;margin-bottom:10px;">Show</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:22px;">
+            <sc-for list="{{ ottoParts }}" as="op" hint-placeholder-count="9">
+              <button onClick="{{ op.onClick }}" style="{{ op.style }}">{{ op.label }}</button>
+            </sc-for>
+          </div>
+        </sc-if>
         <div style="font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#8e9bab;margin-bottom:16px;">Parameters</div>
         <sc-if value="{{ isFreeform }}" hint-placeholder-val="{{ false }}">
           <div style="font-size:13px;color:#586575;line-height:1.5;margin-bottom:16px;">{{ freeformNote }}</div>
@@ -434,6 +475,14 @@
           </sc-for>
         </div>
         <div style="margin-top:20px;">
+          <sc-if value="{{ isOtto }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-bottom:10px;display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:6px;">
+              <span style="font-size:13.5px;font-weight:600;color:#3a4654;margin-right:4px;">Paint</span>
+              <sc-for list="{{ paintTargets }}" as="pt" hint-placeholder-count="6">
+                <button onClick="{{ pt.onClick }}" style="{{ pt.style }}">{{ pt.label }}</button>
+              </sc-for>
+            </div>
+          </sc-if>
           <div style="font-size:13.5px;font-weight:600;color:#3a4654;margin-bottom:10px;">Filament color</div>
           <div style="display:flex;gap:9px;flex-wrap:wrap;">
             <sc-for list="{{ colorList }}" as="c" hint-placeholder-count="6">
@@ -457,6 +506,11 @@
       <sc-if value="{{ hasPrintEst }}" hint-placeholder-val="{{ false }}">
         <div style="flex:0 0 auto;padding:10px 16px 0;font-size:12px;font-weight:600;color:#586575;">&#128424; {{ printEstText }} <span style="font-weight:400;color:#9aa7b6;">&middot; rough estimate</span></div>
       </sc-if>
+      <sc-if value="{{ isOtto }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:10px 16px;color:#704b24;font-size:12px;">{{ ottoNotice }}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;padding:0 16px 10px;"><sc-for list="{{ ottoFitTests }}" as="fit"><button onClick="{{ fit.onClick }}" style="padding:6px;border:1px solid #d0d8e2;border-radius:8px;background:#fff;cursor:pointer;">{{ fit.name }} .scad</button></sc-for></div>
+      </sc-if>
+      <sc-if value="{{ hasPrintFit }}" hint-placeholder-val="{{ false }}"><div style="padding:8px 16px;color:#8a5a22;font-size:12px;">{{ printFit }}</div></sc-if>
       <div style="flex:0 0 auto;border-top:1px solid #dde3ea;padding:14px 16px;display:flex;gap:10px;">
         <button onClick="{{ downloadSTL }}" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:13px;border-radius:12px;border:1.5px solid #d0d8e2;background:#fff;color:#19222d;font-weight:700;font-size:14px;cursor:pointer;">&darr; STL</button>
         <sc-if value="{{ hasCode }}" hint-placeholder-val="{{ true }}">
@@ -482,8 +536,9 @@
         </div>
         <button onClick="{{ closeGallery }}" style="width:38px;height:38px;border-radius:11px;border:1px solid #d0d8e2;background:#fff;color:#586575;font-size:18px;cursor:pointer;">&times;</button>
       </div>
+      <div style="display:flex;gap:8px;padding:16px 26px 0;"><sc-for list="{{ galleryCategories }}" as="category"><button onClick="{{ category.onClick }}" style="{{ category.style }}">{{ category.label }}</button></sc-for></div>
       <div style="padding:22px 26px;display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
-        <sc-for list="{{ galleryItems }}" as="g" hint-placeholder-count="6">
+        <sc-for list="{{ filteredGalleryItems }}" as="g" hint-placeholder-count="6">
           <button onClick="{{ g.onClick }}" style="border:1px solid #dde3ea;border-radius:16px;background:#fff;overflow:hidden;cursor:pointer;text-align:left;padding:0;">
             <span style="display:block;height:128px;{{ g.tile }}"></span>
             <span style="display:block;padding:12px 14px;">
@@ -552,7 +607,7 @@
           <div style="display:flex;gap:12px;">
             <div style="flex:1;">
               <label style="display:block;font-size:13px;font-weight:600;color:#3a4654;margin-bottom:6px;">License</label>
-              <div style="border:1.5px solid #d6dde6;border-radius:11px;padding:11px 13px;font-size:14px;background:#fff;color:#41505f;">CC BY 4.0</div>
+              <div style="border:1.5px solid #d6dde6;border-radius:11px;padding:11px 13px;font-size:14px;background:#fff;color:#41505f;">{{ publishLicense }}</div>
             </div>
             <div style="flex:1;">
               <label style="display:block;font-size:13px;font-weight:600;color:#3a4654;margin-bottom:6px;">Category</label>
@@ -695,7 +750,7 @@ class Component extends DCLogic {
     this.MODELS = {
       vase: { label: 'Vase / Planter', cat: 'Home Decor', tags: ['planter','vase','parametric','decor'], params: [
         { key:'height', label:'Height',  min:60, max:240, step:1, def:150, unit:'mm' },
-        { key:'radius', label:'Width',   min:25, max:90,  step:1, def:50,  unit:'mm' },
+        { key:'radius', label:'Radius',  min:25, max:90,  step:1, def:50,  unit:'mm' },
         { key:'sides',  label:'Sides',   min:3,  max:16,  step:1, def:6,   unit:'' },
         { key:'twist',  label:'Twist',   min:0,  max:360, step:5, def:120, unit:'\u00b0' },
         { key:'bulge',  label:'Belly',   min:0,  max:60,  step:1, def:24,  unit:'%' },
@@ -823,6 +878,7 @@ class Component extends DCLogic {
         { key:'height',    label:'Back height',   min:20, max:90,  step:1, def:45,  unit:'mm' },
         { key:'depth',     label:'Depth',         min:20, max:70,  step:1, def:35,  unit:'mm' },
         { key:'sections',  label:'Compartments',  min:1,  max:6,   step:1, def:3,   unit:'' },
+        { key:'honeycomb', label:'Honeycomb front', min:0, max:1, step:1, def:0, unit:'' },
       ]},
       walldock: { label: 'Wall Dock', cat: 'Gadgets', tags: ['hsw','honeycomb-storage-wall','phone','tablet','dock','parametric'], params: [
         { key:'width',      label:'Width',        min:45, max:220, step:1,   def:82, unit:'mm' },
@@ -892,13 +948,14 @@ class Component extends DCLogic {
       model: 'vase',
       modelParams: seed,
       color: '#e0653f',
+      ottoColors: {}, paintTarget: 'all',   // Otto per-part colours (preview only); empty = use color
       recognized: true, lastPrompt: '', freeform: false, freeformParams: [], freeformIR: null, forceAI: false, sculptMode: false, genError: '', meshMode: false, printEst: null, refineText: '', refining: false,
       codeOpen: false,
       codeText: this._code('vase', defs.vase),
       publishOpen: false, publishState: 'form',
       publishDesc: '',
       tags: this.MODELS.vase.tags,
-      galleryOpen: false,
+      galleryOpen: false, galleryCategory: 'all',
       generating: false, genStatus: '',
       title: 'Twisted Planter',
       parametric: true,
@@ -907,7 +964,7 @@ class Component extends DCLogic {
       settingsOpen: false, settingsMsg: '', provider: 'anthropic', apiKey: '', baseUrl: '', modelChoice: 'claude-sonnet-4-6', hasKey: false, bridgeStatus: '',
       meshProvider: 'meshy', meshKey: '', meshBase: '', sculptText: '',
       savedSculpts: (() => { try { return JSON.parse(localStorage.getItem('moldable_sculpts') || '[]'); } catch { return []; } })(),
-      bedSpec: (() => { try { return localStorage.getItem('moldable_bed') || '256x256'; } catch { return '256x256'; } })(),
+      bedSpec: (() => { try { return localStorage.getItem('moldable_bed') || '300x320x320'; } catch { return '300x320x320'; } })(),
       savedDesigns: (() => { try { return JSON.parse(localStorage.getItem('moldable_designs') || '[]'); } catch { return []; } })(),
     };
     this._compileSeq = 0;
@@ -928,7 +985,7 @@ class Component extends DCLogic {
 
   /* ---------- prompt parsing lives in cad/interpret.js (keywordMatch/keywordPreset);
      the agent drives generate(). No local copy here to avoid drift. ---------- */
-  _titleFor(model) { return ({ vase:'Twisted Planter', organizer:'Desk Organizer', stand:'Phone Stand', holder:'HSW Tool Holder', hook:'HSW Hook', shelf:'HSW Display Shelf', gridfinity:'Gridfinity Bin', baseplate:'Gridfinity Baseplate', box:'Box', coaster:'Coaster', bracket:'L-Bracket', cableclip:'Cable Clip', knob:'Knob', cupadapter:'Cupholder Adapter', funnel:'Funnel', soapdish:'Soap Dish', peghook:'Pegboard Hook', wallhook:'Wall Hook', brick:'Building Brick', apmount:'Aruba AP-515 HSW Mount', wallbin:'Wall Bin', walldock:'Wall Dock', stackingtray:'Stacking Tray', cableenclosure:'Cable Raceway', hingebox:'Living-Hinge Box', pedestal:'Base / Stand' })[model] || 'Model'; }
+  _titleFor(model) { return ({ otto:'Otto Robot', vase:'Twisted Planter', organizer:'Desk Organizer', stand:'Phone Stand', holder:'HSW Tool Holder', hook:'HSW Hook', shelf:'HSW Display Shelf', gridfinity:'Gridfinity Bin', baseplate:'Gridfinity Baseplate', box:'Box', coaster:'Coaster', bracket:'L-Bracket', cableclip:'Cable Clip', knob:'Knob', cupadapter:'Cupholder Adapter', funnel:'Funnel', soapdish:'Soap Dish', peghook:'Pegboard Hook', wallhook:'Wall Hook', brick:'Building Brick', apmount:'Aruba AP-515 HSW Mount', wallbin:'Wall Bin', walldock:'Wall Dock', stackingtray:'Stacking Tray', cableenclosure:'Cable Raceway', hingebox:'Living-Hinge Box', pedestal:'Base / Stand' })[model] || 'Model'; }
 
   /* ---------- generation ---------- */
   async generate(text) {
@@ -951,10 +1008,10 @@ class Component extends DCLogic {
         onStatus: (s) => { if (gen === this._genSeq) this.setState({ genStatus: s }); },
         maxRepairs: 3,
         forceAI: this.state.forceAI,
-        constraints: { bed: this._bedSize(), material: 'PLA' },   // honor the user's selected printer (not a hardcoded 256×256)
+        constraints: { bed: this._bedSize(), buildVolume: this._buildVolume(), material: 'PLA' },   // honor the user's selected printer (not a hardcoded 256×256)
       });
       if (gen !== this._genSeq) return;   // only a newer generate supersedes (it will reset `generating`)
-      this._lastStl = out.stl; this._lastFiles = out.files || [];
+      this._lastStl = out.stl; this._lastFiles = out.files || []; this._stlSource = out.source;
       const patch = { generating: false, screen: 'result', renderError: '', codeText: out.source, recognized: out.recognized !== false, freeform: !out.system };
       if (out.system) {
         patch.model = out.system;
@@ -1337,7 +1394,16 @@ class Component extends DCLogic {
     const ir = (this.state.freeformIR && this._ir) ? this._ir.applyIRDelta(this.state.freeformIR, { params: { [key]: val } }) : this.state.freeformIR;
     this.setState({ codeText: src, freeformParams: fp, freeformIR: ir });
   }
-  setColor(hex) { this.setState({ color: hex }); }
+  setColor(hex) {
+    const t = this.state.paintTarget;
+    if (this.state.model === 'otto' && t && t !== 'all') this.setState({ ottoColors: { ...this.state.ottoColors, [t]: hex } });
+    else this.setState({ color: hex, ottoColors: {} });   // "Whole robot" repaints every part
+  }
+  setPaintTarget(t) { this.setState({ paintTarget: t }); }
+  // Otto colour groups: part number -> group key. Legs and feet share a colour per pair.
+  _ottoGroup(part) { return ({ 0: 'head', 8: 'cover', 1: 'body', 2: 'legs', 3: 'legs', 4: 'feet', 5: 'feet' })[part] || null; }
+  _groupColor(g) { return (g && this.state.model === 'otto' && (this.state.ottoColors || {})[g]) || this.state.color; }
+  _colorKey() { return this.state.color + '|' + (this.state.model === 'otto' ? JSON.stringify(this.state.ottoColors || {}) : ''); }
 
   /* ---------- navigation / ui ---------- */
   goGuided() { this.setState({ flow: 'guided', screen: this.state.hasGenerated ? 'result' : 'home' }); }
@@ -1458,9 +1524,11 @@ class Component extends DCLogic {
     reader.readAsDataURL(f);
   }
 
+  _isOttoAssembled() { const s = this.state; return s.model === 'otto' && !s.freeform && !s.meshMode && Number((s.modelParams.otto || {}).part) === 7; }
   showToast(msg) { this.setState({ toast: msg }); clearTimeout(this._tt); this._tt = setTimeout(() => this.setState({ toast: '' }), 2400); }
 
   downloadSTL() {
+    if (this._isOttoAssembled()) { this.showToast('Assembled view is a preview — pick a part or Whole plate to download'); return; }
     // AI mesh: export the GLB scene as STL (rotate Y-up viewer space -> Z-up for printing).
     // While meshMode is on, NEVER fall through to the OpenSCAD STL — during the async mesh-load
     // window _meshObj isn't set yet, and falling through would export the previous model under
@@ -1478,8 +1546,10 @@ class Component extends DCLogic {
       this.showToast('Downloaded ' + a.download + ' (mesh — check it is watertight before printing)');
       return;
     }
-    const stl = this._lastStl;
-    if (!stl) { this.showToast('Model not ready yet'); return; }
+    let stl = this._lastStl;
+    const isOtto = this.state.model === 'otto' && !this.state.freeform;
+    if (!stl || (isOtto && (this.state.rendering || this._stlSource !== this.state.codeText))) { this.showToast('Model not ready yet'); return; }
+    if (isOtto) stl = this._cad.creditOttoStl(stl);
     const blob = new Blob([stl], { type: 'model/stl' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -1492,16 +1562,54 @@ class Component extends DCLogic {
 
   // The parametric OpenSCAD source — already in MakerWorld Customizer format
   // (magic-comment sliders). Upload this .scad to MakerWorld for a "Customize" button.
-  downloadSCAD() {
-    const src = this.state.codeText;
+  async downloadSCAD() {
+    const { model, freeform, modelParams, title } = this.state;
+    let src = this.state.codeText;
     if (!src) { this.showToast('Model not ready yet'); return; }
+    if (!freeform) {
+      try {
+        const cad = await this._loadCad();
+        const files = cad.generate(model, modelParams[model]).files || [];
+        if (files.length) {
+          const readContents = async (file) => {
+            const response = await fetch(new URL('./cad/' + file.url, location.href));
+            if (!response.ok) throw new Error('Could not load ' + file.name);
+            return response.text();
+          };
+          src = model === 'otto'
+            ? await cad.standaloneOttoScad(src, files, readContents)
+            : await cad.standaloneScad(src, files, readContents);
+        }
+      } catch (e) { this.showToast('SCAD export failed: ' + e.message); return; }
+    }
     const blob = new Blob([src], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url; a.download = (this.state.title || 'model').replace(/\s+/g, '_') + '.scad';
+    a.href = url; a.download = (title || 'model').replace(/\s+/g, '_') + '.scad';
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1500);
     this.showToast('Downloaded ' + a.download + ' · upload to MakerWorld to make it customizable');
+  }
+
+  async downloadOttoFitTest(kind) {
+    if (![0,1,2,3].includes(kind)) return;
+    try {
+      const cad = await this._loadCad();
+      const generated = cad.generate('otto', this.state.modelParams.otto);
+      const source = generated.source.replace('use <otto/otto_shells.scad>', 'use <otto/otto_core.scad>')
+        .replace(/otto_part\([^;]+;/, 'otto_coupon(' + kind + ', clearance);');
+      const portable = await cad.standaloneOttoScad(source, generated.files, async file => {
+        const response = await fetch(new URL('./cad/' + file.url, location.href));
+        if (!response.ok) throw new Error('Could not load ' + file.name);
+        return response.text();
+      });
+      const url = URL.createObjectURL(new Blob([portable], { type: 'text/plain' }));
+      const a = document.createElement('a');
+      a.href = url; a.download = 'Otto_fit_' + ['servo','eyes','usbc','battery'][kind] + '.scad';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1500);
+      this.showToast('Downloaded ' + a.download + ' — print this small fit test first');
+    } catch (e) { this.showToast('Fit-test export failed: ' + e.message); }
   }
 
   /* ---------- three.js viewer ---------- */
@@ -1544,8 +1652,8 @@ class Component extends DCLogic {
     this.viewer = { renderer, scene, cam }; this.modelGroup = grp;
     this.view = { theta: 0.9, phi: 1.02, radius: 320, target: new T.Vector3(0, 50, 0) };
 
-    this._onDown = (e) => { this._dragging = true; this._px = e.clientX; this._py = e.clientY; try { canvas.setPointerCapture(e.pointerId); } catch (x) {} };
-    this._onMove = (e) => { if (!this._dragging) return; const dx = e.clientX - this._px, dy = e.clientY - this._py; this._px = e.clientX; this._py = e.clientY; this.view.theta -= dx * 0.008; this.view.phi = Math.max(0.22, Math.min(1.46, this.view.phi - dy * 0.006)); this._draw(); };
+    this._onDown = (e) => { this._dragging = true; this._userView = true; this._px = e.clientX; this._py = e.clientY; try { canvas.setPointerCapture(e.pointerId); } catch (x) {} };
+    this._onMove = (e) => { if (!this._dragging) return; const dx = e.clientX - this._px, dy = e.clientY - this._py; this._px = e.clientX; this._py = e.clientY; this.view.theta -= dx * 0.012; this.view.phi = Math.max(0.22, Math.min(1.46, this.view.phi - dy * 0.006)); this._draw(); };
     this._onUp = () => { this._dragging = false; };
     this._onWheel = (e) => { e.preventDefault(); this.view.radius = Math.max(70, Math.min(1300, this.view.radius * (1 + (e.deltaY > 0 ? 0.1 : -0.1)))); this._draw(); };
     canvas.addEventListener('pointerdown', this._onDown);
@@ -1560,7 +1668,7 @@ class Component extends DCLogic {
 
     const loop = () => {
       this._raf = requestAnimationFrame(loop);
-      if (!this._dragging && (this.props.autoRotate !== false)) this.view.theta += 0.0026;
+      if (!this._dragging && !this._userView && (this.props.autoRotate !== false)) this.view.theta += 0.0026;   // stop spinning once the user takes the camera
       this._applyCam(); renderer.render(scene, cam);
     };
     loop();
@@ -1630,6 +1738,10 @@ class Component extends DCLogic {
         const d = {};
         Object.keys(this.MODELS).forEach((k) => { const o = {}; this.MODELS[k].params.forEach((pm) => o[pm.key] = pm.def); d[k] = o; });
         this.defs = d;
+        const modelParams = { ...this.state.modelParams };
+        Object.keys(d).forEach(k => { modelParams[k] = { ...d[k], ...(modelParams[k] || {}) }; });
+        this.GALLERY = [...runner.OTTO_PRESETS, ...this.GALLERY.filter(g => g.model !== 'otto')];
+        this.setState({ modelParams });
       }
       try { this.setState({ codeText: this._code(this.state.model, this.state.modelParams[this.state.model]) }); } catch (e) {}
       return runner;
@@ -1669,17 +1781,37 @@ class Component extends DCLogic {
     const reqId = ++this._compileSeq;
     this.setState({ rendering: true, renderError: '' });
     try {
-      const { stl } = await this._runner.compile({ source, files });
+      let stl, pieces = null;
+      const call = !this._codeDirty && m === 'otto' && Number(p.part) === 7 && source.match(/otto_part\(part,([^;]+)\);/);
+      if (call) {
+        // Assembled Otto: one compile per colour group so each can be painted separately.
+        pieces = [];
+        for (const [group, parts] of [['head', [0]], ['cover', [8]], ['body', [1]], ['legs', [2, 3]], ['feet', [4, 5]]]) {
+          const src = source.replace(call[0], parts.map(i => 'otto_placed(' + i + ',' + call[1] + ');').join('\n'));
+          const r = await this._runner.compile({ source: src, files });
+          if (reqId !== this._compileSeq) return;
+          pieces.push({ stl: r.stl, group });
+        }
+        stl = this._concatStl(pieces.map(pc => pc.stl));
+      } else {
+        stl = (await this._runner.compile({ source, files })).stl;
+      }
       if (reqId !== this._compileSeq) return;        // a newer request superseded this one
-      this._lastStl = stl;
-      this._applyMesh(stl, reframe);
+      this._lastStl = stl; this._stlSource = source;
+      this._applyMesh(stl, reframe, pieces);
       this.setState({ rendering: false, renderError: '' });
     } catch (err) {
       if (reqId !== this._compileSeq) return;
       this.setState({ rendering: false, renderError: (err && err.message) || 'render failed' });
     }
   }
-  _bedSize() { try { const v = (localStorage.getItem('moldable_bed') || '256x256').split('x'); const x = +v[0], y = +v[1]; return [x > 0 ? x : 256, y > 0 ? y : 256]; } catch { return [256, 256]; } }
+  _bedSize() { try { const v = (localStorage.getItem('moldable_bed') || '300x320x320').split('x'); const x = +v[0], y = +v[1]; return [x > 0 ? x : 300, y > 0 ? y : 320]; } catch { return [300, 320]; } }
+  _buildVolume() {
+    try {
+      const dims = (localStorage.getItem('moldable_bed') || '300x320x320').split('x').map(Number);
+      return dims.length === 3 && dims.every(v => Number.isFinite(v) && v > 0) ? dims : null;
+    } catch { return [300,320,320]; }
+  }
   setPrinter(spec, name) { try { localStorage.setItem('moldable_bed', spec); } catch {} this.setState({ bedSpec: spec, printEst: this._lastStl ? this._printEstimate(this._lastStl) : this.state.printEst }); this.showToast('Printer: ' + name); }
   // Rough filament + time estimate from the compiled STL (no slicer, no deps) — answers the
   // two questions everyone asks before printing. Solid volume ≈ printed plastic for Moldable's
@@ -1708,24 +1840,35 @@ class Component extends DCLogic {
       const minHigh = (volCm3 * 1000) / (11 * 60);          // rough volumetric time (~11 mm³/s incl. overhead)
       const dims = [hi[0] - lo[0], hi[1] - lo[1], hi[2] - lo[2]].map((d) => (isFinite(d) ? d : 0));
       const bed = this._bedSize();                          // [x,y] mm
-      const fits = (dims[0] <= bed[0] && dims[1] <= bed[1]) || (dims[0] <= bed[1] && dims[1] <= bed[0]);
-      return { grams, cost, timeLow: Math.max(1, Math.round(minHigh * 0.7)), timeHigh: Math.max(2, Math.round(minHigh)), dims, fits, bed };
+      const volume = this._buildVolume();
+      const fits = volume ? this._cad.checkBuildVolume(dims, volume).fits :
+        ((dims[0] <= bed[0] && dims[1] <= bed[1]) || (dims[0] <= bed[1] && dims[1] <= bed[0]));
+      return { grams, cost, timeLow: Math.max(1, Math.round(minHigh * 0.7)), timeHigh: Math.max(2, Math.round(minHigh)), dims, fits, bed: volume || bed };
     } catch { return null; }
   }
-  _applyMesh(stl, reframe) {
+  // pieces: optional [{ stl, group }] drawn as separately coloured meshes (Otto assembled view);
+  // stl is then their concatenation, used for the print estimate.
+  _applyMesh(stl, reframe, pieces) {
     const T = this.THREE; if (!T || !this.modelGroup) return;
     this.setState({ printEst: this._printEstimate(stl) });
-    const geo = this._stlToGeometry(stl);
-    geo.rotateX(-Math.PI / 2);          // OpenSCAD is Z-up; the viewer is Y-up
-    geo.computeVertexNormals();
+    if (!pieces) {
+      const p = this.state.model === 'otto' && !this._codeDirty ? Number((this.state.modelParams.otto || {}).part) : -1;
+      pieces = [{ stl, group: this._ottoGroup(p) }];
+    }
     for (let i = this.modelGroup.children.length - 1; i >= 0; i--) {
       const ch = this.modelGroup.children[i]; this.modelGroup.remove(ch);
       if (ch.geometry) ch.geometry.dispose();
       if (ch.material) ch.material.dispose();
     }
-    const mat = new T.MeshStandardMaterial({ color: new T.Color(this.state.color), roughness: 0.72, metalness: 0.04, side: T.DoubleSide });
-    const mesh = new T.Mesh(geo, mat); mesh.castShadow = true; mesh.receiveShadow = true;
-    this.modelGroup.add(mesh);
+    for (const pc of pieces) {
+      const geo = this._stlToGeometry(pc.stl);
+      geo.rotateX(-Math.PI / 2);          // OpenSCAD is Z-up; the viewer is Y-up
+      geo.computeVertexNormals();
+      const mat = new T.MeshStandardMaterial({ color: new T.Color(this._groupColor(pc.group)), roughness: 0.72, metalness: 0.04, side: T.DoubleSide });
+      const mesh = new T.Mesh(geo, mat); mesh.castShadow = true; mesh.receiveShadow = true;
+      mesh.userData.group = pc.group;
+      this.modelGroup.add(mesh);
+    }
     this.modelGroup.position.set(0, 0, 0);
     const box = new T.Box3().setFromObject(this.modelGroup);
     const ctr = box.getCenter(new T.Vector3()), size = box.getSize(new T.Vector3());
@@ -1735,8 +1878,15 @@ class Component extends DCLogic {
       this.view.radius = maxd * 2.0 + 50; this.view.target.set(0, size.y * 0.45, 0);
       this.view.theta = 0.9; this.view.phi = 1.02;
     }
-    this._colorSig = this.state.color;
+    this._colorSig = this._colorKey();
     if (this.state.heatmap) this._applyHeatmap(); else this._draw();
+  }
+  _concatStl(list) {
+    const tris = list.reduce((n, b) => n + new DataView(b.buffer, b.byteOffset, b.byteLength).getUint32(80, true), 0);
+    const out = new Uint8Array(84 + tris * 50); let off = 84;
+    new DataView(out.buffer).setUint32(80, tris, true);
+    for (const b of list) { out.set(b.subarray(84), off); off += b.length - 84; }
+    return out;
   }
   _stlToGeometry(stl) {
     const T = this.THREE;
@@ -1760,8 +1910,7 @@ class Component extends DCLogic {
   }
   _applyColor() {
     if (!this.modelGroup || !this.THREE) return;
-    const c = new this.THREE.Color(this.state.color);
-    this.modelGroup.traverse((o) => { if (o.isMesh && o.material) o.material.color = c; });
+    this.modelGroup.traverse((o) => { if (o.isMesh && o.material) o.material.color = new this.THREE.Color(this._groupColor(o.userData.group)); });
     this._draw();
   }
   // ---- overhang heat-map: colour faces that overhang >45° (need supports), parts AND sculpts ----
@@ -1782,11 +1931,10 @@ class Component extends DCLogic {
   }
   _clearHeatmap() {
     const T = this.THREE; if (!T || !this.modelGroup) return;
-    const c = new T.Color(this.state.color);
     this.modelGroup.traverse((o) => {
       if (!o.isMesh || !o.material) return;
       if (o.geometry && o.geometry.attributes.color) o.geometry.deleteAttribute('color');
-      o.material.vertexColors = false; o.material.color = c; o.material.needsUpdate = true;
+      o.material.vertexColors = false; o.material.color = new T.Color(this._groupColor(o.userData.group)); o.material.needsUpdate = true;
     });
     this._draw();
   }
@@ -1802,24 +1950,34 @@ class Component extends DCLogic {
     const maxd = Math.max(size.x, size.y, size.z);
     this.view.radius = maxd * 2.0 + 50; this.view.target.set(0, size.y * 0.45, 0);
     this.view.theta = 0.9; this.view.phi = 1.02;
+    this._userView = false;
+  }
+  // OpenSCAD -Y (model front) maps to viewer +Z, which theta = PI/2 looks at.
+  setView(which) {
+    if (!this.view) return;
+    const angles = { front: [Math.PI / 2, 1.3], back: [-Math.PI / 2, 1.3], side: [0, 1.3], top: [Math.PI / 2, 0.22] };
+    const [theta, phi] = angles[which] || angles.front;
+    this.view.theta = theta; this.view.phi = phi; this._userView = true;
+    this._draw();
   }
 
   componentDidUpdate() {
     if (!this.viewer) return;
     if (this.state.meshMode) {   // AI mesh (GLB) is rendered directly — never recompile OpenSCAD over it
-      if (!this.state.heatmap && this.state.color !== this._colorSig) { this._colorSig = this.state.color; this._applyColor(); }  // heat-map owns the colours while on
+      if (!this.state.heatmap && this._colorKey() !== this._colorSig) { this._colorSig = this._colorKey(); this._applyColor(); }  // heat-map owns the colours while on
       return;
     }
     const m = this.state.model;
     const geomSig = m + '|' + (this._codeDirty ? 'code:' + this.state.codeText : JSON.stringify(this.state.modelParams[m]));
     if (geomSig !== this._geomSig) {
-      const reframe = m !== this._lastModel || this._reframeNext;   // freeform/catalog keep the model key, so reframe on explicit load
-      this._reframeNext = false;
+      const part = (this.state.modelParams[m] || {}).part;   // Otto: switching part (head → whole plate) changes scale, so refit
+      const reframe = m !== this._lastModel || this._reframeNext || part !== this._lastPart;   // freeform/catalog keep the model key, so reframe on explicit load
+      this._reframeNext = false; this._lastPart = part;
       this._geomSig = geomSig; this._lastModel = m;
       this._scheduleRebuild(reframe);
     }
-    if (!this.state.heatmap && this.state.color !== this._colorSig) {
-      this._colorSig = this.state.color;
+    if (!this.state.heatmap && this._colorKey() !== this._colorSig) {
+      this._colorSig = this._colorKey();
       this._applyColor();
     }
   }
@@ -1859,7 +2017,7 @@ class Component extends DCLogic {
           display: '' + pm.value,
           onInput: (e) => this.setFreeformParam(pm.key, +e.target.value),
         }))
-      : M.params.map(pm => {
+      : M.params.filter(pm => !(s.model === 'otto' && pm.key === 'part')).map(pm => {   // Otto part has its own named buttons
           const val = s.modelParams[s.model][pm.key];
           return {
             key: pm.key, label: pm.label, min: pm.min, max: pm.max, step: pm.step, value: val,
@@ -1867,32 +2025,50 @@ class Component extends DCLogic {
             onInput: (e) => this.setParam(pm.key, +e.target.value),
           };
         });
+    const paintTarget = s.model === 'otto' ? s.paintTarget : 'all';
+    const activeColor = paintTarget === 'all' ? s.color : this._groupColor(paintTarget);
     const colorList = this.COLORS.map(c => ({
       name: c.name, hex: c.hex, onClick: () => this.setColor(c.hex),
       style: 'width:30px;height:30px;border-radius:50%;cursor:pointer;background:' + c.hex + ';' +
-        (s.color === c.hex ? 'box-shadow:0 0 0 2.5px #fff,0 0 0 5px var(--accent,#ff5a1f);' : 'box-shadow:0 0 0 1px rgba(0,0,0,.12);') + 'border:none;'
+        (activeColor === c.hex ? 'box-shadow:0 0 0 2.5px #fff,0 0 0 5px var(--accent,#ff5a1f);' : 'box-shadow:0 0 0 1px rgba(0,0,0,.12);') + 'border:none;'
     }));
     const sl = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
     // thumbnail (rendered preview) layered over the color gradient — gradient shows if the png is missing
     const tile = (pfx, name, color) => "background-image:url('thumbs/" + pfx + '-' + sl(name) + ".png'),linear-gradient(140deg," + color + ',' + this._shade(color, 0.62) + ');background-size:cover;background-position:center;';
     const galleryItems = this.GALLERY.map(g => ({
-      name: g.name, sub: (this.MODELS[g.model] || {}).label || g.name, onClick: () => this.loadGallery(g),
-      tile: tile('g', g.name, g.color)
+      name: g.name, sub: (this.MODELS[g.model] || {}).label || g.name, cat: (this.MODELS[g.model] || {}).cat, onClick: () => this.loadGallery(g),
+      tile: g.model === 'otto' ? "background-image:url('thumbs/g-" + sl(g.name) + ".svg');background-size:cover;background-position:center;" : tile('g', g.name, g.color)
     }));
     const catalogItems = (this.CATALOG || []).map(c => ({
       name: c.name, sub: c.cat, onClick: () => this.loadCatalog(c),
       tile: tile('c', c.name, c.color)
     }));
-    const hasCatalog = catalogItems.length > 0;
+    const hasCatalog = s.galleryCategory === 'all' && catalogItems.length > 0;
     const chips = ['HSW honeycomb tool holder','Desk organizer with 3 slots','Angled phone stand','A hexagonal twisted planter']
       .map(label => ({ label, onClick: () => this.generate(label) }));
 
     const tchip = 'padding:7px 13px;border-radius:99px;font-weight:600;font-size:13px;cursor:pointer;';
-    const typeList = [['vase','Vase'],['organizer','Organizer'],['box','Box'],['coaster','Coaster'],['bracket','L-bracket'],['cableclip','Cable clip'],['knob','Knob'],['cupadapter','Cupholder adapter'],['funnel','Funnel'],['soapdish','Soap dish'],['peghook','Pegboard hook'],['wallhook','Wall hook'],['brick','Building brick'],['stand','Phone stand'],['gridfinity','Gridfinity'],['baseplate','Baseplate'],['apmount','AP-515 mount'],['wallbin','Wall bin'],['walldock','Wall dock'],['stackingtray','Stacking tray'],['cableenclosure','Cable raceway'],['hingebox','Hinge box'],['holder','HSW cup'],['hook','HSW hook'],['shelf','HSW shelf']].map(([k, label]) => ({
+    const typeList = [['otto','Otto robot'],['vase','Vase'],['organizer','Organizer'],['box','Box'],['coaster','Coaster'],['bracket','L-bracket'],['cableclip','Cable clip'],['knob','Knob'],['cupadapter','Cupholder adapter'],['funnel','Funnel'],['soapdish','Soap dish'],['peghook','Pegboard hook'],['wallhook','Wall hook'],['brick','Building brick'],['stand','Phone stand'],['gridfinity','Gridfinity'],['baseplate','Baseplate'],['apmount','AP-515 mount'],['wallbin','Wall bin'],['walldock','Wall dock'],['stackingtray','Stacking tray'],['cableenclosure','Cable raceway'],['hingebox','Hinge box'],['holder','HSW cup'],['hook','HSW hook'],['shelf','HSW shelf']].map(([k, label]) => ({
       key: k, label, onClick: () => this.switchType(k),
       style: tchip + (!s.freeform && s.model === k
         ? 'background:var(--accent,#ff5a1f);color:#fff;border:1.5px solid var(--accent,#ff5a1f);'
         : 'background:#fff;color:#586575;border:1.5px solid #d0d8e2;')
+    }));
+    // Otto part picker, in build order; values are the generator's part numbers.
+    const ottoPart = Number((s.modelParams.otto || {}).part);
+    const ottoParts = [[7,'Assembled'],[0,'Head'],[8,'Back cover'],[1,'Body'],[2,'Leg L'],[3,'Leg R'],[4,'Foot L'],[5,'Foot R'],[6,'Print plate']].map(([v, label]) => ({
+      label, onClick: () => this.setParam('part', v),
+      style: tchip + (ottoPart === v
+        ? 'background:#19222d;color:#fff;border:1.5px solid #19222d;'
+        : 'background:#fff;color:#41505f;border:1.5px solid #d0d8e2;')
+    }));
+
+    // Otto paint targets: which part group the colour swatches apply to.
+    const paintTargets = [['all','Whole robot'],['head','Head'],['cover','Back cover'],['body','Body'],['legs','Legs'],['feet','Feet']].map(([k, label]) => ({
+      label, onClick: () => this.setPaintTarget(k),
+      style: tchip + 'box-shadow:inset 0 -4px 0 ' + (k === 'all' ? s.color : this._groupColor(k)) + ';' + (paintTarget === k
+        ? 'background:#19222d;color:#fff;border:1.5px solid #19222d;'
+        : 'background:#fff;color:#41505f;border:1.5px solid #d0d8e2;')
     }));
 
     const slug = (s.title || 'model').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
@@ -1951,13 +2127,22 @@ class Component extends DCLogic {
       codeOpen: s.codeOpen, codeToggleLabel: s.codeOpen ? 'Hide OpenSCAD code' : 'Show OpenSCAD code', codeChevron: s.codeOpen ? '\u2013' : '+',
       publishOpen: s.publishOpen, isPublishForm: s.publishState === 'form', isPublishSuccess: s.publishState === 'success',
       publishDesc: s.publishDesc, publishCategory: M.cat, publishUrl: 'makerworld.com/en/models/' + slug,
+      publishLicense: !s.meshMode && !s.freeform && s.model === 'otto' ? 'CC BY-SA 4.0' : 'CC BY 4.0',
       galleryOpen: s.galleryOpen, tags: s.tags,
-      paramList, colorList, galleryItems, catalogItems, hasCatalog, chips, typeList,
+      paramList, colorList, paintTargets, galleryItems, catalogItems, hasCatalog, chips, typeList, ottoParts,
+      filteredGalleryItems: galleryItems.filter(g => s.galleryCategory === 'all' || g.cat === s.galleryCategory),
+      galleryCategories: [['all','All templates'],['Robots','Robots']].map(([value,label]) => ({
+        label, onClick: () => this.setState({ galleryCategory: value }),
+        style: tchip + (s.galleryCategory === value ? 'border:1px solid var(--accent,#ff5a1f);background:#fff0e9;color:#a33c14;' : 'border:1px solid #d0d8e2;background:#fff;color:#586575;'),
+      })),
+      isOtto: !s.meshMode && !s.freeform && s.model === 'otto',
+      ottoNotice: this._cad ? this._cad.OTTO_FIT_MESSAGE : '',
+      ottoFitTests: [ ['Servo pocket',0], ['Sensor eye ring',1], ['Type-C opening',2], ['Battery bay',3] ].map(([name,kind]) => ({ name, onClick: () => this.downloadOttoFitTest(kind) })),
       hasPrintEst: !s.meshMode && !!s.printEst,
       printEstText: s.printEst ? ('≈ ' + (s.printEst.grams < 10 ? s.printEst.grams.toFixed(1) : Math.round(s.printEst.grams)) + ' g PLA  ·  ≈ $' + s.printEst.cost.toFixed(2) + '  ·  ≈ ' + s.printEst.timeLow + '–' + s.printEst.timeHigh + ' min  ·  ' + (s.printEst.dims || [0,0,0]).map(d => Math.round(d)).join('×') + ' mm') : '',
       hasPrintFit: !!(s.printEst && s.printEst.fits === false && !s.meshMode),
-      printFit: (s.printEst && s.printEst.fits === false) ? ('⚠ ' + (s.printEst.dims || []).slice(0, 2).map(d => Math.round(d)).join('×') + 'mm exceeds your ' + (s.printEst.bed || [256,256]).join('×') + 'mm bed — scale it down or split it') : '',
-      printerList: [['Bambu A1/P1/X1','256x256'],['A1 mini','180x180'],['Prusa MK4','250x210'],['Ender 3','220x220'],['Large 350','350x350']].map(([name, spec]) => ({
+      printFit: (s.printEst && s.printEst.fits === false) ? (s.model === 'otto' && !s.freeform && Number((s.modelParams.otto || {}).part) === 6 ? this._cad.OTTO_OVERFLOW : '⚠ ' + (s.printEst.dims || []).slice(0, 2).map(d => Math.round(d)).join('×') + 'mm exceeds your ' + (s.printEst.bed || [256,256]).join('×') + 'mm printer volume — scale it down or split it') : '',
+      printerList: [...((this._cad && this._cad.H2C_PROFILES) || []).map(p => [p.name,p.spec]),['Bambu A1/P1/X1','256x256'],['A1 mini','180x180'],['Prusa MK4','250x210'],['Ender 3','220x220'],['Large 350','350x350']].map(([name, spec]) => ({
         name, spec, onClick: () => this.setPrinter(spec, name),
         style: 'flex:1;text-align:center;padding:8px 4px;border-radius:9px;cursor:pointer;font-size:11px;font-weight:600;border:1.5px solid ' + (s.bedSpec === spec ? 'var(--accent,#ff5a1f)' : '#d6dde6') + ';background:' + (s.bedSpec === spec ? 'rgba(255,90,31,.08)' : '#fff') + ';color:#19222d;',
       })),
@@ -2012,7 +2197,7 @@ class Component extends DCLogic {
       openGallery: () => this.openGallery(), closeGallery: () => this.closeGallery(), stop: (e) => this.stop(e),
       openPublish: () => this.openPublish(), closePublish: () => this.closePublish(), doPublish: () => this.doPublish(),
       toggleParametric: () => this.toggleParametric(),
-      resetView: () => this.resetView(), downloadSTL: () => this.downloadSTL(), downloadSCAD: () => this.downloadSCAD(), shareLink: () => this.shareLink(), saveDesign: () => this.saveDesign(), newModel: () => this.newModel(),
+      resetView: () => this.resetView(), viewFront: () => this.setView('front'), viewBack: () => this.setView('back'), viewSide: () => this.setView('side'), viewTop: () => this.setView('top'), downloadSTL: () => this.downloadSTL(), downloadSCAD: () => this.downloadSCAD(), shareLink: () => this.shareLink(), saveDesign: () => this.saveDesign(), newModel: () => this.newModel(),
       heatmap: s.heatmap, toggleHeatmap: () => this.toggleHeatmap(), heatmapLabel: s.heatmap ? 'Solid' : 'Overhangs', heatmapBtnColor: s.heatmap ? 'var(--accent,#ff5a1f)' : '#41505f',
       isMeshMode: s.meshMode, addBase: () => this.addBase(),
       refine: () => this.refine(), onRefineInput: (e) => this.onRefineInput(e), refineText: s.refineText || '',

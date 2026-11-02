@@ -10,11 +10,34 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { MODELS, generate, defaults } from '../cad/scad-gen.js';
 
+const ottoFit = readFileSync(new URL('../cad/libraries/otto/otto_fit.scad', import.meta.url), 'utf8');
+const ottoSize = (name) => JSON.parse(ottoFit.match(new RegExp('otto_' + name + ' = (\\[[^;]+\\]);'))[1]);
+
 // Nominal XY footprint per model — the part must not balloon past this (catches
 // mis-centered/protruding geometry that still happens to be manifold).
 function envelope(model, p) {
   const m = { ...defaults(model), ...p };
   switch (model) {
+    case 'otto': {
+      if (m.part === 6 || m.part === 7) return null;   // plate, assembled view
+      const wall = 2, extra = m.mouth === 1 ? 24 : 0;
+      if (m.part === 0 || m.part === 8) {
+        // Face-down head / flat cover: [width, height incl. insert band, depth].
+        let [x, y, z] = ottoSize('head');
+        x += 2*m.grow; y += m.grow + extra;
+        if (m.part === 0) {
+          // Accessories extend upward in the face plane because the head prints face-down.
+          y += Math.max(m.antenna ? m.antenna + 4 : 0, m.hat ? 29 : 0, m.ears ? 14 : 0);
+          z -= wall;
+        } else z = wall + 3 + 5.7;   // plate + lip + buzzer ring
+        return {x, y, z};
+      }
+      if (m.part === 1) { const [x, y, z] = ottoSize('body'); return {x: x + 2*m.grow, y: y + 2*m.grow, z}; }
+      if (m.part <= 3) { const [x, y, z] = ottoSize('leg'); return {x, y, z}; }
+      // Foot: sole offset outboard of the leg by 10, bracket height.
+      const sole = [[40, 62], [42, 66], [52, 70]][m.feet];
+      return {x: sole[0]/2 + 10 + 10.5, y: sole[1], z: ottoSize('foot')[2]};
+    }
     case 'vase': { const r = m.radius + (m.bulge || 0) / 12; return { x: 2 * r, y: 2 * r, z: m.height }; }
     case 'organizer': return { x: m.width, y: m.depth, z: m.height };
     case 'stand': return { x: m.baseDepth, y: m.height, z: m.width };
@@ -97,6 +120,11 @@ async function compile(source, files) {
 
 // Per-model variants to exercise the parameter space (not just defaults).
 const VARIANTS = {
+  otto: [
+    ...Array.from({length: 28}, (_,i) => ({part: i % 7, headStyle: Math.floor(i / 7)})),
+    {part:0,headStyle:1,grow:10,corner:12,ears:2,hat:2,antenna:30},
+    {part:0,headStyle:3,ears:3,hat:3}, {part:4,feet:1}, {part:5,feet:2}, {part:7}, {part:8}, {part:8,headStyle:3,grow:10},
+  ],
   vase: [{}, { sides: 3, twist: 300, height: 220 }, { sides: 16, bulge: 60 }],
   organizer: [{}, { slots: 1 }, { slots: 5, height: 90 }],
   stand: [{}, { angle: 50 }, { angle: 78, height: 170 }],

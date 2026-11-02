@@ -1,0 +1,21 @@
+{
+  "status": "prototype-unverified",
+  "provisionalClearanceMm": 0.25,
+  "validatedClearanceMm": null,
+  "checks": [
+    { "id": "print-head", "case": "Default head prints on H2C without supports", "status": "pending", "evidence": null },
+    { "id": "print-body", "case": "Default body prints on H2C without supports", "status": "pending", "evidence": null },
+    { "id": "print-leg-l", "case": "Default left leg prints on H2C without supports", "status": "pending", "evidence": null },
+    { "id": "print-leg-r", "case": "Default right leg prints on H2C without supports", "status": "pending", "evidence": null },
+    { "id": "print-foot-l", "case": "Default left foot prints on H2C without supports", "status": "pending", "evidence": null },
+    { "id": "print-foot-r", "case": "Default right foot prints on H2C without supports", "status": "pending", "evidence": null },
+    { "id": "fit-servo", "case": "Servo sample accepts actual MG90S snugly by hand", "status": "pending", "evidence": null },
+    { "id": "fit-eyes", "case": "Eye-ring sample retains actual HC-SR04", "status": "pending", "evidence": null },
+    { "id": "fit-usbc", "case": "Type-C sample permits actual cable insertion with Nano mounted", "status": "pending", "evidence": null },
+    { "id": "fit-battery", "case": "Battery sample accepts actual cell and clip while allowing closure", "status": "pending", "evidence": null },
+    { "id": "clearance", "case": "Clearance passing all four samples is recorded in otto-fit.md", "status": "pending", "evidence": null },
+    { "id": "dimensions", "case": "Every fit-critical dimension has a source or recorded measurement", "status": "pending", "evidence": null },
+    { "id": "assembly", "case": "Complete default robot mechanically assembles with ordered hardware", "status": "pending", "evidence": null },
+    { "id": "assembled-usbc", "case": "Assembled robot permits actual Type-C cable insertion", "status": "pending", "evidence": null }
+  ]
+}

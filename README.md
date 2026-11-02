@@ -22,7 +22,21 @@ Two backends, same in-app "Sculpt from photo" flow (both auto-remesh to print-re
 - `tools/replicate-bridge.mjs` / `tools/local-mesh-bridge.mjs` — Sculpt bridges (cloud / local), same Meshy-shaped contract + auto-remesh.
 - See PIPELINE.md for the architecture.
 
+## Otto Robot
+
+The **Robots** template adds Classic, Rounded and Cat-ear Otto presets, seven parts (head, back cover, body, legs, feet) in Otto V9 proportions with four servos, a full-robot Assembled view,
+a whole plate, fixed hardware cavities, exterior sliders and four small fit-test
+downloads. Type **otto robot** to open it. H2C left/right/dual nozzle profiles check
+all three printable dimensions. Otto SCAD exports are standalone; STL and SCAD
+carry Otto DIY / CC-BY-SA-4.0 attribution.
+
+**Prototype, not physically fit-certified:** original V13 CAD access and purchased
+hardware measurements remain outstanding. Read the [Otto guide](docs/guides/otto.md)
+and [fit record](docs/reference/otto-fit.md) before full prints. Power and walking
+trials are deferred. No unpublished color/3MF or Copilot-bridge code was assumed.
+
 ## Tests
 ```bash
+node --test test/*.test.mjs # includes individually reported Otto geometry/fit cases
 node test/engine.test.mjs   # all parametric models compile to manifold STL
 ```

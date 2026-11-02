@@ -75,7 +75,7 @@ export async function buildFromPrompt(prompt, { compile, onStatus, signal, maxRe
     onStatus && onStatus('Rendering…');
     const { source, files } = genLibrary(spec.system, spec.params);
     const { stl, log } = await compile({ source, files });
-    const v = validate(stl, spec.constraints);
+    const v = validate(stl, { ...spec.constraints, model: spec.system, part: spec.params?.part });
     if (!v.ok) throw Object.assign(new Error('Model did not render: ' + (v.reason || 'invalid geometry')), { code: 'render-failed' });
     return {
       route: 'library', system: spec.system, params: spec.params, source, files, stl, log,

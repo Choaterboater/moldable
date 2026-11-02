@@ -1,0 +1,120 @@
+# Otto fit record
+
+Status: **prototype — not physically accepted**. No caliper measurements or prints
+were performed during this build. A passing collision test proves only that the
+coded component envelopes do not overlap plastic; it cannot prove actual fit,
+retention, assembly, horn alignment or walking kinematics.
+
+## Source ledger
+
+- User build plan: `C:\Users\choat\Desktop\moldable-otto-plan.md` and accepted
+  follow-up dimensions. Values below are reported reference values, not newly
+  verified datasheet measurements. Exact component drawings still need checking.
+- Purchased-product references (contents inaccessible to the available web reader):
+  https://www.amazon.com/dp/B01AXIEDX8 and https://www.amazon.com/dp/B0FXGP9VPT .
+  Product identity and dimensions have **not** been inferred from ASINs.
+- [Official Otto design page](https://www.ottodiy.com/design) links to
+  [V13 source files](https://www.printables.com/model/31955-otto-diy-build-your-own-robot/files).
+  The design page was accessible; Printables returned HTTP 403. No STEP/Fusion
+  file was obtained or measured. This implementation is not a V13 geometry copy.
+- [Modular Otto / Martin Perdeaux](https://www.printables.com/model/230575-otto-modular-robot-customizable-with-openscad/files)
+  is a styling reference only; its source was not downloaded or copied.
+- [Otto DIY V9 sources on GitHub](https://github.com/Open-Hardware-Leaders/OttoDIY)
+  (`3Dprint/*.stl`, `CAD/OttoDIY_CUSTOM.scad`) were read for overall proportions
+  and the four-servo leg/foot layout only. No mesh or code was copied; the
+  repository carries no separate license file, so Otto DIY's CC-BY-SA-4.0 applies.
+- [HP Robots customizer](https://hprobots.com/customizer/) was viewed as a look and
+  part-picker reference only. None of its branding, files or geometry is used.
+- [H2C manufacturer specifications](https://bambulab.com/en/h2c/specs):
+  left 325×320×320, right 305×320×325, dual 300×320×320 mm (W×D×H).
+  The combined 330×320×320 figure is not the dual-nozzle envelope.
+
+## Reported component references
+
+Blank actual fields mean **unmeasured**, not zero. Units: mm.
+
+| Feature | Reported reference | Reported source | Actual / caliper |
+|---|---|---|---|
+| USB-C plug envelope | 12.35 × 6.5 | USB Type-C R2.1, supplied plan | |
+| USB-C mating section | 8.25 × 2.4 | USB Type-C R2.1, supplied plan | |
+| USB-C port opening | 8.34 × 2.56 | USB Type-C R2.1, supplied plan | |
+| MG90S body | 22.8 × 12.2 × 28.5 | TowerPro, supplied plan | |
+| MG90S including ears | 32.5 long | Supplied plan, vendor drawing needed | |
+| HC-SR04 board envelope | 45 × 20 × 15 | ElecFreaks, supplied plan | |
+| Nano board | 43.2 × 18; clone about 43 × 18 | Arduino, supplied plan | |
+| Nano mounting holes | Ø1.8 | Arduino, supplied plan | |
+| OLED board | about 27 × 27 × 4 | Supplied plan, module drawing needed | |
+| OLED visible screen | 21.74 × 10.86 | Supplied plan, module drawing needed | |
+| Buzzer | Ø12; height 8.5–9.5; pins 6.5 apart | Supplied plan, vendor drawing needed | |
+| Standard 6F22 battery | 48.5 × 26.5 × 17.5 | Energizer, supplied plan | |
+| Barrel plug | 5.5 × 2.1; insertion length 9.5 | Switchcraft, supplied plan | |
+
+## Missing interfaces — do not certify fit until measured
+
+| Interface | Actual measurement | Source / evidence |
+|---|---|---|
+| Cable plastic boot and bend space | | |
+| Type-C port position on HNX Nano | | |
+| ZC shield outline and mounting holes | | |
+| HC-SR04 eye diameters and spacing | | |
+| HC-SR04 retaining details | | |
+| OLED mounting holes | | |
+| MG90S ear thickness, hole pitch, output-axis location | | |
+| Supplied single/cross horn outline, depth and screw | | |
+| Battery with clip and spare wire | | |
+| Panel jack body and retaining hardware | | |
+| Switch body, clips and actuator | | |
+| V13 head/body interface and articulated leg/ankle axes | | |
+
+## New design choices (V9 proportions, not V9 measurements)
+
+`cad/libraries/otto/otto_fit.scad` keeps these fixed. They follow Otto V9's overall
+proportions (assembled height 117.5) but are prototype allowances, not
+measurements of the purchased parts:
+
+- Head 63.5 wide × 37 tall × 63.5 deep including the 2 mm back cover; OLED mouth adds 24 mm height.
+  Its bottom 3 mm drops inside the body. Body 68×68×38 with 3 mm chamfered vertical edges, cavity 64×64.
+  Leg 16.5×29×38.5; foot sole 40×62×5 with front/rear brackets, sitting 10 mm outboard of the leg.
+- Four MG90S servos: two hip servos stand shaft-down on the body floor at X ±22 (posts carry the ears,
+  the shaft passes the floor into the leg's horn recess); one ankle servo inside each leg, shaft forward,
+  driving a horn recessed in the foot's front bracket, with a Ø2.5 pivot pin through the rear bracket.
+- Head prints face-down with open underside and rear; the Nano slides along rails under the head top
+  from the rear. HC-SR04 eyes at X ±13.25, Y −15 from the head top, Ø16.5 holes. Nose Ø6 at Y −30,
+  OLED window centre Y −40 (mouth 1) or three grille slots (mouth 2).
+- Back cover: U-shaped 3 mm lip, USB-C opening at Y −6.5, buzzer seat at X −18, Y −24.
+- Body floor: battery between ribs at Y −3.75 with clip allowance, Ø8 jack and 13×9 switch openings at the rear.
+- Provisional horn hub Ø7.4 / single arm 14 long / screw Ø2.5, recessed 2 mm with 45° roofs.
+- Provisional USB opening 12.85×7.0 at clearance 0.25. The real plastic cable boot may be larger.
+- No claim of V9 or V13 part interchangeability.
+
+Shell growth changes XY exterior only. Rounded, bevel and dome styles shape the head's top corners
+outside the fixed core; the dome radius is capped at 14 mm so the sensor board stays enclosed.
+Accessories are flat-backed extensions printed on the bed, not floating hats.
+The fixed cavity subtraction is applied after accessories are added.
+
+## Fit-test prints (also called coupons)
+
+These are small samples of the real openings. They are **not printer corners**.
+Start with clearance **0.25 mm**, then change only that setting in 0.05 mm steps
+within 0.1–0.5 mm. Clearance is applied per side. Do not force hardware into a
+sample or call it passed merely because it renders.
+
+| Check | Expected result | Status | Clearance | Evidence |
+|---|---|---|---|---|
+| Servo pocket | Actual MG90S pushes in snugly by hand | pending | | |
+| Eye ring | Actual HC-SR04 eye fits and stays retained | pending | | |
+| Type-C | Actual cable plugs into the mounted Nano | pending | | |
+| Battery | Actual cell + clip fit and closure clears | pending | | |
+
+**Validated clearance default:**
+
+The Type-C and battery samples test their opening/envelope only. Until the real
+board standoffs, cable position and closure are measured, their complete assembly
+acceptance is still pending; a loose sample alone must not mark those checks done.
+Record separate statuses in `docs/reference/otto-acceptance.json`.
+
+## Physical acceptance
+
+Every support-free real print, component fit, final assembly and assembled cable
+check is pending. See `test/otto-physical.test.mjs` for separately named pending
+physical checks. Electrical validation and walking trials are deferred by request.

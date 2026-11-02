@@ -45,7 +45,11 @@ const log = (...a) => console.log('[local-mesh-bridge]', ...a);
 function dataUriToBase64(dataUri) {
   const m = /^data:[^;,]*(;base64)?,(.*)$/s.exec(dataUri || '');
   if (!m) return null;
-  return m[1] ? m[2] : Buffer.from(decodeURIComponent(m[2]), 'utf8').toString('base64');
+  try {
+    return m[1] ? m[2] : Buffer.from(decodeURIComponent(m[2]), 'utf8').toString('base64');
+  } catch {
+    return null; // malformed percent escapes are invalid input, not a bridge crash
+  }
 }
 
 function hyBody(imageB64) {

@@ -1,5 +1,9 @@
 # Moldable Product Roadmap
 
+**Otto Robot:** prototype template, fixed core, exterior styles, H2C profiles and
+fit-test downloads implemented; V13 interface measurements and physical acceptance
+remain pending. See [Otto guide](docs/guides/otto.md).
+
 *From a multi-agent feature-exploration pass (6 lenses → 40 ideas → ~22 distinct bets), weighted toward what only Moldable can do: a no-backend browser app, dual OpenSCAD + AI-mesh engines, a free local RTX-3080 path, and the sculpts gallery.*
 
 > **Status:** **Shipped ✅** — #1 Live sliders · #2 Conversational refinement · #3 Prompt expansion · #4 Filament cost/time · #5 Dimensions + bed-fit · #6 Save your designs · #10 Shareable links. **Remaining proposals:** #7 Sculpt→parametric · #8 Sculpt flat-base/hollow · #9 Local launcher/OOM presets · the bets & moonshots below.

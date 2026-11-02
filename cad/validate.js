@@ -7,6 +7,15 @@
 // inverted normals, non-manifold). Those ok:false reasons are what fires the
 // self-repair loop in agent.js — without them, broken-but-compiling models are
 // returned to the user as "done". (Root cause found by the freeform-debug team.)
+import { OTTO_OVERFLOW } from './otto.js';
+
+// Oriented bounds: do not silently rotate a laid-out multi-part plate.
+export function checkBuildVolume(size, volume) {
+  const fits = Array.isArray(size) && Array.isArray(volume) && size.length === 3 && volume.length === 3
+    && size.every((v, i) => Number.isFinite(v) && v > 0 && Number.isFinite(volume[i]) && volume[i] > 0 && v <= volume[i] + 0.001);
+  return { fits, message: fits ? '' : OTTO_OVERFLOW };
+}
+
 export function inspectStl(stl) {
   if (!stl || stl.length < 84) return { ok: false, reason: 'no geometry produced' };
   const dv = new DataView(stl.buffer, stl.byteOffset, stl.byteLength);
@@ -98,8 +107,14 @@ export function validate(stl, constraints = {}) {
   // the #1 freeform failure: parts placed at uncoordinated positions come out as separate floating
   // solids ("random pieces"). Each is independently watertight so the hard gates above pass — flag it
   // here so the freeform repair loop reconnects them (the library route ignores warnings).
-  if (info.components > 1) warnings.push(`the model is in ${info.components} disconnected pieces — they must overlap/connect into a single solid`);
-  const bed = constraints.bed;
+  const isOttoPlate = constraints.model === 'otto' && Number(constraints.part) === 6;
+  if (info.components > 1 && !isOttoPlate) warnings.push(`the model is in ${info.components} disconnected pieces — they must overlap/connect into a single solid`);
+  if (constraints.buildVolume) {
+    const fit = checkBuildVolume(info.size, constraints.buildVolume);
+    if (!fit.fits) warnings.push(constraints.model === 'otto' && Number(constraints.part) === 6
+      ? fit.message : `model ${info.size.map(v => v.toFixed(1)).join('×')}mm exceeds the selected ${constraints.buildVolume.join('×')}mm printer volume`);
+  }
+  const bed = constraints.buildVolume ? null : constraints.bed;
   const [sx, sy, sz] = info.size;
   if (bed && bed.length === 2) {
     // allow the part to be rotated 90° to fit the bed

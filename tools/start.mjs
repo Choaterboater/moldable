@@ -40,7 +40,10 @@ function run(label, cmd, args, opts = {}) {
 
 console.log('\n  Moldable launcher  ·  backend: ' + which);
 console.log('  ' + '─'.repeat(36));
-run('web', PY, ['-m', 'http.server', PORT, '--bind', '127.0.0.1']);   // loopback only — match the bridges' posture
+// http.server, but with Cache-Control: no-cache so edited .scad libraries (fetched by the
+// OpenSCAD worker, which a hard reload doesn't bypass) are never served stale.
+const WEB = "import http.server,sys\nclass H(http.server.SimpleHTTPRequestHandler):\n  def end_headers(self):\n    self.send_header('Cache-Control','no-cache'); super().end_headers()\nhttp.server.test(HandlerClass=H,port=int(sys.argv[1]),bind='127.0.0.1')";
+run('web', PY, ['-c', WEB, PORT]);   // loopback only — match the bridges' posture
 // Give the bridge its OWN PORT. Inheriting the web PORT (e.g. PORT=8765 node tools/start.mjs)
 // would make the bridge try to bind 8765 too → EADDRINUSE → Sculpt silently has no backend.
 run('bridge', process.execPath, [bridge], { env: { ...process.env, PORT: BRIDGE_PORT } });

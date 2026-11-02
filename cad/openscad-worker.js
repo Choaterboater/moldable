@@ -28,7 +28,8 @@ async function getLibFile(f) {
   if (f.contents != null) return f.contents;
   if (f.url) {
     if (!libCache.has(f.url)) {
-      const r = await fetch(new URL(f.url, import.meta.url));
+      // no-cache: revalidate once per session so an edited library is never served stale from the HTTP cache.
+      const r = await fetch(new URL(f.url, import.meta.url), { cache: 'no-cache' });
       if (!r.ok) throw new Error('library fetch HTTP ' + r.status + ' for ' + f.url);
       libCache.set(f.url, await r.text());
     }

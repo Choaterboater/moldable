@@ -2,6 +2,10 @@
 // Main-thread API around the OpenSCAD worker. Re-exports the SCAD authoring so the
 // app has a single CAD entry point: `import { generate, MODELS, createRunner }`.
 export { generate, defaults, MODELS } from './scad-gen.js';
+export { OTTO_PRESETS, OTTO_FIT_MESSAGE, OTTO_OVERFLOW, standaloneOttoScad, creditOttoStl } from './otto.js';
+export { standaloneScad } from './scad-export.js';
+export { H2C_PROFILES } from './printers.js';
+export { checkBuildVolume } from './validate.js';
 
 export function createRunner() {
   let worker = null;

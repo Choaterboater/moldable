@@ -20,6 +20,7 @@ export function keywordMatch(t) {
   if (/coaster|drink mat/.test(t)) return 'coaster';
   if (/cable|cord clip|wire clip|cable.?manage/.test(t)) return 'cableclip';
   if (/\bknob\b|\bdial\b/.test(t)) return 'knob';
+  if (/\botto\b|biped robot|dancing robot|arduino robot/.test(t)) return 'otto';
   if (/\blego\b|lego.?compat|building brick|\bbrick\b|\d\s*[x×]\s*\d\s*(plate|tile|brick|stud)/.test(t)) return 'brick';
   if (/l.?bracket|angle bracket|corner brace|\bbracket\b/.test(t)) return 'bracket';
   if (/\bbox\b|container|\bcase\b/.test(t)) return 'box';

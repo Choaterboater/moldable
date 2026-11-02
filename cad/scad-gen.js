@@ -14,10 +14,13 @@
 import { AP515_BRACKET } from './ap515-bracket.js';   // self-contained polyhedron of RevK's AP-515 bracket
 import { HSW_CONNECTOR } from './hsw-connector.js';   // the user's REAL wall connector (test-print verified)
 
+import { OTTO_MODEL, OTTO_FILES, OTTO_NOTICE } from './otto.js';
+
 export const MODELS = {
+  otto: OTTO_MODEL,
   vase: { label: 'Vase / Planter', cat: 'Home Decor', tags: ['planter', 'vase', 'parametric', 'decor'], params: [
     { key: 'height', label: 'Height', min: 60, max: 240, step: 1, def: 150, unit: 'mm' },
-    { key: 'radius', label: 'Width', min: 25, max: 90, step: 1, def: 50, unit: 'mm' },
+    { key: 'radius', label: 'Radius', min: 25, max: 90, step: 1, def: 50, unit: 'mm' },
     { key: 'sides', label: 'Sides', min: 3, max: 16, step: 1, def: 6, unit: '' },
     { key: 'twist', label: 'Twist', min: 0, max: 360, step: 5, def: 120, unit: '°' },
     { key: 'bulge', label: 'Belly', min: 0, max: 60, step: 1, def: 24, unit: '%' },
@@ -145,6 +148,7 @@ export const MODELS = {
     { key: 'height', label: 'Back height', min: 20, max: 90, step: 1, def: 45, unit: 'mm' },
     { key: 'depth', label: 'Depth', min: 20, max: 70, step: 1, def: 35, unit: 'mm' },
     { key: 'sections', label: 'Compartments', min: 1, max: 6, step: 1, def: 3, unit: '' },
+    { key: 'honeycomb', label: 'Honeycomb front', min: 0, max: 1, step: 1, def: 0, unit: '' },
   ] },
   walldock: { label: 'Wall Dock', cat: 'Gadgets', tags: ['hsw', 'honeycomb-storage-wall', 'phone', 'tablet', 'dock', 'parametric'], params: [
     { key: 'width', label: 'Width', min: 45, max: 220, step: 1, def: 82, unit: 'mm' },
@@ -233,12 +237,21 @@ round_r   = bulge / 12;          // "belly" rounds the profile
 wall      = 1.6;                  // 4 perimeters @0.4mm nozzle — watertight planter shell (was 2.4, ~33% heavier)
 slices    = max(40, ceil(height));
 
-module prof(r) { offset(r = round_r) circle(r = r, $fn = max(3, sides)); }
-module body(r) { linear_extrude(height = height, twist = twist_deg, slices = slices, convexity = 10) prof(r); }
+module prof() { offset(r = round_r) circle(r = radius, $fn = max(3, sides)); }
+module body(inset = 0) {
+  linear_extrude(height = height, twist = twist_deg, slices = slices, convexity = 10)
+    offset(delta = -inset) prof();
+}
 
 difference() {
-  body(radius);
-  translate([0, 0, wall]) body(radius - wall);   // hollow, leaving a floor
+  body();
+  // Keep both profiles in the same twist frame; translating the inner extrusion
+  // shifts its rotation and cuts through low-sided walls. Clip it above the floor.
+  intersection() {
+    body(wall);
+    extent = radius + round_r + 1;
+    translate([-extent, -extent, wall]) cube([2 * extent, 2 * extent, height]);
+  }
 }
 `;
   return { source, files: [] };
@@ -366,6 +379,11 @@ union() {
 // Gridfinity — real gridfinity_extended_openscad library (ostat). The combined/
 // single-file builds are self-contained; we override their customizer variables
 // (last-assignment-wins) after the include.
+const GF_NOTICE = `// Library: Gridfinity Extended OpenSCAD — ostat and contributors
+// Source: https://github.com/ostat/gridfinity_extended_openscad
+// Library license: GNU GPL v3 — https://github.com/ostat/gridfinity_extended_openscad/blob/main/LICENSE
+// Moldable wrapper: customized parameter overrides follow the library.
+`;
 const GF_BIN_LIB = { name: 'gridfinity/gridfinity_basic_cup.scad', url: 'libraries/gridfinity/gridfinity_basic_cup.scad' };
 const GF_BASE_LIB = { name: 'gridfinity/gridfinity_baseplate.scad', url: 'libraries/gridfinity/gridfinity_baseplate.scad' };
 
@@ -373,7 +391,7 @@ function gridfinity(p) {
   const gx = clampInt(p.gx, 1, 6), gy = clampInt(p.gy, 1, 6);
   const uH = clampInt(p.height, 2, 12), comp = clampInt(p.compartments, 1, 6);
   const labelTab = Number(p.labelTab) >= 0.5, scoop = Number(p.scoop) >= 0.5;
-  const source = `// Gridfinity Bin — gridfinity_extended_openscad (ostat)
+  const source = GF_NOTICE + `// Gridfinity Bin — gridfinity_extended_openscad (ostat)
 include <gridfinity/gridfinity_basic_cup.scad>
 width             = [${gx}, 0];     // grid units X
 depth             = [${gy}, 0];     // grid units Y
@@ -389,7 +407,7 @@ efficient_floor   = "rounded";      // dish the floor into the feet: 20-49% less
 function baseplate(p) {
   const gx = clampInt(p.gx, 1, 8), gy = clampInt(p.gy, 1, 8);
   const mag = Number(p.magnets) >= 0.5;
-  const source = `// Gridfinity Baseplate — gridfinity_extended_openscad (ostat)
+  const source = GF_NOTICE + `// Gridfinity Baseplate — gridfinity_extended_openscad (ostat)
 include <gridfinity/gridfinity_baseplate.scad>
 Width          = [${gx}, 0];
 Depth          = [${gy}, 0];
@@ -564,15 +582,23 @@ module connectors() {
   zrow = max(connector_size, height - connector_size);          // a row near the top so it hangs
   for (i = [0 : count - 1]) translate([x0 + i * hex_pitch, 2, zrow]) hsw_post();
 }
-union() {
-  cube([width, wall, height]);                                  // back mount plate (connectors clip to the wall)
-  connectors();
-  difference() {                                                // the bin: open-top box projecting +Y
-    cube([width, depth, height]);
-    translate([wall, wall, wall]) cube([width - 2 * wall, depth - 2 * wall, height]);  // cavity (walls + floor + back, open top)
+difference() {
+  union() {
+    cube([width, wall, height]);                                // solid back plate preserves connector support
+    connectors();
+    difference() {                                              // open-top bin projecting +Y
+      cube([width, depth, height]);
+      translate([wall, wall, wall]) cube([width - 2 * wall, depth - 2 * wall, height]);
+    }
+    if (sections > 1) for (i = [1 : sections - 1])
+      translate([i * width / sections - wall / 2, wall, wall]) cube([wall, depth - 2 * wall, height - wall]);
   }
-  for (i = [1 : sections - 1])                                  // dividers
-    translate([i * width / sections - wall / 2, wall, wall]) cube([wall, depth - 2 * wall, height - wall]);
+  // Perforate only the front; retain a frame, the floor and all mounting geometry.
+  if (honeycomb >= 0.5)
+    for (row = [0 : floor((height - 2 * wall - 12) / 10)])
+      for (x = [wall + 6 + (row % 2) * 6 : 12 : width - wall - 6])
+        translate([x, depth - wall / 2, wall + 6 + row * 10])
+          rotate([90, 0, 0]) cylinder(r = 4, h = wall + 2 * eps, center = true, $fn = 6);
 }
 `;
   return { source, files: [] };
@@ -826,7 +852,12 @@ difference() {
   return { source, files: [] };
 }
 
-const GEN = { vase, organizer, stand, holder, hook, shelf, gridfinity, baseplate, box, coaster, bracket, cableclip, knob, cupadapter, funnel, soapdish, peghook, wallhook, brick, apmount, wallbin, walldock, stackingtray, cableenclosure, hingebox, pedestal };
+function otto(p) {
+  const source = OTTO_NOTICE + customizerHeader('otto', p) + `use <otto/otto_shells.scad>\n$fn = 48;\notto_part(part, headStyle, corner, grow, ears, antenna, hat, mouth, feet, clearance);\n`;
+  return { source, files: OTTO_FILES.map(f => ({ ...f })) };
+}
+
+const GEN = { otto, vase, organizer, stand, holder, hook, shelf, gridfinity, baseplate, box, coaster, bracket, cableclip, knob, cupadapter, funnel, soapdish, peghook, wallhook, brick, apmount, wallbin, walldock, stackingtray, cableenclosure, hingebox, pedestal };
 
 export function generate(model, params) {
   const gen = GEN[model];
