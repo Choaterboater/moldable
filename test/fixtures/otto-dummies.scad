@@ -27,7 +27,14 @@ module otto_dummy(part,id) {
     if(id==3) dummy_box([18,8,20],[0,24.5,12]); // provisional snap/wire allowance
     if(id==4) translate([-18,27,0]) cylinder(d=8,h=10,$fn=32);
     if(id==5) dummy_box([13,9,10],[17,27,5]);
-    if(id==6) translate([-21,-22,2]) cylinder(d=12,h=9.5,$fn=48); // buzzer on the floor
+    if(id==6) difference() { // buzzer on the floor; the four crush-rib zones are deliberate interference
+      translate([-21,-22,2]) cylinder(d=12,h=9.5,$fn=48);
+      for(a=[0,90,180,270]) translate([-21,-22,0]) rotate(a) translate([5.8,-0.6,0]) cube([0.3,1.2,20]);
+    }
+    if(id==7) { // battery strap: over the cell, through the floor slots, under the floor
+      dummy_box([29,5,1.5],[0,18.5,29.25]); dummy_box([29,5,1.5],[0,18.5,-0.75]);
+      for(x=[-13.25,13.25]) dummy_box([2.5,5,31.5],[x,18.5,14.25]);
+    }
   }
   if(part==2 || part==3) {
     if(id==0) { dummy_box([12.2,22.7,22.8],[0,0,22]); dummy_box([12.2,2.5,32.5],[0,-5.9,22]); } // ankle servo + ears

@@ -31,6 +31,7 @@ otto_servo_body = 22.7; // SG90 case height without shaft boss
 otto_servo_ears = 32.5;
 otto_servo_ear_z = 4.2; // shaft face to underside of the mounting ears (provisional)
 otto_servo_shaft = 5.5; // shaft offset from case centre along the long axis (provisional)
+otto_servo_ear_hole = 14; // ear screw hole from case centre along the long axis (provisional)
 // Nano I/O shield standing upright on the back cover, Nano + Dupont plugs facing the face.
 // YwRobot "Nano Sensor Shield" reference; the ZC board is UNMEASURED.
 otto_shield = [42,60,1.6]; // [width, height, PCB thickness]
@@ -54,6 +55,8 @@ otto_battery = [48.5,17.5,26.5]; // 6F22 on its side
 otto_clip_size = [18,8,20]; // snap + wire allowance at the battery terminal end
 otto_usb = [12.35,6.5];
 otto_buzzer = [12,9.5]; // stands on the body floor, sound side down
+otto_buzzer_rib = 0.15; // four crush ribs press this far into the nominal buzzer
+otto_strap = [2.5,5]; // battery strap (zip tie or narrow hook-and-loop): [thickness, width]
 otto_switch = [13,9]; // provisional, measure switch before assembly
 otto_jack_d = 8; // provisional panel socket, not the 5.5mm plug
 otto_horn_hub = 7.4; // provisional, confirm actual supplied horns
@@ -80,6 +83,7 @@ otto_buzzer_pos = [-21,-22];
 otto_hip_x = [-22,22];
 otto_hip_y = 0; // shaft axis; the case extends toward the back
 otto_battery_pos = [0,-3.75];
+otto_strap_pos = [13.25,18.5]; // strap slot centres (±x): outside the battery ribs, behind the legs' swing
 otto_clip_pos = [0,24.5];
 otto_jack_pos = [-18,27];
 otto_switch_pos = [17,27];

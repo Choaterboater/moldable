@@ -109,6 +109,11 @@ module hip_posts() {
 module buzzer_ring(clearance=0.25) {
   translate([otto_buzzer_pos[0],otto_buzzer_pos[1],0]) cylinder(d=otto_buzzer[0]+2*clearance+3,h=otto_wall+otto_buzzer[1]*0.6,$fn=48);
 }
+// Crush ribs inside the ring grip the buzzer; added after the seat is cut.
+module buzzer_ribs(clearance=0.25) {
+  for(a=[0,90,180,270]) translate([otto_buzzer_pos[0],otto_buzzer_pos[1],otto_wall-0.01]) rotate(a)
+    translate([otto_buzzer[0]/2-otto_buzzer_rib,-0.5,0]) cube([otto_buzzer_rib+clearance+0.5,1,otto_buzzer[1]*0.6+0.01]);
+}
 module buzzer_seat(clearance=0.25) {
   translate([otto_buzzer_pos[0],otto_buzzer_pos[1],otto_wall]) cylinder(d=otto_buzzer[0]+2*clearance,h=100,$fn=48);
   translate([otto_buzzer_pos[0],otto_buzzer_pos[1],-1]) cylinder(d=5,h=otto_wall+2,$fn=24);
@@ -123,6 +128,9 @@ module body_cavities(clearance=0.25) {
   }
   translate([otto_jack_pos[0],otto_jack_pos[1],-1]) cylinder(d=otto_jack_d+2*clearance,h=otto_wall+2,$fn=32);
   translate([otto_switch_pos[0],otto_switch_pos[1],-1]) fit_box([otto_switch[0],otto_switch[1],otto_wall+2],clearance);
+  // Strap slots just outside the battery ribs: the strap runs under the floor between them.
+  for(s=[-1,1]) translate([s*otto_strap_pos[0],otto_strap_pos[1],-1])
+    linear_extrude(otto_wall+1.01) square([otto_strap[0]+2*clearance,otto_strap[1]+2*clearance],center=true);   // floor only
 }
 
 // ---------- leg (prints top-down: z=0 is the leg top) ----------
@@ -137,6 +145,19 @@ module leg_cavities(clearance=0.25) {
   }
   translate([0,0,axis]) pivot_hole(clearance);
   horn_recess_bed(clearance);
+}
+// Ankle servo retention: a seat in front of the top ear takes the servo's ear screw
+// (pilot along Y); a hole through the rear wall gives the screwdriver access.
+function ankle_case_centre() = otto_leg[2]-otto_ankle_z-otto_servo_shaft;
+module ankle_ear_seat(clearance=0.25) {
+  y0=-otto_servo_body/2-clearance; y1=-otto_servo_body/2+otto_servo_ear_z-clearance;
+  z0=ankle_case_centre()-otto_servo_ears/2-clearance; z1=ankle_case_centre()-otto_servo[0]/2-clearance;
+  translate([-otto_servo[1]/2-clearance-0.01,y0-0.01,z0-0.01]) cube([otto_servo[1]+2*clearance+0.02,y1-y0+0.01,z1-z0+0.01]);
+}
+module ankle_ear_screw(clearance=0.25) {
+  z=ankle_case_centre()-otto_servo_ear_hole;
+  translate([0,-otto_servo_body/2+otto_servo_ear_z-clearance+0.01,z]) rotate([90,0,0]) linear_extrude(5.5) teardrop2d(1.8);
+  translate([0,otto_leg[1],z]) rotate([90,0,0]) linear_extrude(otto_leg[1]-otto_servo_body/2) teardrop2d(4);
 }
 
 // ---------- foot (sole on the bed; x=0, y=0 is the leg centre) ----------

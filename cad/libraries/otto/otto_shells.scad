@@ -99,6 +99,7 @@ module head_cover_part(style=1,r=4,grow=0,mouth=0,c=0.25) {
 // Body: open-top box with chamfered vertical edges; hip servos stand on the floor.
 module body_part(grow=0,c=0.25) {
   w=otto_body[0]+2*grow; d=otto_body[1]+2*grow; ch=otto_body_chamfer;
+  union() {
   difference() {
     union() {
       difference() {
@@ -110,13 +111,21 @@ module body_part(grow=0,c=0.25) {
     body_cavities(c);
     buzzer_seat(c);
   }
+  buzzer_ribs(c);
+  }
 }
 // Leg prints top-down (z=0 is the top, against the body). Both legs are identical.
 module leg_part(side=0,c=0.25) {
   ch=otto_leg_chamfer;
   difference() {
-    linear_extrude(otto_leg[2]) offset(delta=ch,chamfer=true) square([otto_leg[0]-2*ch,otto_leg[1]-2*ch],center=true);
-    leg_cavities(c);
+    union() {
+      difference() {
+        linear_extrude(otto_leg[2]) offset(delta=ch,chamfer=true) square([otto_leg[0]-2*ch,otto_leg[1]-2*ch],center=true);
+        leg_cavities(c);
+      }
+      ankle_ear_seat(c);
+    }
+    ankle_ear_screw(c);
   }
 }
 // Foot: flat sole, sitting outboard of the leg, with front/back pivot brackets.

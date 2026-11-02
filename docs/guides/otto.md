@@ -87,8 +87,14 @@ All of this is coded from reference sizes, not measured parts. See the fit recor
   `display.setRotation(2)` (Adafruit SSD1306).
 - **Wiring:** Dupont jumpers to the shield. HC-SR04 Trig D8, Echo D9 (Otto examples);
   OLED SDA A4, SCL A5; both to 5 V and GND. Check the OLED's VCC/GND labels: some swap them.
-- **Buzzer:** sits sound-side down in a ring on the body floor, front left; it sounds
-  through a floor hole.
+- **Buzzer:** press it sound-side down into the ring on the body floor, front left; four
+  small ribs grip it. It sounds through a floor hole.
+- **9 V battery:** lies between the floor ribs. A zip tie or 5 mm hook-and-loop strap
+  (up to 2.5 mm thick) goes over it and down through the two floor slots behind the legs.
+- **Ankle servos:** slide each one up into its leg from the bottom. One of the servo's
+  own ear screws goes through the top ear into a seat in the leg; reach it with a small
+  screwdriver through the hole in the back of the leg.
+- **Hip servos:** screwed to the floor posts through their ears.
 - **Order:** screw the shield to the cover; plug the sensor, OLED, buzzer, servo and
   battery leads into it; slide the cover into the head; then drop the head into the body. To open it again, lift the head
   out of the body first: the shield's lower edge sits behind the body's rear wall.

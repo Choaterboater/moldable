@@ -59,3 +59,19 @@ for (let i = 0; i < 4; i++) {
     assert.notEqual(r, null);   // post material within 0.05 mm of the PCB front
   });
 }
+// Retention: crush ribs touch the buzzer at all four zones, and the strap slots are open.
+const buzzer = OTTO_ELECTRONICS.find(c => c.name === 'Buzzer');
+for (let i = 0; i < 4; i++) test('Otto buzzer crush rib grips at zone ' + i, async () =>
+  assert.notEqual(await hits({}, [{ shapes: [buzzer.minus[i]] }]), null));
+// Ankle servo: in the leg's own frame, plastic backs the top ear's screw hole and a
+// pilot runs into that seat; the rear wall has a screwdriver opening on the same line.
+async function legHits(box) {
+  const g = generate('otto', { part: 2 });
+  const call = g.source.match(/otto_part\([^;]+;/)[0];
+  const r = await compile(g.source.replace(call, `intersection(){ ${call} translate([${box[0]},${box[2]},${box[4]}]) cube([${box[1] - box[0]},${box[3] - box[2]},${box[5] - box[4]}]); }`), g.files);
+  assert.doesNotMatch(r.log, /ERROR:|WARNING:/i, r.log);
+  return r.stl !== null;
+}
+test('Otto ankle servo ear is backed by a screw seat', async () => assert.equal(await legHits([2, 3, -8, -7.5, 7.5, 8.5]), true));
+test('Otto ankle ear seat has a screw pilot', async () => assert.equal(await legHits([-0.5, 0.5, -10, -7.5, 7.6, 8.4]), false));
+test('Otto ankle ear screw is reachable through the rear wall', async () => assert.equal(await legHits([-1, 1, 11, 16, 7, 9]), false));

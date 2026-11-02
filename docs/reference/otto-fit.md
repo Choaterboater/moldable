@@ -116,6 +116,10 @@ electronics, so 141.5) but are prototype allowances, not measurements of the pur
   its corner holes. With the OLED mouth, four Ø3.5 posts the glass thickness tall (1.5) carry the OLED
   PCB, with Ø1.6 pilots for M2 × 4 self-tapping screws (0.6 mm of face plate left in front).
   The OLED PCB centre sits 2.1 above the window so the upside-down active area stays centred in it.
+- Retention: four 1 mm crush ribs in the buzzer ring press 0.15 mm into a nominal Ø12 buzzer. Two 2.5 × 5
+  strap slots (plus clearance) at X ±13.25, Y 18.5 sit outside the battery ribs and outside the legs' swing
+  (16.7 mm corner radius around each hip axis). In each leg a seat in front of the top ear takes the ear screw
+  (Ø1.8 teardrop pilot 14 mm from the case centre), with a Ø4 teardrop access hole through the rear wall.
 - Every purchased-hardware number above is a reference value. Re-check with calipers when the parts arrive.
 - No claim of V9 or V13 part interchangeability.
 
