@@ -77,10 +77,16 @@ All of this is coded from reference sizes, not measured parts. See the fit recor
   The Nano's Type-C port points up, and the cable plugs in through a slot in the head
   top. The shield's bottom edge reaches about 5 mm into the body, in front of the
   body's rear wall. The bottom holes are not used.
-- **HC-SR04:** behind the eye holes; its plugs hang straight down behind the OLED.
-- **OLED:** mount it **upside down** (pin header at the bottom) so its plugs pass under
-  the HC-SR04 plugs. Rotate the display 180° in the sketch, for example
-  `U8G2_R2` (U8g2) or `display.setRotation(2)` (Adafruit SSD1306).
+- **HC-SR04:** its eyes sit in the eye holes. Four posts on the inside of the face end in
+  pins that go through the board's corner holes; melt the pin tips with a soldering iron
+  or add a drop of glue. Its plugs hang straight down behind the OLED.
+- **OLED (OLED mouth):** mount it **upside down** (pin header at the bottom) so its plugs
+  pass under the HC-SR04 plugs. Its glass sits against the inside of the face and four
+  short posts carry the board: fix it with four **M2 × 4 mm** self-tapping screws from
+  behind. Rotate the display 180° in the sketch, for example `U8G2_R2` (U8g2) or
+  `display.setRotation(2)` (Adafruit SSD1306).
+- **Wiring:** Dupont jumpers to the shield. HC-SR04 Trig D8, Echo D9 (Otto examples);
+  OLED SDA A4, SCL A5; both to 5 V and GND. Check the OLED's VCC/GND labels: some swap them.
 - **Buzzer:** sits sound-side down in a ring on the body floor, front left; it sounds
   through a floor hole.
 - **Order:** screw the shield to the cover; plug the sensor, OLED, buzzer, servo and

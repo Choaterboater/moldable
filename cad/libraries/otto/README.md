@@ -46,4 +46,5 @@ an 80-byte credit/license header; keep this README and source with redistributio
 - Physical measurements, V13 articulation comparison and real prints pending.
 - Electronics fit (Nov 2026): head 61 tall for every mouth and 6 mm deeper at the rear;
   Nano rails replaced by an upright I/O shield on back-cover posts with the Type-C slot
-  in the head top; OLED mounted upside down; buzzer moved to the body floor.
+  in the head top; OLED mounted upside down; buzzer moved to the body floor;
+  face posts hold the HC-SR04 (pegs) and the OLED (M2 screws).
