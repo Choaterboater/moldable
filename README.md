@@ -40,3 +40,7 @@ trials are deferred. No unpublished color/3MF or Copilot-bridge code was assumed
 node --test test/*.test.mjs # includes individually reported Otto geometry/fit cases
 node test/engine.test.mjs   # all parametric models compile to manifold STL
 ```
+
+## License
+
+Moldable is [MIT licensed](LICENSE). Bundled libraries keep their own licenses (Gridfinity GPL-3.0, HSW clip MIT, BOSL2 BSD-2-Clause, Otto CC-BY-SA-4.0); see [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md).

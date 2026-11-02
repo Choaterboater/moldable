@@ -1,0 +1,15 @@
+Moldable Otto library (otto_fit.scad, otto_core.scad, otto_shells.scad) and the
+Otto geometry exported from it.
+
+Based on Otto DIY by Camilo Parra Palacio and the Otto DIY team / HP Robots
+(https://www.ottodiy.com), licensed under Creative Commons
+Attribution-ShareAlike 4.0 International. Changes: newly authored OpenSCAD
+geometry following Otto V9 proportions, parametric exterior styles, and a
+Moldable fit core.
+
+These files are licensed under CC BY-SA 4.0:
+  Summary:    https://creativecommons.org/licenses/by-sa/4.0/
+  Legal code: https://creativecommons.org/licenses/by-sa/4.0/legalcode.en
+
+Share adaptations under the same license and keep this attribution.
+See README.md in this folder for full sources.
