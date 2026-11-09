@@ -40,17 +40,18 @@ otto_shield_stack = 28.4; // Nano on female headers + Dupont plugs in front of t
 otto_shield_under = 2; // solder joints behind the PCB
 otto_standoff = [6,2.5]; // [post diameter, M3 self-tap pilot]
 otto_nano_usb = [0,11.7]; // Type-C port centre: [x, height in front of the shield PCB] (provisional)
+// HC-SR04: Elecfreaks 45 x 20 board; transducers D16 at 27.0 c-c, centred on the board
+// (Cytron drawing + calibrated photo, via PartReel hc_sr04). UNMEASURED on your units.
 otto_sensor = [45,20,4]; // HC-SR04 PCB + rear parts, behind the transducers
-otto_sensor_holes = [41,16]; // corner holes, 2 mm, centre spacing (generic drawing, unmeasured)
+otto_pcb = 1.6; // PCB thickness (both modules)
 otto_transducer = [16,12]; // [diameter, height in front of the PCB]
 // 0.96" SSD1306 module, LCDWiki MC096 drawing (https://www.lcdwiki.com/0.96inch_OLED_Module_SKU:MC096VX):
 otto_oled = [27.3,27.8,4]; // PCB + glass + rear parts
 otto_oled_visible = [21.74,10.86];
 otto_oled_glass = 1.5; // glass in front of the PCB (provisional)
-otto_oled_holes = [23.3,23.8]; // 2 mm holes for M2, centre spacing
 otto_oled_offset = 2.1; // active area sits this far toward the pin header from the PCB centre
-// Face mounts: [post diameter (hole pad), peg pin diameter, M2 self-tap pilot]
-otto_face_mount = [3.5,1.7,1.6];
+// Edge mounts (no screw holes: hole positions vary between makers).
+otto_guide = [1.6,8,0.3]; // [wall thickness, length along the board edge, snap overlap past the PCB edge]
 // Power: 4x AA NiMH (4.8 V) straight to the shield's 5 V rail, like official Otto.
 // Two-layer 4xAA holder, LAMPVPATH ASIN B01CVJC8I4, listed 56 x 30 x 28 (UNMEASURED).
 otto_battery = [56,30,28]; // [length front-back, width, height]
@@ -68,13 +69,13 @@ otto_horn_screw = 2.5;
 otto_pivot_d = 2.5;
 // NEW DESIGN placements; not verified against V9/V13 or purchased parts.
 // Head-local (x across, y down from the top, z back from the face):
-otto_eyes = [-13.25,13.25]; // spacing unmeasured: provisional design value
-otto_eye_d = 16.5; // unmeasured: provisional design value
+otto_eyes = [-13.5,13.5]; // 27.0 c-c (see otto_sensor)
+otto_eye_d = 16.5; // face hole; with 0.25 clearance it is 17.0, the usual HC-SR04 cutout
 otto_eye_y = -15;
 otto_nose_y = -30;
 otto_nose_d = 6;
 otto_grille_y = -28;
-otto_sensor_pos = [0,-15,12]; // PCB front face; transducer fronts flush with the face
+otto_sensor_pos = [0,-15,7]; // PCB front face; the eyes stick out 5 mm (the OLED plugs below limit it)
 // OLED mounts upside down (pin header at the BOTTOM edge) so its rear plugs pass
 // under the HC-SR04's downward plugs; rotate the display 180 degrees in the sketch.
 otto_oled_pos = [0,-40,2]; // visible-area centre; the PCB centre sits otto_oled_offset above it

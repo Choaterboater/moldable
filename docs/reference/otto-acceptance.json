@@ -10,7 +10,7 @@
     { "id": "print-foot-l", "case": "Default left foot prints on H2C without supports", "status": "pending", "evidence": null },
     { "id": "print-foot-r", "case": "Default right foot prints on H2C without supports", "status": "pending", "evidence": null },
     { "id": "fit-servo", "case": "Servo sample accepts actual MG90S snugly by hand", "status": "pending", "evidence": null },
-    { "id": "fit-eyes", "case": "Eye-ring sample retains actual HC-SR04", "status": "pending", "evidence": null },
+    { "id": "fit-eyes", "case": "Face-mount sample holds the actual HC-SR04 and OLED by their edges", "status": "pending", "evidence": null },
     { "id": "fit-usbc", "case": "Type-C sample permits actual cable insertion with Nano mounted", "status": "pending", "evidence": null },
     { "id": "fit-battery", "case": "Battery tray accepts the loaded 4xAA holder, which then fits between the hip servos under the shield", "status": "pending", "evidence": null },
     { "id": "clearance", "case": "Clearance passing all four samples is recorded in otto-fit.md", "status": "pending", "evidence": null },

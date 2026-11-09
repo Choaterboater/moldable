@@ -47,7 +47,9 @@ an 80-byte credit/license header; keep this README and source with redistributio
 - Electronics fit (Nov 2026): head 61 tall for every mouth and 6 mm deeper at the rear;
   Nano rails replaced by an upright I/O shield on back-cover posts with the Type-C slot
   in the head top; OLED mounted upside down; buzzer moved to the body floor;
-  face posts hold the HC-SR04 (pegs) and the OLED (M2 screws); ankle-servo ear
+  ankle-servo ear
   seats and buzzer crush ribs.
 - Power: 4×AA NiMH two-layer holder between the hip servos (replaces the 9 V cell);
   KCD11 rocker switch at the front right of the floor.
+- Face mounts (Nov 9): HC-SR04 and OLED held by edge guides with snap ridges instead of
+  hole posts; eyes 27.0 mm apart and 5 mm proud of the face.

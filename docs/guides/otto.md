@@ -36,7 +36,9 @@ Open them in OpenSCAD and export STL, then slice in Bambu Studio. They are small
 sample pockets/openings, sometimes called **coupons**, not the printer's corners.
 
 1. Servo pocket: insert the actual MG90S by hand; it should be snug without force.
-2. Sensor eye ring: check the actual transducer fits and remains retained.
+2. Face mounts: a strip of the face with both eye holes and the screen window. Press the
+   HC-SR04 in from behind until its edges snap past the side guides; the eyes should poke
+   out about 5 mm. Then snap the OLED in, glass against the window, bottom edge on the two stops.
 3. Type-C opening: check the actual cable boot, then verify insertion with the Nano
    in the shield on the back cover. The cable now enters through the **top of the
    head**. The opening sample alone cannot verify port position.
@@ -78,13 +80,14 @@ All of this is coded from reference sizes, not measured parts. See the fit recor
   The Nano's Type-C port points up, and the cable plugs in through a slot in the head
   top. The shield's bottom edge reaches about 5 mm into the body, in front of the
   body's rear wall. The bottom holes are not used.
-- **HC-SR04:** its eyes sit in the eye holes. Four posts on the inside of the face end in
-  pins that go through the board's corner holes; melt the pin tips with a soldering iron
-  or add a drop of glue. Its plugs hang straight down behind the OLED.
+- **HC-SR04:** push it in from behind, eyes through the eye holes, until it rests on the
+  four corner pads and its long edges snap past the two side guides. The eyes stick out
+  about 5 mm, like official Otto. No screws; the mounting holes aren't used, because their
+  positions vary between makers. Its plugs hang straight down behind the OLED.
 - **OLED (OLED mouth):** mount it **upside down** (pin header at the bottom) so its plugs
-  pass under the HC-SR04 plugs. Its glass sits against the inside of the face and four
-  short posts carry the board: fix it with four **M2 × 4 mm** self-tapping screws from
-  behind. Rotate the display 180° in the sketch, for example `U8G2_R2` (U8g2) or
+  pass under the HC-SR04 plugs. Press it in glass-first: the glass sits against the inside
+  of the face, the bottom edge on two small stops, and the side edges snap past two guides.
+  No screws. Rotate the display 180° in the sketch, for example `U8G2_R2` (U8g2) or
   `display.setRotation(2)` (Adafruit SSD1306).
 - **Wiring:** Dupont jumpers to the shield. HC-SR04 Trig D8, Echo D9 (Otto examples);
   OLED SDA A4, SCL A5; both to 5 V and GND. Check the OLED's VCC/GND labels: some swap them.

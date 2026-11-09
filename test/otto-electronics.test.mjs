@@ -46,19 +46,15 @@ for (const clearance of [0.1, 0.5]) settings.push({ headStyle: 2, mouth: 1, clea
 for (const params of settings) test('Otto electronics fit, all components ' + JSON.stringify(params), async () => {
   assert.equal(await hits(params, OTTO_ELECTRONICS), null);
 });
-// The face holds both modules: printed pins fill every HC-SR04 corner hole, and the
-// OLED posts reach its PCB behind the glass at all four holes (OLED mouth only).
-const hole = (c, i) => [{ shapes: [c.minus[i]] }];
-const sensor = OTTO_ELECTRONICS.find(c => c.name === 'HC-SR04 board');
-const oled = OTTO_ELECTRONICS.find(c => c.name === 'OLED module');
-for (let i = 0; i < 4; i++) {
-  test('Otto face peg enters HC-SR04 hole ' + i, async () => assert.notEqual(await hits({ headStyle: 2, mouth: 1 }, hole(sensor, i)), null));
-  test('Otto face post reaches OLED hole ' + i, async () => {
-    const { x, z } = oled.minus[i].cyl;
-    const r = await hits({ headStyle: 2, mouth: 1 }, [{ shapes: [{ box: [x - 1, x + 1, -28.3, -28.25, z - 1, z + 1] }] }]);
-    assert.notEqual(r, null);   // post material within 0.05 mm of the PCB front
-  });
-}
+// The face holds both modules by their edges (no screw holes): pads touch the HC-SR04 PCB,
+// snap ridges reach behind both PCBs, and two stops sit under the OLED's bottom corners.
+const near = (x0, x1, y0, y1, z0, z1) => [{ shapes: [{ box: [x0, x1, y0, y1, z0, z1] }] }];
+for (const [name, probe] of [
+  ['HC-SR04 corner pad touches the PCB front', near(20.5, 21.5, -24.8, -24.76, 134.5, 135.5)],
+  ['HC-SR04 snap ridge reaches behind the PCB', near(22.25, 22.45, -22.4, -22.1, 125, 127)],
+  ['OLED snap ridge reaches behind the PCB', near(13.4, 13.6, -25.85, -25.6, 103, 104)],
+  ['OLED bottom stop sits under the PCB', near(10, 12, -28, -27, 88.5, 89.4)],
+]) test('Otto face mount: ' + name, async () => assert.notEqual(await hits({ headStyle: 2, mouth: 1 }, probe), null));
 // Retention: crush ribs touch the buzzer at all four zones.
 const buzzer = OTTO_ELECTRONICS.find(c => c.name === 'Buzzer');
 for (let i = 0; i < 4; i++) test('Otto buzzer crush rib grips at zone ' + i, async () =>

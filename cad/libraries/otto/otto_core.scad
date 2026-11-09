@@ -65,21 +65,31 @@ module usbc_top_slot(clearance=0.25) {
 }
 // Face mounts, added after the cavity cuts. HC-SR04: posts from the face plate to the
 // board, pins through its corner holes (secure with a melted tip or a drop of glue).
-module hcsr04_pegs() {
-  for(sx=[-1,1], sy=[-1,1]) translate([sx*otto_sensor_holes[0]/2,otto_sensor_pos[1]+sy*otto_sensor_holes[1]/2,otto_wall-0.01]) {
-    cylinder(d=otto_face_mount[0],h=otto_sensor_pos[2]-otto_wall+0.01,$fn=24);
-    cylinder(d=otto_face_mount[1],h=otto_sensor_pos[2]-otto_wall+otto_sensor[2]-0.9,$fn=16);
+// Edge guide along +x of a board edge at x = edge (mirrored for -x): a wall from the face plate,
+// with a 45-degree snap ridge just behind the PCB. Board edges, not screw holes, locate it.
+module edge_guide(edge, y0, y1, pcb_back, clearance) {
+  g=otto_guide; x0=edge+clearance; zr=pcb_back+clearance; d=clearance+g[2]; rise=1.2*(d+0.01);   // steeper than 45 degrees
+  for(m=[0,1]) mirror([m,0,0]) {
+    translate([x0,y0,otto_wall-0.01]) cube([g[0],y1-y0,zr+2*rise+0.5-otto_wall+0.01]);
+    translate([0,(y0+y1)/2,0]) rotate([90,0,0]) linear_extrude(y1-y0,center=true)
+      polygon([[x0+0.01,zr],[x0-d,zr+rise],[x0+0.01,zr+2*rise]]);
   }
 }
-// OLED (upside down): posts the glass thickness tall carry the PCB; M2 x 4 screws from behind.
-function oled_pcb_y() = otto_oled_pos[1]+otto_oled_offset;
-module oled_posts() {
-  for(sx=[-1,1], sy=[-1,1]) translate([sx*otto_oled_holes[0]/2,oled_pcb_y()+sy*otto_oled_holes[1]/2,otto_wall-0.01])
-    cylinder(d=otto_face_mount[0],h=otto_oled_glass+0.01,$fn=24);
+// HC-SR04: the transducers in the eye holes locate it; four corner pads hold the PCB 5 mm
+// behind the face and side guides snap over its back.
+module hcsr04_mount(clearance=0.25) {
+  z=otto_sensor_pos[2]; ys=otto_sensor_pos[1];
+  for(sx=[-1,1], sy=[-1,1]) translate([sx*(otto_sensor[0]/2-1.5),ys+sy*(otto_sensor[1]/2-1.5),otto_wall-0.01]) fit_box([3,3,z-otto_wall+0.01]);
+  edge_guide(otto_sensor[0]/2,ys-otto_guide[1]/2,ys+otto_guide[1]/2,z+otto_pcb,clearance);
 }
-module oled_pilots() {
-  for(sx=[-1,1], sy=[-1,1]) translate([sx*otto_oled_holes[0]/2,oled_pcb_y()+sy*otto_oled_holes[1]/2,0.6])
-    cylinder(d=otto_face_mount[2],h=10,$fn=16);
+// OLED (upside down): its glass rests on the face plate; side guides snap over the PCB and two
+// stops under its bottom corners (clear of the header) carry it. The eye cans sit 1 mm above
+// its top edge, so it can't slide up.
+function oled_pcb_y() = otto_oled_pos[1]+otto_oled_offset;
+module oled_mount(clearance=0.25) {
+  w=otto_oled[0]/2; h=otto_oled[1]/2; y=oled_pcb_y(); back=otto_wall+otto_oled_glass+otto_pcb; g=otto_guide;
+  edge_guide(w,y-g[1]/2,y+g[1]/2,back,clearance);
+  for(sx=[-1,1]) translate([sx*(w-2.5),y-h-clearance-g[0]/2,otto_wall-0.01]) fit_box([5,g[0],back-otto_wall+1]);
 }
 // Visible-area window only: the glass rests flat on the inside of the face plate.
 module oled_window(clearance=0.25) {
@@ -173,9 +183,12 @@ module foot_cavities(clearance=0.25) {
 // Four independent small fit-test prints, all using the production cutters.
 module otto_coupon(kind=0, clearance=0.25) {
   if(kind==0) difference() { fit_box([38,18,31]); translate([0,0,3]) servo_pocket(clearance); }
-  if(kind==1) difference() {
-    cylinder(d=otto_eye_d+6,h=4,$fn=48);
-    translate([0,0,-1]) cylinder(d=otto_eye_d+2*clearance,h=6,$fn=48);
+  if(kind==1) {   // face strip: both eye holes, the OLED window and both edge mounts
+    difference() {
+      translate([-otto_sensor[0]/2-4,otto_sensor_pos[1]+otto_sensor[1]/2+3,0]) mirror([0,1,0]) cube([otto_sensor[0]+8,60,otto_wall]);
+      hcsr04_eyes(clearance); oled_window(clearance);
+    }
+    hcsr04_mount(clearance); oled_mount(clearance);
   }
   if(kind==2) difference() {
     fit_box([20,14,3]);
