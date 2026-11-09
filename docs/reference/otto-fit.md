@@ -52,8 +52,8 @@ Blank actual fields mean **unmeasured**, not zero. Units: mm.
 | Nano I/O shield | 60 × 42, Ø3 holes at 53.34 × 35.56 | YwRobot Nano Sensor Shield (the ZC board may differ) | |
 | Shield stack in front of the PCB | 28.4 (Nano on female headers + Dupont plugs) | Nov 1 fit check estimate | |
 | Type-C port on the shield | centred, 11.7 in front of the PCB, at the top edge, pointing up | Estimate: 8.5 female header + 1.6 PCB + half the receptacle | |
-| OLED board | 27.3 × 27.8; glass 26.7 × 19.27; 2 mm holes at 23.3 × 23.8; active area 2.1 toward the header | [LCDWiki MC096 drawing](https://www.lcdwiki.com/0.96inch_OLED_Module_SKU:MC096VX) (similar module; YouKeyi unmeasured) | |
-| HC-SR04 corner holes | 2 mm, 41 × 16 centre spacing | Generic module drawings (HNX unmeasured) | |
+| OLED board | 27.3 × 27.8; glass 26.7 × 19.27; active area 2.1 toward the header (holes not used) | [LCDWiki MC096 drawing](https://www.lcdwiki.com/0.96inch_OLED_Module_SKU:MC096VX) (similar module; YouKeyi unmeasured) | |
+| HC-SR04 transducers | Ø16 at 27.0 c-c, centred on the board; 12 tall (holes 40 × 15, not used) | [PartReel hc_sr04](https://partreel.com/p/hc_sr04/): Cytron drawing + calibrated photo | |
 | OLED visible screen | 21.74 × 10.86 | Supplied plan, module drawing needed | |
 | Buzzer | Ø12; height 8.5–9.5; pins 6.5 apart | Supplied plan, vendor drawing needed | |
 | 4×AA two-layer holder | 56 × 30 × 28 (L × W × H) | [LAMPVPATH listing, Amazon B01CVJC8I4](https://www.amazon.com/dp/B01CVJC8I4) | |
@@ -93,7 +93,7 @@ electronics, so 141.5) but are prototype allowances, not measurements of the pur
 - Four MG90S servos: two hip servos stand shaft-down on the body floor at X ±22 (posts carry the ears,
   the shaft passes the floor into the leg's horn recess); one ankle servo inside each leg, shaft forward,
   driving a horn recessed in the foot's front bracket, with a Ø2.5 pivot pin through the rear bracket.
-- Head prints face-down with open underside and rear. HC-SR04 eyes at X ±13.25, Y −15 from the head
+- Head prints face-down with open underside and rear. HC-SR04 eyes at X ±13.5, Y −15 from the head
   top, Ø16.5 holes; its 4-pin header points down, plugs hang 20 mm below the board. Nose Ø6 at Y −30,
   OLED window centre Y −40 (mouth 1) or three grille slots (mouth 2).
 - OLED mounts upside down (header at the bottom edge) so its rear plugs pass 4 mm under the HC-SR04
@@ -119,10 +119,16 @@ electronics, so 141.5) but are prototype allowances, not measurements of the pur
   before removing the cover (the shield's lower edge is behind the body's rear wall).
 - Provisional horn hub Ø7.4 / single arm 14 long / screw Ø2.5, recessed 2 mm with 45° roofs.
 - Provisional USB opening 12.85×7.0 at clearance 0.25. The real plastic cable boot may be larger.
-- Face mounts: four Ø3.5 posts from the face plate carry the HC-SR04 board, ending in Ø1.7 pins through
-  its corner holes. With the OLED mouth, four Ø3.5 posts the glass thickness tall (1.5) carry the OLED
-  PCB, with Ø1.6 pilots for M2 × 4 self-tapping screws (0.6 mm of face plate left in front).
-  The OLED PCB centre sits 2.1 above the window so the upside-down active area stays centred in it.
+- Face mounts (Nov 9, after a test print): hole-based posts were dropped, because the first print's posts
+  didn't line up with the real boards (the generic 41 × 16 HC-SR04 grid was off; better data says 40 × 15,
+  and hole positions vary between makers). Both modules are now held by their edges:
+  - HC-SR04: PCB front 5 mm behind the face (local z 7), so the eyes stick out 5 mm (limited by the
+    OLED plugs below). Four 3 × 3 corner pads carry the PCB; 1.6 × 8 side guides at its short edges
+    end in 45°+ snap ridges reaching 0.3 mm past the PCB edge, just behind the PCB.
+  - OLED: glass on the face plate, side guides with the same snap ridges, and two 5 × 1.6 stops under
+    the bottom corners (clear of the header). The eye cans sit 1 mm above its top edge.
+  - The OLED PCB centre sits 2.1 above the window so the upside-down active area stays centred in it.
+  - The "Face mounts" fit test is a strip of the face with both mounts, for checking the real boards.
 - Retention: four 1 mm crush ribs in the buzzer ring press 0.15 mm into a nominal Ø12 buzzer. In each leg a seat in front of the top ear takes the ear screw
   (Ø1.8 teardrop pilot 14 mm from the case centre), with a Ø4 teardrop access hole through the rear wall.
 - Every purchased-hardware number above is a reference value. Re-check with calipers when the parts arrive.
@@ -143,7 +149,7 @@ sample or call it passed merely because it renders.
 | Check | Expected result | Status | Clearance | Evidence |
 |---|---|---|---|---|
 | Servo pocket | Actual MG90S pushes in snugly by hand | pending | | |
-| Eye ring | Actual HC-SR04 eye fits and stays retained | pending | | |
+| Face mounts | Real HC-SR04 and OLED snap in and stay put; eyes stick out | pending | | |
 | Type-C | Actual cable plugs into the mounted Nano | pending | | |
 | Battery | Loaded 4×AA holder drops into the tray without force | pending | | |
 
