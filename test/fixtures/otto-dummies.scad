@@ -15,9 +15,9 @@ module otto_dummy(part,id) {
       dummy_box([12,20,5],[0,-35,9.75]);
     }
     if(id==3) { // OLED upside down: glass on the face, PCB, rear parts inside its edges, flex at the top edge, rear plugs at the bottom
-      dummy_box([26.7,19.27,1.5],[0,-37.9,2.75]);
-      dummy_box([27.3,27.8,1.6],[0,-37.9,4.3]); dummy_box([22,25.8,0.9],[0,-37.9,5.55]);
-      dummy_box([14,4.77,4],[0,-25.885,4]);
+      dummy_box([24.6,19.27,1.5],[0,-37.9,2.75]);
+      dummy_box([24.8,27.05,1.6],[0,-37.9,4.3]); dummy_box([20,25,0.9],[0,-37.9,5.55]);
+      dummy_box([14,4.39,4],[0,-26.07,4]);
       dummy_box([12,4.5,22.5],[0,-50.3,17.25]);
     }
   }

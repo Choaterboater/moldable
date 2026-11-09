@@ -49,8 +49,10 @@ otto_nano_usb = [0,11.7,3.0]; // Type-C port: [x, centre height in front of the 
 otto_sensor = [45,20,4]; // HC-SR04 PCB + rear parts, behind the transducers
 otto_pcb = 1.6; // PCB thickness (both modules)
 otto_transducer = [16,12]; // [diameter, height in front of the PCB]
-// 0.96" SSD1306 module, LCDWiki MC096 drawing (https://www.lcdwiki.com/0.96inch_OLED_Module_SKU:MC096VX):
-otto_oled = [27.3,27.8,4]; // PCB + glass + rear parts
+// 0.96" SSD1306 module: the user's YouKeyi boards, MEASURED Nov 9: 24.8 wide (along the screen)
+// x 27.05 tall (pins at the bottom), holes 22.8 apart (not used). Active area and its offset
+// from the LCDWiki MC096 drawing (https://www.lcdwiki.com/0.96inch_OLED_Module_SKU:MC096VX).
+otto_oled = [24.8,27.05,4]; // PCB + glass + rear parts
 otto_oled_visible = [21.74,10.86];
 otto_oled_glass = 1.5; // glass in front of the PCB (provisional)
 otto_oled_offset = 2.1; // active area sits this far toward the pin header from the PCB centre
@@ -74,7 +76,7 @@ otto_pivot_d = 2.5;
 // NEW DESIGN placements; not verified against V9/V13 or purchased parts.
 // Head-local (x across, y down from the top, z back from the face):
 otto_eyes = [-13.5,13.5]; // 27.0 c-c (see otto_sensor)
-otto_eye_d = 16.5; // face hole; with 0.25 clearance it is 17.0, the usual HC-SR04 cutout
+otto_eye_d = 16.75; // snug press fit that holds the sensor, like official Otto: 17.25 at 0.25 clearance (17.0 was slightly too tight)
 otto_eye_y = -15;
 otto_nose_y = -30;
 otto_nose_d = 6;

@@ -12,10 +12,10 @@ export const OTTO_ELECTRONICS = [
   { name: 'HC-SR04 transducers', shapes: [-13.5, 13.5].map(x => ({ cyl: { x, z: 127.5, r: 8, y0: -36.75, y1: -24.75 } })) },
   // 4-pin header points down in the board plane; Dupont housings + wire bend.
   { name: 'HC-SR04 plugs', shapes: [box(-6, 6, -24.5, -19.5, 97.5, 117.5)] },
-  // 0.96" OLED, LCDWiki MC096 drawing, mounted upside down (header at the bottom):
+  // 0.96" OLED (user's YouKeyi: 24.8 x 27.05 measured), mounted upside down (header at the bottom):
   // glass on the face, PCB, rear parts inside its edges, flex cable at the top edge.
-  { name: 'OLED module', shapes: [box(-13.35, 13.35, -29.75, -28.25, 94.97, 114.23), box(-13.65, 13.65, -28.25, -26.65, 90.7, 118.5),
-    box(-11, 11, -26.65, -25.75, 91.7, 117.5), box(-7, 7, -29.75, -25.75, 114.23, 119)] },
+  { name: 'OLED module', shapes: [box(-12.3, 12.3, -29.75, -28.25, 94.97, 114.23), box(-12.4, 12.4, -28.25, -26.65, 91.08, 118.12),
+    box(-10, 10, -26.65, -25.75, 92.1, 117.1), box(-7, 7, -29.75, -25.75, 114.23, 118.62)] },
   { name: 'OLED plugs', shapes: [box(-6, 6, -25.75, -3.25, 89.95, 94.45)] },
   // Blue Nano IO shield V3.0 (user's calipers: 53.2 x 54.8) upright on the cover clips, top edge
   // 9.75 below the head top: PCB, Nano + plugs in front (inside the 4.5 mm edge strips),
