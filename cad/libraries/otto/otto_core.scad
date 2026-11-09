@@ -118,19 +118,18 @@ module buzzer_seat(clearance=0.25) {
   translate([otto_buzzer_pos[0],otto_buzzer_pos[1],otto_wall]) cylinder(d=otto_buzzer[0]+2*clearance,h=100,$fn=48);
   translate([otto_buzzer_pos[0],otto_buzzer_pos[1],-1]) cylinder(d=5,h=otto_wall+2,$fn=24);
 }
-module battery_ribs(clearance=0.25) {
-  for(s=[-1,1]) translate([s*(otto_battery[1]/2+clearance+1),otto_battery_pos[1],otto_wall-0.01]) fit_box([2,otto_battery[0],5]);
+// The hip servo cases guide the battery holder sideways and the front wall stops it;
+// two rear posts stop it at the back and leave the middle free for its leads.
+module battery_stops(clearance=0.25) {
+  y=otto_battery_pos[1]+otto_battery[0]/2+clearance;
+  for(s=[-1,1]) translate([s*10,y+otto_battery_stop[1]/2,otto_wall-0.01]) fit_box([otto_battery_stop[0],otto_battery_stop[1],otto_battery_stop[2]+0.01]);
 }
 module body_cavities(clearance=0.25) {
   for(x=otto_hip_x) {
     translate([x,otto_hip_y,-1]) cylinder(d=12+2*clearance,h=otto_wall+2,$fn=40);
     for(dy=[-14,14]) translate([x,hip_case_y()+dy,otto_wall]) cylinder(d=1.8,h=20,$fn=16);
   }
-  translate([otto_jack_pos[0],otto_jack_pos[1],-1]) cylinder(d=otto_jack_d+2*clearance,h=otto_wall+2,$fn=32);
   translate([otto_switch_pos[0],otto_switch_pos[1],-1]) fit_box([otto_switch[0],otto_switch[1],otto_wall+2],clearance);
-  // Strap slots just outside the battery ribs: the strap runs under the floor between them.
-  for(s=[-1,1]) translate([s*otto_strap_pos[0],otto_strap_pos[1],-1])
-    linear_extrude(otto_wall+1.01) square([otto_strap[0]+2*clearance,otto_strap[1]+2*clearance],center=true);   // floor only
 }
 
 // ---------- leg (prints top-down: z=0 is the leg top) ----------
@@ -182,9 +181,8 @@ module otto_coupon(kind=0, clearance=0.25) {
     fit_box([20,14,3]);
     translate([0,0,-1]) fit_box([otto_usb[0],otto_usb[1],5],clearance);
   }
-  if(kind==3) difference() {
-    fit_box([55,24,31]);
-    translate([0,0,3]) fit_box(otto_battery,clearance);
-    translate([0,0,29]) fit_box([49,18,8],clearance);
+  if(kind==3) difference() {   // battery holder tray: footprint and the hip-servo gap width
+    fit_box([otto_battery[0]+6,otto_battery[1]+6,8]);
+    translate([0,0,3]) fit_box([otto_battery[0],otto_battery[1],10],clearance);
   }
 }

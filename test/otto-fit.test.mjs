@@ -12,7 +12,7 @@ for(const grow of [0,10]) for(let headStyle=0;headStyle<4;headStyle++) {
 }
 for(const clearance of [0.1,0.5]) for(const part of [0,1,2,3,4,5,8]) for(let headStyle=0;headStyle<4;headStyle++)
   settings.push({part,headStyle,clearance,grow:10,ears:3,hat:3,antenna:30,corner:12,mouth:1,feet:2});
-const names={0:['I/O shield stack','Type-C plug','HC-SR04','OLED'],1:['hip L','hip R','battery','clip allowance','jack','switch','buzzer','battery strap'],2:['ankle servo','hip horn'],3:['ankle servo','hip horn'],4:['ankle horn','pivot pin'],5:['ankle horn','pivot pin'],8:['I/O shield stack']};
+const names={0:['I/O shield stack','Type-C plug','HC-SR04','OLED'],1:['hip L','hip R','battery holder','battery leads','switch','buzzer'],2:['ankle servo','hip horn'],3:['ankle servo','hip horn'],4:['ankle horn','pivot pin'],5:['ankle horn','pivot pin'],8:['I/O shield stack']};
 for(const params of settings) for(const [id,name] of names[params.part].entries()) {
   test('Otto no component collision '+name+' '+JSON.stringify(params),async()=> {
     const g=generate('otto',params);

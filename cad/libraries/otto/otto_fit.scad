@@ -51,14 +51,16 @@ otto_oled_holes = [23.3,23.8]; // 2 mm holes for M2, centre spacing
 otto_oled_offset = 2.1; // active area sits this far toward the pin header from the PCB centre
 // Face mounts: [post diameter (hole pad), peg pin diameter, M2 self-tap pilot]
 otto_face_mount = [3.5,1.7,1.6];
-otto_battery = [48.5,17.5,26.5]; // 6F22 on its side
-otto_clip_size = [18,8,20]; // snap + wire allowance at the battery terminal end
+// Power: 4x AA NiMH (4.8 V) straight to the shield's 5 V rail, like official Otto.
+// Two-layer 4xAA holder, LAMPVPATH ASIN B01CVJC8I4, listed 56 x 30 x 28 (UNMEASURED).
+otto_battery = [56,30,28]; // [length front-back, width, height]
+otto_battery_stop = [3,2,6]; // rear stop posts: [width, depth, height]
 otto_usb = [12.35,6.5];
 otto_buzzer = [12,9.5]; // stands on the body floor, sound side down
 otto_buzzer_rib = 0.15; // four crush ribs press this far into the nominal buzzer
-otto_strap = [2.5,5]; // battery strap (zip tie or narrow hook-and-loop): [thickness, width]
-otto_switch = [13,9]; // provisional, measure switch before assembly
-otto_jack_d = 8; // provisional panel socket, not the 5.5mm plug
+// KCD11 mini rocker, AUXBC ASIN B0H9YNMTHZ: cutout 13 x 8, flange 15 x 10.5 (UNMEASURED)
+otto_switch = [13,8];
+otto_switch_flange = [15,10.5];
 otto_horn_hub = 7.4; // provisional, confirm actual supplied horns
 otto_horn_arm = [6,4,14]; // single-arm horn: [width at hub, width at tip, length]
 otto_horn_depth = 2;
@@ -79,13 +81,10 @@ otto_oled_pos = [0,-40,2]; // visible-area centre; the PCB centre sits otto_oled
 otto_shield_top = -3.5; // y of the shield's top edge; clears the dome's rounded ceiling
 otto_shield_standoff = 6.75; // back-cover inner face to the shield PCB back
 // Body-local (x across, y front-to-back, z up from the floor underside):
-otto_buzzer_pos = [-21,-22];
+otto_buzzer_pos = [-24.75,-22]; // ring merges into the side wall, clear of the battery holder
 otto_hip_x = [-22,22];
 otto_hip_y = 0; // shaft axis; the case extends toward the back
-otto_battery_pos = [0,-3.75];
-otto_strap_pos = [13.25,18.5]; // strap slot centres (±x): outside the battery ribs, behind the legs' swing
-otto_clip_pos = [0,24.5];
-otto_jack_pos = [-18,27];
-otto_switch_pos = [17,27];
+otto_battery_pos = [0,-2.5]; // between the hip servos, under the shield; leads leave at the rear end
+otto_switch_pos = [24.5,-24]; // front right; its flange stays outside the legs' swing (16.7 mm radius)
 // Leg-local (prints top-down: z = 0 is the leg top):
 otto_ankle_z = 11; // shaft axis above the leg bottom

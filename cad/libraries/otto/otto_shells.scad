@@ -106,7 +106,7 @@ module body_part(grow=0,c=0.25) {
         linear_extrude(otto_body[2]) offset(delta=ch,chamfer=true) square([w-2*ch,d-2*ch],center=true);
         translate([0,0,otto_wall]) linear_extrude(otto_body[2]) square(otto_body_inner,center=true);
       }
-      hip_posts(); battery_ribs(c); buzzer_ring(c);
+      hip_posts(); battery_stops(c); buzzer_ring(c);
     }
     body_cavities(c);
     buzzer_seat(c);

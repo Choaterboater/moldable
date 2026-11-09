@@ -48,4 +48,6 @@ an 80-byte credit/license header; keep this README and source with redistributio
   Nano rails replaced by an upright I/O shield on back-cover posts with the Type-C slot
   in the head top; OLED mounted upside down; buzzer moved to the body floor;
   face posts hold the HC-SR04 (pegs) and the OLED (M2 screws); ankle-servo ear
-  seats, a battery strap and buzzer crush ribs.
+  seats and buzzer crush ribs.
+- Power: 4×AA NiMH two-layer holder between the hip servos (replaces the 9 V cell);
+  KCD11 rocker switch at the front right of the floor.

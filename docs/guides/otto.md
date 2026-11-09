@@ -17,8 +17,9 @@ See [dimensions and acceptance record](../reference/otto-fit.md).
 ## Hardware target
 
 HNX Type-C Nano with soldered headers; ZC Nano I/O shield; four ASKY MG90S 180°
-servos; HC-SR04; 0.96-inch I2C OLED; 5 V passive buzzer; rechargeable 9 V battery,
-clip-to-5.5×2.1 mm lead, panel power connection and switch. The purchased-product
+servos; HC-SR04; 0.96-inch I2C OLED; 5 V passive buzzer; four AA NiMH rechargeables in a
+two-layer 4×AA holder (LAMPVPATH, Amazon B01CVJC8I4) and a KCD11 mini rocker switch
+(AUXBC, Amazon B0H9YNMTHZ). The purchased-product
 links are recorded in the fit record without assuming their contents.
 
 ## Exterior settings
@@ -39,8 +40,8 @@ sample pockets/openings, sometimes called **coupons**, not the printer's corners
 3. Type-C opening: check the actual cable boot, then verify insertion with the Nano
    in the shield on the back cover. The cable now enters through the **top of the
    head**. The opening sample alone cannot verify port position.
-4. Battery bay: check actual cell, clip and wire, then verify closure in the measured
-   assembly. A bare standard 9 V envelope is not an actual rechargeable-cell test.
+4. Battery bay: the loaded 4×AA holder should drop into the tray without force. The tray
+   matches the gap between the hip servos.
 
 Fit clearance starts at **0.25 mm per side**. It is the extra room around hardware,
 not printer bed clearance. Adjust in **0.05 mm** steps within **0.1–0.5 mm** and
@@ -89,8 +90,15 @@ All of this is coded from reference sizes, not measured parts. See the fit recor
   OLED SDA A4, SCL A5; both to 5 V and GND. Check the OLED's VCC/GND labels: some swap them.
 - **Buzzer:** press it sound-side down into the ring on the body floor, front left; four
   small ribs grip it. It sounds through a floor hole.
-- **9 V battery:** lies between the floor ribs. A zip tie or 5 mm hook-and-loop strap
-  (up to 2.5 mm thick) goes over it and down through the two floor slots behind the legs.
+- **Batteries:** the 4×AA holder sits flat between the hip servos, leads toward the back;
+  two posts behind it stop it sliding. The shield's lower edge sits 2.5 mm above it. Add a
+  hook-and-loop dot underneath if it rattles. To change batteries, lift the head out.
+- **Power wiring:** holder red → rocker switch → shield **5 V**; holder black → shield **GND**
+  (two solder joints at the switch; the switch snaps into the floor hole at the front right).
+  Use any spare G/V pin pair if the V pins are the 5 V rail: check with only USB connected,
+  where a meter should read about 5 V between V and G. If the shield has a servo-power jumper, set it to 5 V.
+  - **NiMH only.** Four fresh alkaline AAs give about 6.4 V, too much for the Nano's 5 V rail.
+  - Switch the batteries off before plugging in USB-C to upload.
 - **Ankle servos:** slide each one up into its leg from the bottom. One of the servo's
   own ear screws goes through the top ear into a seat in the leg; reach it with a small
   screwdriver through the hole in the back of the leg.
