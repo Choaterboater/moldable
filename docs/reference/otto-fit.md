@@ -52,7 +52,7 @@ Blank actual fields mean **unmeasured**, not zero. Units: mm.
 | Nano I/O shield (blue "Nano IO Expansion Shield V3.0") | 53.2 × 54.8; 57.8 incl. USB-C; DC jack 4 out, same edge; 24–25 tall to the top pin | [NZN datasheet](https://www.nznelectronics.co.nz/products/nano-io-expansion-shield-v3-0-servo-sensor-breakout-board-arduino-nano-compatible-blue) (~54.5 × ~57) | **53.1–53.25 × 54.8, 57.82 with USB-C, 24–25 high (user calipers, Nov 9)** |
 | Shield stack in front of the PCB | 28.4 (Nano on female headers + Dupont plugs) | Nov 1 fit check estimate | |
 | Type-C port on the shield | centred, 11.7 in front of the PCB, at the top edge, pointing up | Estimate: 8.5 female header + 1.6 PCB + half the receptacle | |
-| OLED board | 27.3 × 27.8; glass 26.7 × 19.27; active area 2.1 toward the header (holes not used) | [LCDWiki MC096 drawing](https://www.lcdwiki.com/0.96inch_OLED_Module_SKU:MC096VX) (similar module; YouKeyi unmeasured) | |
+| OLED board | 24.8 × 27.05, holes 22.8 apart (not used); active area 21.74 × 10.86, 2.1 toward the header (LCDWiki) | [LCDWiki MC096 drawing](https://www.lcdwiki.com/0.96inch_OLED_Module_SKU:MC096VX) (active area) | **24.8 × 27.05, holes 22.8 (user calipers, Nov 9)** |
 | HC-SR04 transducers | Ø16 at 27.0 c-c, centred on the board; 12 tall (holes 40 × 15, not used) | [PartReel hc_sr04](https://partreel.com/p/hc_sr04/): Cytron drawing + calibrated photo | |
 | OLED visible screen | 21.74 × 10.86 | Supplied plan, module drawing needed | |
 | Buzzer | Ø12; height 8.5–9.5; pins 6.5 apart | Supplied plan, vendor drawing needed | |
@@ -94,7 +94,7 @@ electronics, so 142.5) but are prototype allowances, not measurements of the pur
   the shaft passes the floor into the leg's horn recess); one ankle servo inside each leg, shaft forward,
   driving a horn recessed in the foot's front bracket, with a Ø2.5 pivot pin through the rear bracket.
 - Head prints face-down with open underside and rear. HC-SR04 eyes at X ±13.5, Y −15 from the head
-  top, Ø16.5 holes; its 4-pin header points down, plugs hang 20 mm below the board. Nose Ø6 at Y −30,
+  top, Ø16.75 holes (17.25 printed at 0.25 clearance: a snug press fit; 17.0 was slightly too tight); its 4-pin header points down, plugs hang 20 mm below the board. Nose Ø6 at Y −30,
   OLED window centre Y −40 (mouth 1) or three grille slots (mouth 2).
 - OLED mounts upside down (header at the bottom edge) so its rear plugs pass 4 mm under the HC-SR04
   plugs; rotate the display 180° in software. With the header at the top the two sets of plugs
@@ -125,8 +125,9 @@ electronics, so 142.5) but are prototype allowances, not measurements of the pur
   didn't line up with the real boards (the generic 41 × 16 HC-SR04 grid was off; better data says 40 × 15,
   and hole positions vary between makers). Both modules are now held by their edges:
   - HC-SR04: PCB front 5 mm behind the face (local z 7), so the eyes stick out 5 mm (limited by the
-    OLED plugs below). Four 3 × 3 corner pads carry the PCB; 1.6 × 8 side guides at its short edges
-    end in 45°+ snap ridges reaching 0.3 mm past the PCB edge, just behind the PCB.
+    OLED plugs below). Held like official Otto, by the eyes pressed into snug holes; four 3 × 3 corner
+    pads carry the PCB and two solid 2 × 8 side guides (no snap) keep it square. Snap arms 8.7 mm tall
+    broke on a test print (Nov 9), so they were dropped.
   - OLED: glass on the face plate, side guides with the same snap ridges, and two 5 × 1.6 stops under
     the bottom corners (clear of the header). The eye cans sit 1 mm above its top edge.
   - The OLED PCB centre sits 2.1 above the window so the upside-down active area stays centred in it.

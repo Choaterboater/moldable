@@ -37,8 +37,8 @@ sample pockets/openings, sometimes called **coupons**, not the printer's corners
 
 1. Servo pocket: insert the actual MG90S by hand; it should be snug without force.
 2. Face mounts: a strip of the face with both eye holes and the screen window. Press the
-   HC-SR04 in from behind until its edges snap past the side guides; the eyes should poke
-   out about 5 mm. Then snap the OLED in, glass against the window, bottom edge on the two stops.
+   HC-SR04 in from behind: the eyes should press in snugly (not forced) and poke out about
+   5 mm. Then snap the OLED in, glass against the window, bottom edge on the two stops.
 3. Type-C opening: check the actual cable boot, then verify insertion with the Nano
    in the shield on the back cover. The cable now enters through the **top of the
    head**. The opening sample alone cannot verify port position.
@@ -84,10 +84,10 @@ All of this is coded from reference sizes, not measured parts. See the fit recor
   above its top edge keep it from sliding up. No screws: its holes aren't used. The
   Nano's USB-C points up and the cable plugs in through a slot in the head top. The
   shield's bottom edge reaches about 4.5 mm into the body, 2.5 mm above the batteries.
-- **HC-SR04:** push it in from behind, eyes through the eye holes, until it rests on the
-  four corner pads and its long edges snap past the two side guides. The eyes stick out
-  about 5 mm, like official Otto. No screws; the mounting holes aren't used, because their
-  positions vary between makers. Its plugs hang straight down behind the OLED.
+- **HC-SR04:** press it in from behind, eyes into the eye holes, until it rests on the four
+  corner pads between the two short side guides. The snug eye holes hold it, like official
+  Otto; add a dot of hot glue on a guide if you want it permanent. The eyes stick out about
+  5 mm. No screws: the mounting holes aren't used. Its plugs hang straight down behind the OLED.
 - **OLED (OLED mouth):** mount it **upside down** (pin header at the bottom) so its plugs
   pass under the HC-SR04 plugs. Press it in glass-first: the glass sits against the inside
   of the face, the bottom edge on two small stops, and the side edges snap past two guides.

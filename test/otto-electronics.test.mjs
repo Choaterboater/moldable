@@ -51,9 +51,9 @@ for (const params of settings) test('Otto electronics fit, all components ' + JS
 const near = (x0, x1, y0, y1, z0, z1) => [{ shapes: [{ box: [x0, x1, y0, y1, z0, z1] }] }];
 for (const [name, probe] of [
   ['HC-SR04 corner pad touches the PCB front', near(20.5, 21.5, -24.8, -24.76, 135.5, 136.5)],
-  ['HC-SR04 snap ridge reaches behind the PCB', near(22.25, 22.45, -22.4, -22.1, 126, 128)],
-  ['OLED snap ridge reaches behind the PCB', near(13.4, 13.6, -25.85, -25.6, 104, 105)],
-  ['OLED bottom stop sits under the PCB', near(10, 12, -28, -27, 89.5, 90.4)]
+  ['HC-SR04 side guide sits beside the PCB', near(22.8, 23.2, -24.2, -23.4, 126, 128)],
+  ['OLED snap ridge reaches behind the PCB', near(12.15, 12.35, -25.85, -25.6, 104, 105)],
+  ['OLED bottom stop sits under the PCB', near(9, 11, -28, -27, 89.4, 90.3)]
   , ['Shield snap ridge reaches in front of the PCB', near(26.33, 26.55, 26.2, 26.6, 100, 110)]
   , ['Shield top stop sits above the PCB', near(22.5, 24.2, 28, 29, 133.2, 134.3)],
 ]) test('Otto face mount: ' + name, async () => assert.notEqual(await hits({ headStyle: 2, mouth: 1 }, probe), null));

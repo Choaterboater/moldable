@@ -49,7 +49,7 @@ module pivot_hole(clearance=0.25) { rotate([90,0,0]) translate([0,0,-50]) linear
 // ---------- head (face plate on the bed; Y down from the head top) ----------
 module hcsr04_eyes(clearance=0.25) {
   for(x=otto_eyes) translate([x,otto_eye_y,-1]) cylinder(d=otto_eye_d+2*clearance,h=otto_wall+2,$fn=48);
-  for(x=otto_eyes) translate([x,otto_eye_y,otto_wall-0.01]) cylinder(d=otto_transducer[0]+2*clearance,h=otto_sensor_pos[2]-otto_wall+0.02,$fn=48);
+  for(x=otto_eyes) translate([x,otto_eye_y,otto_wall-0.01]) cylinder(d=otto_eye_d+2*clearance,h=otto_sensor_pos[2]-otto_wall+0.02,$fn=48);
   translate([otto_sensor_pos[0],otto_sensor_pos[1],otto_sensor_pos[2]]) fit_box(otto_sensor,clearance);
 }
 // Nano I/O shield stands upright on back-cover clips, Nano facing the face, its
@@ -75,12 +75,13 @@ module edge_guide(edge, y0, y1, pcb_back, clearance) {
       polygon([[x0+0.01,zr],[x0-d,zr+rise],[x0+0.01,zr+2*rise]]);
   }
 }
-// HC-SR04: the transducers in the eye holes locate it; four corner pads hold the PCB 5 mm
-// behind the face and side guides snap over its back.
+// HC-SR04, held like official Otto: its eyes press snugly into the eye holes. Four corner pads
+// stop it 5 mm behind the face; two short solid side guides (no snap: tall thin snap arms broke
+// on a test print) keep it square. A dot of hot glue on a guide makes it permanent.
 module hcsr04_mount(clearance=0.25) {
-  z=otto_sensor_pos[2]; ys=otto_sensor_pos[1];
+  z=otto_sensor_pos[2]; ys=otto_sensor_pos[1]; x0=otto_sensor[0]/2+clearance;
   for(sx=[-1,1], sy=[-1,1]) translate([sx*(otto_sensor[0]/2-1.5),ys+sy*(otto_sensor[1]/2-1.5),otto_wall-0.01]) fit_box([3,3,z-otto_wall+0.01]);
-  edge_guide(otto_sensor[0]/2,ys-otto_guide[1]/2,ys+otto_guide[1]/2,z+otto_pcb,clearance);
+  for(m=[0,1]) mirror([m,0,0]) translate([x0,ys-otto_guide[1]/2,otto_wall-0.01]) cube([2,otto_guide[1],z+otto_pcb-otto_wall+0.01]);
 }
 // OLED (upside down): its glass rests on the face plate; side guides snap over the PCB and two
 // stops under its bottom corners (clear of the header) carry it. The eye cans sit 1 mm above
