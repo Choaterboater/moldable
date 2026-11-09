@@ -411,7 +411,7 @@
       </sc-if>
       <sc-if value="{{ isOtto }}" hint-placeholder-val="{{ false }}">
         <div style="margin-top:12px;padding:12px;border:1px solid #f0d9b8;border-radius:11px;background:#fbeede;color:#704b24;font-size:13px;">{{ ottoNotice }} <a href="docs/guides/otto.md" target="_blank" rel="noopener">Fit and assembly guide</a></div>
-        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;"><sc-for list="{{ ottoFitTests }}" as="fit"><button onClick="{{ fit.onClick }}" style="padding:8px;border:1px solid #d0d8e2;border-radius:8px;background:#fff;cursor:pointer;">{{ fit.name }} .scad</button></sc-for></div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;"><sc-for list="{{ ottoFitTests }}" as="fit"><button onClick="{{ fit.onClick }}" style="padding:8px;border:1px solid #d0d8e2;border-radius:8px;background:#fff;cursor:pointer;">{{ fit.name }} STL</button></sc-for></div>
       </sc-if>
       <div style="display:flex;gap:12px;margin-top:16px;">
         <button onClick="{{ downloadSTL }}" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:15px;border-radius:14px;border:1.5px solid #d0d8e2;background:#fff;color:#19222d;font-weight:700;font-size:15px;cursor:pointer;">&darr; STL</button>
@@ -612,7 +612,7 @@
       </sc-if>
       <sc-if value="{{ isOtto }}" hint-placeholder-val="{{ false }}">
         <div style="padding:10px 16px;color:#704b24;font-size:12px;">{{ ottoNotice }}</div>
-        <div style="display:flex;flex-wrap:wrap;gap:6px;padding:0 16px 10px;"><sc-for list="{{ ottoFitTests }}" as="fit"><button onClick="{{ fit.onClick }}" style="padding:6px;border:1px solid #d0d8e2;border-radius:8px;background:#fff;cursor:pointer;">{{ fit.name }} .scad</button></sc-for></div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;padding:0 16px 10px;"><sc-for list="{{ ottoFitTests }}" as="fit"><button onClick="{{ fit.onClick }}" style="padding:6px;border:1px solid #d0d8e2;border-radius:8px;background:#fff;cursor:pointer;">{{ fit.name }} STL</button></sc-for></div>
       </sc-if>
       <sc-if value="{{ hasPrintFit }}" hint-placeholder-val="{{ false }}"><div style="padding:8px 16px;color:#8a5a22;font-size:12px;">{{ printFit }}</div></sc-if>
       <div style="flex:0 0 auto;border-top:1px solid #dde3ea;padding:14px 16px;display:flex;gap:10px;">
@@ -1703,21 +1703,34 @@ class Component extends DCLogic {
     this.showToast('Downloaded ' + a.download + ' · upload to MakerWorld to make it customizable');
   }
 
-  async downloadOttoFitTest(kind) {
+  // Fit tests download as print-ready STL (built with the current clearance); 'scad' gives the
+  // standalone source instead.
+  async downloadOttoFitTest(kind, format = 'stl') {
     if (![0,1,2,3,4].includes(kind)) return;
     try {
       const cad = await this._loadCad();
       const generated = cad.generate('otto', this.state.modelParams.otto);
       const source = generated.source.replace('use <otto/otto_shells.scad>', 'use <otto/otto_core.scad>')
         .replace(/otto_part\([^;]+;/, 'otto_coupon(' + kind + ', clearance);');
-      const portable = await cad.standaloneOttoScad(source, generated.files, async file => {
-        const response = await fetch(new URL('./cad/' + file.url, location.href));
-        if (!response.ok) throw new Error('Could not load ' + file.name);
-        return response.text();
-      });
-      const url = URL.createObjectURL(new Blob([portable], { type: 'text/plain' }));
+      const base = 'Otto_fit_' + ['servo','face','usbc','battery','shield'][kind];
+      let blob, name;
+      if (format === 'stl') {
+        if (!this._runner) throw new Error('model engine is still loading');
+        this.showToast('Building the fit test…');
+        const { stl } = await this._runner.compile({ source, files: generated.files });
+        if (!stl || !stl.length) throw new Error('no mesh was produced');
+        blob = new Blob([cad.creditOttoStl(stl)], { type: 'model/stl' }); name = base + '.stl';
+      } else {
+        const portable = await cad.standaloneOttoScad(source, generated.files, async file => {
+          const response = await fetch(new URL('./cad/' + file.url, location.href));
+          if (!response.ok) throw new Error('Could not load ' + file.name);
+          return response.text();
+        });
+        blob = new Blob([portable], { type: 'text/plain' }); name = base + '.scad';
+      }
+      const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = url; a.download = 'Otto_fit_' + ['servo','face','usbc','battery','shield'][kind] + '.scad';
+      a.href = url; a.download = name;
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 1500);
       this.showToast('Downloaded ' + a.download + ' — print this small fit test first');

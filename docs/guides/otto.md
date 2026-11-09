@@ -31,8 +31,8 @@ wide stable. These do not change component positions. Core interfaces are not sl
 
 ## Print the small fit tests first
 
-Use the four buttons on an Otto result to download standalone `.scad` files.
-Open them in OpenSCAD and export STL, then slice in Bambu Studio. They are small
+Use the fit-test buttons under Print & export on an Otto result: each downloads a
+ready-to-slice STL built with your current clearance. Slice it in Bambu Studio. They are small
 sample pockets/openings, sometimes called **coupons**, not the printer's corners.
 
 1. Servo pocket: insert the actual MG90S by hand; it should be snug without force.
