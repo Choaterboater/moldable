@@ -4,8 +4,11 @@
 module dummy_box(size, pos) { translate(pos) cube(size,center=true); }
 module otto_dummy(part,id) {
   if(part==0) {
-    if(id==0) dummy_box([42,60,32],[0,-33.5,46.75]); // upright I/O shield + Nano + plugs + solder side
-    if(id==1) dummy_box([12.35,32,6.5],[0,12.5,47.45]); // Type-C plug boot, up through the head top
+    if(id==0) { // upright blue IO shield: PCB + solder side, Nano + plugs inside the edge strips, DC jack and USB-C up top
+      dummy_box([53.2,54.8,3.6],[0,-37.15,60.95]); dummy_box([44.2,54.8,28.4],[0,-37.15,44.95]);
+      dummy_box([9.9,4,11.4],[15.35,-7.75,53.45]); dummy_box([9,3,3.2],[0,-8.25,47.45]);
+    }
+    if(id==1) dummy_box([12.35,35.25,6.5],[0,10.875,47.45]); // Type-C plug boot, from the port up through the head top
     if(id==2) { // HC-SR04: PCB 5 mm behind the face, rear parts inside its edges, eyes 5 mm proud, downward plugs
       dummy_box([45,20,1.6],[0,-15,7.8]); dummy_box([39,18,2.4],[0,-15,9.8]);
       for(x=[-13.5,13.5]) translate([x,-15,-5]) cylinder(d=16,h=12,$fn=48);
@@ -39,9 +42,9 @@ module otto_dummy(part,id) {
     if(id==0) translate([0,-16,17]) rotate([90,0,0]) cylinder(d=7,h=1.5,$fn=32); // ankle horn hub
     if(id==1) translate([0,20,17]) rotate([90,0,0]) cylinder(d=2.5,h=5,$fn=24); // pivot pin
   }
-  if(part==8) if(id==0) { // I/O shield on the cover posts: PCB + stack, solder side clear of the top screw holes
-    dummy_box([42,60,30],[0,-33.5,23.75]);
-    dummy_box([42,53.4,2],[0,-36.8,7.75]);
-    dummy_box([29,6.6,2],[0,-6.8,7.75]);
+  if(part==8) if(id==0) { // IO shield on the cover clips: solder side, PCB, Nano + plugs inside the edge strips, jack, USB-C
+    dummy_box([53.2,54.8,2],[0,-37.15,7.75]); dummy_box([53.2,54.8,1.6],[0,-37.15,9.55]);
+    dummy_box([44.2,54.8,28.4],[0,-37.15,24.55]);
+    dummy_box([9.9,4,11.4],[-15.35,-7.75,16.05]); dummy_box([9,3,3.2],[0,-8.25,22.05]);
   }
 }

@@ -50,10 +50,12 @@ for (const params of settings) test('Otto electronics fit, all components ' + JS
 // snap ridges reach behind both PCBs, and two stops sit under the OLED's bottom corners.
 const near = (x0, x1, y0, y1, z0, z1) => [{ shapes: [{ box: [x0, x1, y0, y1, z0, z1] }] }];
 for (const [name, probe] of [
-  ['HC-SR04 corner pad touches the PCB front', near(20.5, 21.5, -24.8, -24.76, 134.5, 135.5)],
-  ['HC-SR04 snap ridge reaches behind the PCB', near(22.25, 22.45, -22.4, -22.1, 125, 127)],
-  ['OLED snap ridge reaches behind the PCB', near(13.4, 13.6, -25.85, -25.6, 103, 104)],
-  ['OLED bottom stop sits under the PCB', near(10, 12, -28, -27, 88.5, 89.4)],
+  ['HC-SR04 corner pad touches the PCB front', near(20.5, 21.5, -24.8, -24.76, 135.5, 136.5)],
+  ['HC-SR04 snap ridge reaches behind the PCB', near(22.25, 22.45, -22.4, -22.1, 126, 128)],
+  ['OLED snap ridge reaches behind the PCB', near(13.4, 13.6, -25.85, -25.6, 104, 105)],
+  ['OLED bottom stop sits under the PCB', near(10, 12, -28, -27, 89.5, 90.4)]
+  , ['Shield snap ridge reaches in front of the PCB', near(26.33, 26.55, 26.2, 26.6, 100, 110)]
+  , ['Shield top stop sits above the PCB', near(22.5, 24.2, 28, 29, 133.2, 134.3)],
 ]) test('Otto face mount: ' + name, async () => assert.notEqual(await hits({ headStyle: 2, mouth: 1 }, probe), null));
 // Retention: crush ribs touch the buzzer at all four zones.
 const buzzer = OTTO_ELECTRONICS.find(c => c.name === 'Buzzer');

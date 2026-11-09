@@ -17,7 +17,7 @@
     { "id": "dimensions", "case": "Every fit-critical dimension has a source or recorded measurement", "status": "pending", "evidence": null },
     { "id": "assembly", "case": "Complete default robot mechanically assembles with ordered hardware", "status": "pending", "evidence": null },
     { "id": "assembled-usbc", "case": "Assembled robot permits actual Type-C cable insertion", "status": "pending", "evidence": null },
-    { "id": "fit-shield", "case": "ZC shield with Nano and plugged leads mounts on the cover posts and the cover closes", "status": "pending", "evidence": null },
+    { "id": "fit-shield", "case": "ZC shield with Nano and plugged leads snaps into the cover clips and the cover closes", "status": "pending", "evidence": null },
     { "id": "assembled-plugs", "case": "HC-SR04 plugs, upside-down OLED plugs and shield leads clear each other in the closed head", "status": "pending", "evidence": null }
   ]
 }

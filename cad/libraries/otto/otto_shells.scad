@@ -73,7 +73,7 @@ module head_part(style=1,r=4,grow=0,ear=0,ant=0,hat=0,mouth=0,c=0.25) {
   }
 }
 // Back cover: outside face on the bed. A U-shaped lip locates it in the head's
-// open rear and two posts carry the I/O shield. It sits behind the body, so it
+// open rear and two edge clips carry the I/O shield. It sits behind the body, so it
 // stops at the body rim (no insert band); the bottom stays open.
 module head_cover_part(style=1,r=4,grow=0,mouth=0,c=0.25) {
   h=head_h(mouth); iw=otto_head[0]-2*otto_wall;
@@ -88,9 +88,8 @@ module head_cover_part(style=1,r=4,grow=0,mouth=0,c=0.25) {
         offset(delta=-c-otto_wall) head_cavity_outline(style,r,mouth);
         translate([-iw,-h-10]) square([2*iw,10+otto_head_insert]);
       }
-      shield_standoffs();
+      shield_mount(c);
     }
-    shield_pilots();
   }
 }
 // Body: open-top box with chamfered vertical edges; hip servos stand on the floor.

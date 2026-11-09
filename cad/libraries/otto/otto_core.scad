@@ -52,7 +52,7 @@ module hcsr04_eyes(clearance=0.25) {
   for(x=otto_eyes) translate([x,otto_eye_y,otto_wall-0.01]) cylinder(d=otto_transducer[0]+2*clearance,h=otto_sensor_pos[2]-otto_wall+0.02,$fn=48);
   translate([otto_sensor_pos[0],otto_sensor_pos[1],otto_sensor_pos[2]]) fit_box(otto_sensor,clearance);
 }
-// Nano I/O shield stands upright on back-cover standoffs, Nano facing the face, its
+// Nano I/O shield stands upright on back-cover clips, Nano facing the face, its
 // Type-C port pointing UP at the board's top edge. Head-local z of the PCB back:
 function shield_back_z() = otto_head[2]-otto_wall-otto_shield_standoff;
 function usb_z() = shield_back_z()-otto_shield[2]-otto_nano_usb[1];
@@ -97,16 +97,15 @@ module oled_window(clearance=0.25) {
 }
 
 // ---------- back cover (outside face on the bed) ----------
-// Two posts carry the shield's top mounting holes (M3 self-tapping screws). The
-// bottom holes sit below the body rim, where no post can reach; the body's rear
-// wall backs the lower board edge instead.
-function shield_hole_y() = otto_shield_top-(otto_shield[1]-otto_shield_holes[1])/2;
-module shield_standoffs() {
-  for(s=[-1,1]) translate([s*otto_shield_holes[0]/2,shield_hole_y(),otto_wall-0.01]) cylinder(d=otto_standoff[0],h=otto_shield_standoff+0.01,$fn=32);
+// The shield snaps between two side guides on the back cover (its holes are not used:
+// positions vary between boards); two stops above its top edge, clear of the DC jack and
+// the Nano, keep it from sliding up. Its lower edge hangs 2 mm above the battery holder.
+module shield_mount(clearance=0.25) {
+  w=otto_shield[0]/2; yt=otto_shield_top; yb=-head_h_cover();
+  edge_guide(w,max(yb+1,yt-otto_shield[1]+2),yt-2,otto_wall+otto_shield_standoff+otto_shield[2],clearance);
+  for(s=[-1,1]) translate([s*(w-3.25),yt+clearance+0.75,otto_wall-0.01]) fit_box([2.5,1.5,otto_shield_standoff+otto_shield[2]+0.01]);
 }
-module shield_pilots() {
-  for(s=[-1,1]) translate([s*otto_shield_holes[0]/2,shield_hole_y(),otto_wall+0.5]) cylinder(d=otto_standoff[1],h=100,$fn=24);
-}
+function head_h_cover() = otto_head[1]-otto_head_insert;   // the cover stops at the body rim
 
 // ---------- body (floor on the bed) ----------
 // Hip servos stand shaft-down on the floor; posts carry the mounting ears and the
@@ -193,6 +192,12 @@ module otto_coupon(kind=0, clearance=0.25) {
   if(kind==2) difference() {
     fit_box([20,14,3]);
     translate([0,0,-1]) fit_box([otto_usb[0],otto_usb[1],5],clearance);
+  }
+  if(kind==4) {   // shield clips: the top of the back cover with both side clips and the top stops
+    yt=otto_shield_top; w=otto_shield[0]/2;
+    translate([-w-4,yt-20,0]) cube([2*w+8,24,otto_wall]);
+    edge_guide(w,yt-19,yt-2,otto_wall+otto_shield_standoff+otto_shield[2],clearance);
+    for(s=[-1,1]) translate([s*(w-3.25),yt+clearance+0.75,otto_wall-0.01]) fit_box([2.5,1.5,otto_shield_standoff+otto_shield[2]+0.01]);
   }
   if(kind==3) difference() {   // battery holder tray: footprint and the hip-servo gap width
     fit_box([otto_battery[0]+6,otto_battery[1]+6,8]);

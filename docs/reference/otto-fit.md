@@ -49,7 +49,7 @@ Blank actual fields mean **unmeasured**, not zero. Units: mm.
 | HC-SR04 board envelope | 45 × 20 × 15 | ElecFreaks, supplied plan | |
 | Nano board | 43.2 × 18; clone about 43 × 18 | Arduino, supplied plan | |
 | Nano mounting holes | Ø1.8 | Arduino, supplied plan | |
-| Nano I/O shield | 60 × 42, Ø3 holes at 53.34 × 35.56 | YwRobot Nano Sensor Shield (the ZC board may differ) | |
+| Nano I/O shield (blue "Nano IO Expansion Shield V3.0") | 53.2 × 54.8; 57.8 incl. USB-C; DC jack 4 out, same edge; 24–25 tall to the top pin | [NZN datasheet](https://www.nznelectronics.co.nz/products/nano-io-expansion-shield-v3-0-servo-sensor-breakout-board-arduino-nano-compatible-blue) (~54.5 × ~57) | **53.1–53.25 × 54.8, 57.82 with USB-C, 24–25 high (user calipers, Nov 9)** |
 | Shield stack in front of the PCB | 28.4 (Nano on female headers + Dupont plugs) | Nov 1 fit check estimate | |
 | Type-C port on the shield | centred, 11.7 in front of the PCB, at the top edge, pointing up | Estimate: 8.5 female header + 1.6 PCB + half the receptacle | |
 | OLED board | 27.3 × 27.8; glass 26.7 × 19.27; active area 2.1 toward the header (holes not used) | [LCDWiki MC096 drawing](https://www.lcdwiki.com/0.96inch_OLED_Module_SKU:MC096VX) (similar module; YouKeyi unmeasured) | |
@@ -66,7 +66,7 @@ Blank actual fields mean **unmeasured**, not zero. Units: mm.
 |---|---|---|
 | Cable plastic boot and bend space | | |
 | Type-C port position on HNX Nano | | |
-| ZC shield outline and mounting holes | | |
+| ZC shield outline | 53.2 × 54.8 (holes not used) | User calipers, Nov 9 |
 | ZC shield: Nano position and USB direction, header heights, solder-side depth | | |
 | OLED header side (pins out the back assumed) and plug length | | |
 | HC-SR04 header plug length below the board | | |
@@ -83,10 +83,10 @@ Blank actual fields mean **unmeasured**, not zero. Units: mm.
 ## New design choices (V9 proportions, not V9 measurements)
 
 `cad/libraries/otto/otto_fit.scad` keeps these fixed. They follow Otto V9's overall
-proportions (V9 assembled height 117.5; this head is 24 mm taller for the
-electronics, so 141.5) but are prototype allowances, not measurements of the purchased parts:
+proportions (V9 assembled height 117.5; this head is 25 mm taller for the
+electronics, so 142.5) but are prototype allowances, not measurements of the purchased parts:
 
-- Head 63.5 wide × 61 tall × 69.5 deep including the 2 mm back cover, the same for every mouth.
+- Head 63.5 wide × 62 tall × 69.5 deep including the 2 mm back cover, the same for every mouth.
   Its bottom 3 mm band (63.5 deep from the face) drops inside the body; behind the band the head
   rests on the body's rear rim. The face plane is unchanged; the extra 6 mm depth is at the rear. Body 68×68×38 with 3 mm chamfered vertical edges, cavity 64×64.
   Leg 16.5×29×38.5; foot sole 40×62×5 with front/rear brackets, sitting 10 mm outboard of the leg.
@@ -99,14 +99,16 @@ electronics, so 141.5) but are prototype allowances, not measurements of the pur
 - OLED mounts upside down (header at the bottom edge) so its rear plugs pass 4 mm under the HC-SR04
   plugs; rotate the display 180° in software. With the header at the top the two sets of plugs
   crossed (12 × 5 × 4.5 mm), found by the Nov 1 fit check.
-- Nano I/O shield stands upright, 42 wide × 60 tall, PCB back 6.75 mm in front of the back cover, top
-  edge 3.5 mm under the head top (clears the dome's rounded ceiling). The stack in front reaches
-  y −1 in the assembled frame, 2.25 mm behind the OLED plugs. Its lower 5 mm sits in the body in front of the
-  rear wall, 2.5 mm above the battery holder. Two Ø6 cover posts with Ø2.5 pilots take its top holes;
-  the bottom holes sit below the body rim and are unused.
+- Nano I/O shield (Nov 9, measured): the blue V3.0 board, 53.2 wide × 54.8 tall, stands upright with the DC
+  jack and USB-C edge up, PCB back 6.75 mm in front of the back cover, top edge 9.75 mm under the head top so
+  its corners clear a 12 mm bevel (the tightest corner style); that is why the head grew from 61 to 62 mm.
+  The stack in front (24–25 mm measured to the top pin; 28.4 allowed for plugs and wire bends) reaches y −1 in
+  the assembled frame, 2.25 mm behind the OLED plugs. Its lower 4.5 mm sits in the body, 2.5 mm above the
+  battery holder. Two 1.6 mm side clips on the cover (snap ridges 0.3 mm past the PCB edges, inside the 4.5 mm
+  header-free edge strips) and two stops above the top edge, clear of the DC jack, hold it. No screws.
 - The Nano's Type-C port points up; a 12.85 × 7.0 slot with a 45° rear gable passes through the head top.
   The old rails could not take a Nano with soldered headers (pin rows hit the rail lips), so they are gone.
-- Back cover: U-shaped 3 mm lip and the two shield posts; it stops at the body rim.
+- Back cover: U-shaped 3 mm lip and the two shield clips; it stops at the body rim.
 - Power (Nov 2026): 4×AA NiMH (4.8 V) straight to the shield's 5 V rail, as official Otto does, replacing the
   9 V cell (USB-C 9 V Li-ion cells are typically rated 0.35–0.5 A continuous, and a linear 5 V regulator
   would burn the extra 4 V as heat). The two-layer holder sits between the hip servo cases (31.8 gap, 0.9 per
