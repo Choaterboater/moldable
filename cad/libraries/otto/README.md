@@ -29,7 +29,7 @@ Moldable code or resolve the repository's other third-party licensing questions.
 ## Files
 
 - `otto_fit.scad`: fixed reference sizes and explicitly provisional design positions.
-- `otto_core.scad`: cavities, top Type-C slot, shield posts, buzzer seat and four fit-test samples.
+- `otto_core.scad`: cavities, top Type-C slot, shield clips, buzzer seat and five fit-test samples.
 - `otto_shells.scad`: six parts, exterior styles and nonoverlapping plate layout.
 
 All modules accept parameters explicitly; built-in templates use the existing
@@ -53,3 +53,5 @@ an 80-byte credit/license header; keep this README and source with redistributio
   KCD11 rocker switch at the front right of the floor.
 - Face mounts (Nov 9): HC-SR04 and OLED held by edge guides with snap ridges instead of
   hole posts; eyes 27.0 mm apart and 5 mm proud of the face.
+- Shield (Nov 9): modelled from the user's calipers (blue Nano IO shield V3.0, 53.2 × 54.8)
+  and held by cover clips instead of posts; head 62 tall so its corners clear every style.

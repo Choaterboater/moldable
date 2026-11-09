@@ -26,7 +26,7 @@ links are recorded in the fit record without assuming their contents.
 
 Head: cube, rounded, bevel or dome. Corners: 0–12 mm. Shell growth:
 0–10 mm per side. Ears: none, round, cat or bear. Antenna: 0–30 mm. Hats: none,
-cap, top hat or helmet. Mouth: classic nose hole (default), OLED window, or grille. Every mouth uses the same 61 mm tall head: the electronics need that room. Feet: classic, boot or
+cap, top hat or helmet. Mouth: classic nose hole (default), OLED window, or grille. Every mouth uses the same 62 mm tall head: the electronics need that room. Feet: classic, boot or
 wide stable. These do not change component positions. Core interfaces are not sliders.
 
 ## Print the small fit tests first
@@ -44,6 +44,9 @@ sample pockets/openings, sometimes called **coupons**, not the printer's corners
    head**. The opening sample alone cannot verify port position.
 4. Battery bay: the loaded 4×AA holder should drop into the tray without force. The tray
    matches the gap between the hip servos.
+
+5. Shield clips: the top of the back cover with both side clips. Your shield should snap
+   in between them and sit under the two top stops without force.
 
 Fit clearance starts at **0.25 mm per side**. It is the extra room around hardware,
 not printer bed clearance. Adjust in **0.05 mm** steps within **0.1–0.5 mm** and
@@ -75,11 +78,12 @@ still requires actual slicing and prints. Keep the generated orientation.
 
 All of this is coded from reference sizes, not measured parts. See the fit record.
 
-- **Nano + I/O shield:** the shield stands upright on two posts on the back cover
-  (M3 self-tapping screws through its two top holes), Nano and plugs facing the face.
-  The Nano's Type-C port points up, and the cable plugs in through a slot in the head
-  top. The shield's bottom edge reaches about 5 mm into the body, in front of the
-  body's rear wall. The bottom holes are not used.
+- **Nano + I/O shield** (your blue shield, measured 53.2 × 54.8 mm): it stands upright on
+  the back cover, Nano and plugs facing the face, the DC jack and USB-C edge at the top.
+  Press it between the two side clips until its edges snap past them; two small stops
+  above its top edge keep it from sliding up. No screws: its holes aren't used. The
+  Nano's USB-C points up and the cable plugs in through a slot in the head top. The
+  shield's bottom edge reaches about 4.5 mm into the body, 2.5 mm above the batteries.
 - **HC-SR04:** push it in from behind, eyes through the eye holes, until it rests on the
   four corner pads and its long edges snap past the two side guides. The eyes stick out
   about 5 mm, like official Otto. No screws; the mounting holes aren't used, because their
@@ -94,7 +98,7 @@ All of this is coded from reference sizes, not measured parts. See the fit recor
 - **Buzzer:** press it sound-side down into the ring on the body floor, front left; four
   small ribs grip it. It sounds through a floor hole.
 - **Batteries:** the 4×AA holder sits flat between the hip servos, leads toward the back;
-  two posts behind it stop it sliding. The shield's lower edge sits 2.5 mm above it. Add a
+  two posts behind it stop it sliding. The shield's lower edge sits about 2.5 mm above it. Add a
   hook-and-loop dot underneath if it rattles. To change batteries, lift the head out.
 - **Power wiring:** holder red → rocker switch → shield **5 V**; holder black → shield **GND**
   (two solder joints at the switch; the switch snaps into the floor hole at the front right).

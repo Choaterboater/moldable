@@ -1704,7 +1704,7 @@ class Component extends DCLogic {
   }
 
   async downloadOttoFitTest(kind) {
-    if (![0,1,2,3].includes(kind)) return;
+    if (![0,1,2,3,4].includes(kind)) return;
     try {
       const cad = await this._loadCad();
       const generated = cad.generate('otto', this.state.modelParams.otto);
@@ -1717,7 +1717,7 @@ class Component extends DCLogic {
       });
       const url = URL.createObjectURL(new Blob([portable], { type: 'text/plain' }));
       const a = document.createElement('a');
-      a.href = url; a.download = 'Otto_fit_' + ['servo','face','usbc','battery'][kind] + '.scad';
+      a.href = url; a.download = 'Otto_fit_' + ['servo','face','usbc','battery','shield'][kind] + '.scad';
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 1500);
       this.showToast('Downloaded ' + a.download + ' — print this small fit test first');
@@ -2363,7 +2363,7 @@ class Component extends DCLogic {
       })),
       isOtto: !s.meshMode && !s.freeform && s.model === 'otto',
       ottoNotice: this._cad ? this._cad.OTTO_FIT_MESSAGE : '',
-      ottoFitTests: [ ['Servo pocket',0], ['Face mounts',1], ['Type-C opening',2], ['Battery bay',3] ].map(([name,kind]) => ({ name, onClick: () => this.downloadOttoFitTest(kind) })),
+      ottoFitTests: [ ['Servo pocket',0], ['Face mounts',1], ['Type-C opening',2], ['Battery bay',3], ['Shield clips',4] ].map(([name,kind]) => ({ name, onClick: () => this.downloadOttoFitTest(kind) })),
       hasPrintEst: !s.meshMode && !!s.printEst,
       printEstText: s.printEst ? ('≈ ' + (s.printEst.grams < 10 ? s.printEst.grams.toFixed(1) : Math.round(s.printEst.grams)) + ' g PLA  ·  ≈ $' + s.printEst.cost.toFixed(2) + '  ·  ≈ ' + s.printEst.timeLow + '–' + s.printEst.timeHigh + ' min  ·  ' + (s.printEst.dims || [0,0,0]).map(d => Math.round(d)).join('×') + ' mm') : '',
       hasPrintFit: !!(s.printEst && s.printEst.fits === false && !s.meshMode),

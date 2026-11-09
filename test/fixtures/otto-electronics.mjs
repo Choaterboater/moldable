@@ -2,27 +2,30 @@
 // z up from the ground, face toward -Y, mm. Hard-coded on purpose: these are
 // independent envelopes, NOT calls to the cavity modules they check.
 // Sizes: docs/reference/otto-fit.md (reported references, all UNMEASURED).
-// Head top 141.5, face plane y -31.75, back-cover inner face y 35.75.
+// Head top 142.5, face plane y -31.75, back-cover inner face y 35.75.
 // box: [x0,x1, y0,y1, z0,z1]; cyl (axis along Y): {x, z, r, y0, y1}; zcyl (axis along Z): {x, y, r, z0, z1}.
 const box = (x0, x1, y0, y1, z0, z1) => ({ box: [x0, x1, y0, y1, z0, z1] });
 export const OTTO_ELECTRONICS = [
   // PCB 5 mm behind the face, rear parts inside its edges (where the snap guides reach over).
-  { name: 'HC-SR04 board', shapes: [box(-22.5, 22.5, -24.75, -23.15, 116.5, 136.5), box(-19.5, 19.5, -23.15, -20.75, 117.5, 135.5)] },
+  { name: 'HC-SR04 board', shapes: [box(-22.5, 22.5, -24.75, -23.15, 117.5, 137.5), box(-19.5, 19.5, -23.15, -20.75, 118.5, 136.5)] },
   // Transducers D16 at 27.0 c-c (PartReel hc_sr04 / Cytron drawing), 5 mm proud of the face.
-  { name: 'HC-SR04 transducers', shapes: [-13.5, 13.5].map(x => ({ cyl: { x, z: 126.5, r: 8, y0: -36.75, y1: -24.75 } })) },
+  { name: 'HC-SR04 transducers', shapes: [-13.5, 13.5].map(x => ({ cyl: { x, z: 127.5, r: 8, y0: -36.75, y1: -24.75 } })) },
   // 4-pin header points down in the board plane; Dupont housings + wire bend.
-  { name: 'HC-SR04 plugs', shapes: [box(-6, 6, -24.5, -19.5, 96.5, 116.5)] },
+  { name: 'HC-SR04 plugs', shapes: [box(-6, 6, -24.5, -19.5, 97.5, 117.5)] },
   // 0.96" OLED, LCDWiki MC096 drawing, mounted upside down (header at the bottom):
   // glass on the face, PCB, rear parts inside its edges, flex cable at the top edge.
-  { name: 'OLED module', shapes: [box(-13.35, 13.35, -29.75, -28.25, 93.97, 113.23), box(-13.65, 13.65, -28.25, -26.65, 89.7, 117.5),
-    box(-11, 11, -26.65, -25.75, 90.7, 116.5), box(-7, 7, -29.75, -25.75, 113.23, 118)] },
-  { name: 'OLED plugs', shapes: [box(-6, 6, -25.75, -3.25, 88.95, 93.45)] },
-  // I/O shield 42 x 60 upright, PCB back at y 29; Nano + Dupont plugs in front.
-  { name: 'Shield PCB + Nano + plugs', shapes: [box(-21, 21, -1, 29, 78, 138)] },
-  // Solder joints behind the PCB, except around the two top screw holes.
-  { name: 'Shield solder side', shapes: [box(-21, 21, 29, 31, 78, 131.4), box(-14.5, 14.5, 29, 31, 131.4, 138)] },
+  { name: 'OLED module', shapes: [box(-13.35, 13.35, -29.75, -28.25, 94.97, 114.23), box(-13.65, 13.65, -28.25, -26.65, 90.7, 118.5),
+    box(-11, 11, -26.65, -25.75, 91.7, 117.5), box(-7, 7, -29.75, -25.75, 114.23, 119)] },
+  { name: 'OLED plugs', shapes: [box(-6, 6, -25.75, -3.25, 89.95, 94.45)] },
+  // Blue Nano IO shield V3.0 (user's calipers: 53.2 x 54.8) upright on the cover clips, top edge
+  // 9.75 below the head top: PCB, Nano + plugs in front (inside the 4.5 mm edge strips),
+  // the DC jack and the Nano's USB-C sticking out of the top edge.
+  { name: 'Shield PCB', shapes: [box(-26.6, 26.6, 27.4, 29, 77.95, 132.75)] },
+  { name: 'Shield Nano + plugs', shapes: [box(-22.1, 22.1, -1, 27.4, 77.95, 132.75), box(-20.3, -10.4, 16, 27.4, 132.75, 136.75),
+    box(-4.5, 4.5, 14.1, 17.3, 132.75, 135.75)] },
+  { name: 'Shield solder side', shapes: [box(-26.6, 26.6, 29, 31, 77.95, 132.75)] },
   // Type-C plug boot (USB-C R2.1 max 12.35 x 6.5) from the port up through the head top.
-  { name: 'Type-C plug', shapes: [box(-6.175, 6.175, 12.45, 18.95, 138, 170)] },
+  { name: 'Type-C plug', shapes: [box(-6.175, 6.175, 12.45, 18.95, 135.75, 175)] },
   ...[['L', -22], ['R', 22]].map(([s, x]) => ({ name: 'Hip servo ' + s, shapes: [
     box(x - 6.1, x + 6.1, -5.9, 16.9, 47.5, 70.2), box(x - 6.1, x + 6.1, -10.75, 21.75, 53.7, 56.2)] })),
   // 4xAA two-layer holder (LAMPVPATH B01CVJC8I4, 56 x 30 x 28) between the hip servos, leads out the rear end.

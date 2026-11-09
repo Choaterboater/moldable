@@ -12,7 +12,7 @@ otto_body_chamfer = 3; // vertical edges
 // Head prints face down. [width, height, depth incl. back cover]; the bottom
 // otto_head_insert mm sit inside the body. Head-local Y = 0 is the head top.
 // One height for every mouth: the electronics bay behind the face is fixed.
-otto_head = [63.5,61,69.5];
+otto_head = [63.5,62,69.5]; // 62 tall so the 53.2 mm shield clears every top-corner style
 otto_head_insert = 3;
 otto_head_band = 63.5; // face-to-rear depth of the insert band; drops into the 64 mm body opening
 otto_cover_lip = 3; // back-cover locating lip depth (design allowance)
@@ -34,12 +34,16 @@ otto_servo_shaft = 5.5; // shaft offset from case centre along the long axis (pr
 otto_servo_ear_hole = 14; // ear screw hole from case centre along the long axis (provisional)
 // Nano I/O shield standing upright on the back cover, Nano + Dupont plugs facing the face.
 // YwRobot "Nano Sensor Shield" reference; the ZC board is UNMEASURED.
-otto_shield = [42,60,1.6]; // [width, height, PCB thickness]
-otto_shield_holes = [35.56,53.34]; // hole spacing [across, up]; holes 3 mm
+// Blue "Nano IO Expansion Shield V3.0" (the user's ZC board), MEASURED with calipers Nov 9:
+// 53.1-53.25 across the side edges, 54.8 from the jack edge, 57.8 including the USB-C.
+// The DC jack and the Nano's USB-C stick out of the same edge, which faces up; the Nano is
+// centred (user photo). Held by its side edges, not its holes (positions vary between boards).
+otto_shield = [53.2,54.8,1.6]; // [width, height, PCB thickness]
+otto_shield_jack = [-20.3,-10.4,4]; // DC jack: [x from, x to, height above the top edge], seen from the face
+otto_shield_edge = 4.5; // flat strip along each side edge (no headers): the clips use it
 otto_shield_stack = 28.4; // Nano on female headers + Dupont plugs in front of the PCB (provisional)
 otto_shield_under = 2; // solder joints behind the PCB
-otto_standoff = [6,2.5]; // [post diameter, M3 self-tap pilot]
-otto_nano_usb = [0,11.7]; // Type-C port centre: [x, height in front of the shield PCB] (provisional)
+otto_nano_usb = [0,11.7,3.0]; // Type-C port: [x, centre height in front of the shield PCB, out past the top edge]
 // HC-SR04: Elecfreaks 45 x 20 board; transducers D16 at 27.0 c-c, centred on the board
 // (Cytron drawing + calibrated photo, via PartReel hc_sr04). UNMEASURED on your units.
 otto_sensor = [45,20,4]; // HC-SR04 PCB + rear parts, behind the transducers
@@ -79,7 +83,7 @@ otto_sensor_pos = [0,-15,7]; // PCB front face; the eyes stick out 5 mm (the OLE
 // OLED mounts upside down (pin header at the BOTTOM edge) so its rear plugs pass
 // under the HC-SR04's downward plugs; rotate the display 180 degrees in the sketch.
 otto_oled_pos = [0,-40,2]; // visible-area centre; the PCB centre sits otto_oled_offset above it
-otto_shield_top = -3.5; // y of the shield's top edge; clears the dome's rounded ceiling
+otto_shield_top = -9.75; // y of the shield's top edge: its corners clear a 12 mm bevel (the tightest style)
 otto_shield_standoff = 6.75; // back-cover inner face to the shield PCB back
 // Body-local (x across, y front-to-back, z up from the floor underside):
 otto_buzzer_pos = [-24.75,-22]; // ring merges into the side wall, clear of the battery holder
