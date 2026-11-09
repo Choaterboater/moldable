@@ -4,7 +4,7 @@ import { readFileSync, existsSync } from 'node:fs';
 import { MODELS, defaults, generate } from '../cad/scad-gen.js';
 import { keywordMatch } from '../cad/interpret.js';
 import { H2C_PROFILES } from '../cad/printers.js';
-import { checkBuildVolume, validate } from '../cad/validate.js';
+import { checkBuildVolume, validate, inspectStl } from '../cad/validate.js';
 import { OTTO_PRESETS, OTTO_OVERFLOW, OTTO_FILES, OTTO_NOTICE, OTTO_STL_CREDIT, standaloneOttoScad, creditOttoStl } from '../cad/otto.js';
 import { compiledPart, contents, compile } from './helpers/otto-engine.mjs';
 import { createUi, html } from './helpers/otto-ui.mjs';
@@ -140,8 +140,18 @@ test('Otto SCAD export has no unresolved library directives',async()=> {
   const g=generate('otto');
   assert.doesNotMatch(await standaloneOttoScad(g.source,g.files,contents),/^\s*(use|include)\s*</m);
 });
+for(let kind=0;kind<5;kind++) test('Otto fit-test STL download '+kind+' is a print-ready mesh',async()=> {
+  const {ui,downloads}=await createUi();
+  ui._runner={compile:({source,files})=>compile(source,files)};
+  await ui.downloadOttoFitTest(kind);
+  assert.match(downloads[0].name,/^Otto_fit_\w+\.stl$/);
+  const bytes=new Uint8Array(await downloads[0].blob.arrayBuffer());
+  assert.equal(new TextDecoder().decode(bytes.slice(0,80)).replace(/\0+$/,''),OTTO_STL_CREDIT);
+  const info=inspectStl(bytes);
+  assert.deepEqual([info.openEdges,info.nonManifoldEdges,info.components,Math.abs(info.min[2])<0.001],[0,0,1,true]);
+});
 for(let kind=0;kind<5;kind++) test('Otto fit-test download '+kind+' is portable',async()=> {
-  const {ui,downloads}=await createUi();await ui.downloadOttoFitTest(kind);
+  const {ui,downloads}=await createUi();await ui.downloadOttoFitTest(kind,'scad');
   const r=await compile(await downloads[0].blob.text());
   assert.equal(r.rc,0,r.log);
 });
