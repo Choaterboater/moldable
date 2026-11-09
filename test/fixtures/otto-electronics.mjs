@@ -26,17 +26,15 @@ export const OTTO_ELECTRONICS = [
   { name: 'Type-C plug', shapes: [box(-6.175, 6.175, 12.45, 18.95, 138, 170)] },
   ...[['L', -22], ['R', 22]].map(([s, x]) => ({ name: 'Hip servo ' + s, shapes: [
     box(x - 6.1, x + 6.1, -5.9, 16.9, 47.5, 70.2), box(x - 6.1, x + 6.1, -10.75, 21.75, 53.7, 56.2)] })),
-  { name: '9V battery', shapes: [box(-8.75, 8.75, -28, 20.5, 47.5, 74)] },
-  { name: '9V clip', shapes: [box(-9, 9, 20.5, 28.5, 47.5, 67.5)] },
+  // 4xAA two-layer holder (LAMPVPATH B01CVJC8I4, 56 x 30 x 28) between the hip servos, leads out the rear end.
+  { name: '4xAA holder', shapes: [box(-15, 15, -30.5, 25.5, 47.5, 75.5)] },
+  { name: 'Holder leads', shapes: [box(-4, 4, 25.5, 31.5, 50, 72)] },
   // Four crush ribs press 0.15 mm into the nominal buzzer on purpose; those zones are excluded.
-  { name: 'Buzzer', shapes: [{ zcyl: { x: -21, y: -22, r: 6, z0: 47.5, z1: 57 } }],
-    minus: [box(-15.2, -14.9, -22.6, -21.4, 47, 58), box(-27.1, -26.8, -22.6, -21.4, 47, 58),
-      box(-21.6, -20.4, -16.2, -15.9, 47, 58), box(-21.6, -20.4, -28.1, -27.8, 47, 58)] },
-  // Strap over the battery, down through the floor slots and under the floor between them.
-  { name: 'Battery strap', shapes: [box(-14.5, 14.5, 16, 21, 74, 75.5), box(-14.5, -12, 16, 21, 44, 75.5),
-    box(12, 14.5, 16, 21, 44, 75.5), box(-14.5, 14.5, 16, 21, 44, 45.5)] },
-  { name: 'DC jack', shapes: [{ zcyl: { x: -18, y: 27, r: 4, z0: 45.5, z1: 55.5 } }] },
-  { name: 'Switch', shapes: [box(10.5, 23.5, 22.5, 31.5, 45.5, 55.5)] },
+  { name: 'Buzzer', shapes: [{ zcyl: { x: -24.75, y: -22, r: 6, z0: 47.5, z1: 57 } }],
+    minus: [box(-18.95, -18.65, -22.6, -21.4, 47, 58), box(-30.85, -30.55, -22.6, -21.4, 47, 58),
+      box(-25.35, -24.15, -16.2, -15.9, 47, 58), box(-25.35, -24.15, -28.1, -27.8, 47, 58)] },
+  // KCD11 rocker (cutout 13 x 8) through the floor, terminals inside, flange under the floor.
+  { name: 'Switch', shapes: [box(18, 31, -28, -20, 43.5, 67.5), box(17, 32, -29.25, -18.75, 41.5, 45.5)] },
 ];
 export function componentScad(c) {
   const add = c.shapes.map(shapeScad).join(' ');

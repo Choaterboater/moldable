@@ -56,7 +56,8 @@ Blank actual fields mean **unmeasured**, not zero. Units: mm.
 | HC-SR04 corner holes | 2 mm, 41 × 16 centre spacing | Generic module drawings (HNX unmeasured) | |
 | OLED visible screen | 21.74 × 10.86 | Supplied plan, module drawing needed | |
 | Buzzer | Ø12; height 8.5–9.5; pins 6.5 apart | Supplied plan, vendor drawing needed | |
-| Standard 6F22 battery | 48.5 × 26.5 × 17.5 | Energizer, supplied plan | |
+| 4×AA two-layer holder | 56 × 30 × 28 (L × W × H) | [LAMPVPATH listing, Amazon B01CVJC8I4](https://www.amazon.com/dp/B01CVJC8I4) | |
+| KCD11 mini rocker switch | cutout 13 × 8, flange 15 × 10.5 | [AUXBC listing, Amazon B0H9YNMTHZ](https://www.amazon.com/dp/B0H9YNMTHZ) | |
 | Barrel plug | 5.5 × 2.1; insertion length 9.5 | Switchcraft, supplied plan | |
 
 ## Missing interfaces — do not certify fit until measured
@@ -74,9 +75,9 @@ Blank actual fields mean **unmeasured**, not zero. Units: mm.
 | OLED mounting holes | | |
 | MG90S ear thickness, hole pitch, output-axis location | | |
 | Supplied single/cross horn outline, depth and screw | | |
-| Battery with clip and spare wire | | |
-| Panel jack body and retaining hardware | | |
-| Switch body, clips and actuator | | |
+| 4×AA holder: size, lead exit side and bend room | | |
+| Switch body depth, terminals and flange height | | |
+| Shield: V pins on the 5 V rail, or a servo-power jumper | | |
 | V13 head/body interface and articulated leg/ankle axes | | |
 
 ## New design choices (V9 proportions, not V9 measurements)
@@ -101,13 +102,19 @@ electronics, so 141.5) but are prototype allowances, not measurements of the pur
 - Nano I/O shield stands upright, 42 wide × 60 tall, PCB back 6.75 mm in front of the back cover, top
   edge 3.5 mm under the head top (clears the dome's rounded ceiling). The stack in front reaches
   y −1 in the assembled frame, 2.25 mm behind the OLED plugs. Its lower 5 mm sits in the body in front of the
-  rear wall, 4 mm above the battery. Two Ø6 cover posts with Ø2.5 pilots take its top holes;
+  rear wall, 2.5 mm above the battery holder. Two Ø6 cover posts with Ø2.5 pilots take its top holes;
   the bottom holes sit below the body rim and are unused.
 - The Nano's Type-C port points up; a 12.85 × 7.0 slot with a 45° rear gable passes through the head top.
   The old rails could not take a Nano with soldered headers (pin rows hit the rail lips), so they are gone.
 - Back cover: U-shaped 3 mm lip and the two shield posts; it stops at the body rim.
-- Body floor: battery between ribs at Y −3.75 with clip allowance, Ø8 jack and 13×9 switch openings at the rear,
-  buzzer ring at X −21, Y −22 with a Ø5 sound hole through the floor.
+- Power (Nov 2026): 4×AA NiMH (4.8 V) straight to the shield's 5 V rail, as official Otto does, replacing the
+  9 V cell (USB-C 9 V Li-ion cells are typically rated 0.35–0.5 A continuous, and a linear 5 V regulator
+  would burn the extra 4 V as heat). The two-layer holder sits between the hip servo cases (31.8 gap, 0.9 per
+  side) at Y −2.5, under the shield (2.5 mm gap), with two 3 × 2 × 6 rear stop posts at X ±10 leaving the middle
+  free for its leads. The 9 V ribs, strap slots, clip allowance and DC jack are gone.
+- Body floor: KCD11 rocker cutout 13 × 8 (plus clearance) at X 24.5, Y −24; its 15 × 10.5 flange stays 18.75 mm
+  from the right hip axis, outside the 16.7 mm leg swing. Buzzer ring at X −24.75, Y −22 (merged into the side
+  wall) with a Ø5 sound hole through the floor.
 - Assembly order: shield on cover, leads plugged in, cover into head, head into body. Lift the head out
   before removing the cover (the shield's lower edge is behind the body's rear wall).
 - Provisional horn hub Ø7.4 / single arm 14 long / screw Ø2.5, recessed 2 mm with 45° roofs.
@@ -116,9 +123,7 @@ electronics, so 141.5) but are prototype allowances, not measurements of the pur
   its corner holes. With the OLED mouth, four Ø3.5 posts the glass thickness tall (1.5) carry the OLED
   PCB, with Ø1.6 pilots for M2 × 4 self-tapping screws (0.6 mm of face plate left in front).
   The OLED PCB centre sits 2.1 above the window so the upside-down active area stays centred in it.
-- Retention: four 1 mm crush ribs in the buzzer ring press 0.15 mm into a nominal Ø12 buzzer. Two 2.5 × 5
-  strap slots (plus clearance) at X ±13.25, Y 18.5 sit outside the battery ribs and outside the legs' swing
-  (16.7 mm corner radius around each hip axis). In each leg a seat in front of the top ear takes the ear screw
+- Retention: four 1 mm crush ribs in the buzzer ring press 0.15 mm into a nominal Ø12 buzzer. In each leg a seat in front of the top ear takes the ear screw
   (Ø1.8 teardrop pilot 14 mm from the case centre), with a Ø4 teardrop access hole through the rear wall.
 - Every purchased-hardware number above is a reference value. Re-check with calipers when the parts arrive.
 - No claim of V9 or V13 part interchangeability.
@@ -140,7 +145,7 @@ sample or call it passed merely because it renders.
 | Servo pocket | Actual MG90S pushes in snugly by hand | pending | | |
 | Eye ring | Actual HC-SR04 eye fits and stays retained | pending | | |
 | Type-C | Actual cable plugs into the mounted Nano | pending | | |
-| Battery | Actual cell + clip fit and closure clears | pending | | |
+| Battery | Loaded 4×AA holder drops into the tray without force | pending | | |
 
 **Validated clearance default:**
 
