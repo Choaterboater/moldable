@@ -46,7 +46,9 @@ sample pockets/openings, sometimes called **coupons**, not the printer's corners
    matches the gap between the hip servos.
 
 5. Shield clips: the top of the back cover with both side clips. Your shield should snap
-   in between them and sit under the two top stops without force.
+   in between them, its two top corner holes over the two pegs, without force. It should
+   rest on the peg shoulders and the two edge ledges, with the metal pin tails on the back
+   clear of the plastic.
 
 Fit clearance starts at **0.25 mm per side**. It is the extra room around hardware,
 not printer bed clearance. Adjust in **0.05 mm** steps within **0.1–0.5 mm** and
@@ -80,8 +82,9 @@ All of this is coded from reference sizes, not measured parts. See the fit recor
 
 - **Nano + I/O shield** (your blue shield, measured 53.2 × 54.8 mm): it stands upright on
   the back cover, Nano and plugs facing the face, the DC jack and USB-C edge at the top.
-  Press it between the two side clips until its edges snap past them; two small stops
-  above its top edge keep it from sliding up. No screws: its holes aren't used. The
+  Line its two top corner holes up with the two pegs on the cover and press it between the
+  two side clips until its edges snap past them. It rests on the peg shoulders and two edge
+  ledges, so the metal pin tails on the back stay clear of the plastic. No screws. The
   Nano's USB-C points up and the cable plugs in through a slot in the head top. The
   shield's bottom edge reaches about 4.5 mm into the body, 2.5 mm above the batteries.
 - **HC-SR04:** press it in from behind, eyes into the eye holes, until it rests on the four

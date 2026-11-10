@@ -42,7 +42,12 @@ otto_shield = [53.2,54.8,1.6]; // [width, height, PCB thickness]
 otto_shield_jack = [-20.3,-10.4,4]; // DC jack: [x from, x to, height above the top edge], seen from the face
 otto_shield_edge = 4.5; // flat strip along each side edge (no headers): the clips use it
 otto_shield_stack = 28.4; // Nano on female headers + Dupont plugs in front of the PCB (provisional)
-otto_shield_under = 2; // solder joints behind the PCB
+otto_shield_under = 3; // solder tails behind the PCB (they touched the plate on a test print with no ledges)
+// Two top mounting holes (dia 3.2, user calipers: 51.0 across their outer edges, so 47.8 c-c),
+// [x seen from the back, depth of the centre below the top edge]; depths from a photo (unmeasured).
+otto_shield_holes = [[-23.9,2.8],[23.9,4.0]];
+otto_shield_peg = [4.5,2.2]; // stepped peg: [base dia (the PCB rests on it), pin dia through the hole]
+otto_shield_ledge = 1.2; // ledge under each bare side edge: holds the PCB off the cover, tails clear
 otto_nano_usb = [0,11.7,3.0]; // Type-C port: [x, centre height in front of the shield PCB, out past the top edge]
 // HC-SR04: Elecfreaks 45 x 20 board; transducers D16 at 27.0 c-c, centred on the board
 // (Cytron drawing + calibrated photo, via PartReel hc_sr04). UNMEASURED on your units.
@@ -75,7 +80,7 @@ otto_horn_screw = 2.5;
 otto_pivot_d = 2.5;
 // NEW DESIGN placements; not verified against V9/V13 or purchased parts.
 // Head-local (x across, y down from the top, z back from the face):
-otto_eyes = [-13.5,13.5]; // 27.0 c-c (see otto_sensor)
+otto_eyes = [-13.6,13.6]; // 27.2 c-c: 27.0 printed 0.1-0.2 too close on the user's board (test print, Nov 9)
 otto_eye_d = 16.75; // snug press fit that holds the sensor, like official Otto: 17.25 at 0.25 clearance (17.0 was slightly too tight)
 otto_eye_y = -15;
 otto_nose_y = -30;

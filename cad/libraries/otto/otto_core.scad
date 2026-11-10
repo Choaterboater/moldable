@@ -98,13 +98,28 @@ module oled_window(clearance=0.25) {
 }
 
 // ---------- back cover (outside face on the bed) ----------
-// The shield snaps between two side guides on the back cover (its holes are not used:
-// positions vary between boards); two stops above its top edge, clear of the DC jack and
-// the Nano, keep it from sliding up. Its lower edge hangs 2 mm above the battery holder.
+// The shield snaps between two side guides on the back cover and rests on two edge ledges;
+// two stepped pegs through its top mounting holes set its height (fat base under the PCB,
+// thin pointed pin through the hole). Its lower edge hangs 2 mm above the battery holder.
 module shield_mount(clearance=0.25) {
   w=otto_shield[0]/2; yt=otto_shield_top; yb=-head_h_cover();
-  edge_guide(w,max(yb+1,yt-otto_shield[1]+2),yt-2,otto_wall+otto_shield_standoff+otto_shield[2],clearance);
-  for(s=[-1,1]) translate([s*(w-3.25),yt+clearance+0.75,otto_wall-0.01]) fit_box([2.5,1.5,otto_shield_standoff+otto_shield[2]+0.01]);
+  y0=max(yb+1,yt-otto_shield[1]+2);
+  edge_guide(w,y0,yt-2,otto_wall+otto_shield_standoff+otto_shield[2],clearance);
+  shield_ledges(y0,yt-2,clearance);
+  shield_pegs();
+}
+module shield_pegs() {
+  for(h=otto_shield_holes) translate([h[0],otto_shield_top-h[1],otto_wall-0.01]) {
+    cylinder(d=otto_shield_peg[0],h=otto_shield_standoff+0.01,$fn=32);
+    cylinder(d=otto_shield_peg[1],h=otto_shield_standoff+otto_shield[2]+0.8,$fn=24);
+    translate([0,0,otto_shield_standoff+otto_shield[2]+0.8-0.01]) cylinder(d1=otto_shield_peg[1],d2=1.2,h=0.8,$fn=24);
+  }
+}
+// The PCB's bare side edges rest on these, so its solder tails stay clear of the cover;
+// the snap ridges hold it from the front.
+module shield_ledges(y0, y1, clearance=0.25) {
+  w=otto_shield[0]/2;
+  for(m=[0,1]) mirror([m,0,0]) translate([w-otto_shield_ledge,y0,otto_wall-0.01]) cube([otto_shield_ledge+clearance+0.01,y1-y0,otto_shield_standoff+0.01]);
 }
 function head_h_cover() = otto_head[1]-otto_head_insert;   // the cover stops at the body rim
 
@@ -198,7 +213,8 @@ module otto_coupon(kind=0, clearance=0.25) {
     yt=otto_shield_top; w=otto_shield[0]/2;
     translate([-w-4,yt-20,0]) cube([2*w+8,24,otto_wall]);
     edge_guide(w,yt-19,yt-2,otto_wall+otto_shield_standoff+otto_shield[2],clearance);
-    for(s=[-1,1]) translate([s*(w-3.25),yt+clearance+0.75,otto_wall-0.01]) fit_box([2.5,1.5,otto_shield_standoff+otto_shield[2]+0.01]);
+    shield_ledges(yt-19,yt-2,clearance);
+    shield_pegs();
   }
   if(kind==3) difference() {   // battery holder tray: footprint and the hip-servo gap width
     fit_box([otto_battery[0]+6,otto_battery[1]+6,8]);

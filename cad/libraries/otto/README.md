@@ -52,6 +52,6 @@ an 80-byte credit/license header; keep this README and source with redistributio
 - Power: 4×AA NiMH two-layer holder between the hip servos (replaces the 9 V cell);
   KCD11 rocker switch at the front right of the floor.
 - Face mounts (Nov 9): HC-SR04 and OLED held by edge guides with snap ridges instead of
-  hole posts; eyes 27.0 mm apart and 5 mm proud of the face.
+  hole posts; eyes 27.2 mm apart and 5 mm proud of the face.
 - Shield (Nov 9): modelled from the user's calipers (blue Nano IO shield V3.0, 53.2 × 54.8)
   and held by cover clips instead of posts; head 62 tall so its corners clear every style.

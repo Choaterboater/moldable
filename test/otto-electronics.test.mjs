@@ -55,7 +55,9 @@ for (const [name, probe] of [
   ['OLED snap ridge reaches behind the PCB', near(12.15, 12.35, -25.85, -25.6, 104, 105)],
   ['OLED bottom stop sits under the PCB', near(9, 11, -28, -27, 89.4, 90.3)]
   , ['Shield snap ridge reaches in front of the PCB', near(26.33, 26.55, 26.2, 26.6, 100, 110)]
-  , ['Shield top stop sits above the PCB', near(22.5, 24.2, 28, 29, 133.2, 134.3)],
+  , ['Shield ledge holds the PCB off the cover', near(25.6, 26.4, 29, 29.4, 100, 110)]
+  , ['Shield peg pin passes through the top hole', near(23.5, 24.3, 27.6, 28.8, 128.4, 129.1)]
+  , ['Shield peg base holds the PCB off the cover', near(22, 23, 29, 29.4, 128.5, 129)],
 ]) test('Otto face mount: ' + name, async () => assert.notEqual(await hits({ headStyle: 2, mouth: 1 }, probe), null));
 // Retention: crush ribs touch the buzzer at all four zones.
 const buzzer = OTTO_ELECTRONICS.find(c => c.name === 'Buzzer');
