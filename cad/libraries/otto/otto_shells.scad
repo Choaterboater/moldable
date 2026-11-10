@@ -89,6 +89,7 @@ module head_cover_part(style=1,r=4,grow=0,mouth=0,c=0.25) {
         translate([-iw,-h-10]) square([2*iw,10+otto_head_insert]);
       }
       shield_mount(c);
+      cover_ribs(c);
     }
   }
 }

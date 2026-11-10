@@ -132,6 +132,11 @@ electronics, so 142.5) but are prototype allowances, not measurements of the pur
   on, then a Ø2.2 pin with a pointed tip. Holes Ø3.2, 51.0 across their outer edges (user calipers), so
   47.8 c-c. Hole depths below the top edge (2.8 jack side, 4.0 other side) are from a photo; the
   1 mm of play around each pin covers that.
+- Clip grip and cover ribs (Nov 10, after a test print): the shield lifted off the clips, because each
+  snap ridge reached only 0.3 mm past the PCB edge while the board has 0.5 mm of side play. The shield
+  ridges now reach 0.8 mm (the face guides keep 0.3). The back cover was loose at the plain 0.25 gap, so
+  the lip has two crush ribs per side (y −20 and −48) that press 0.2 mm into the head walls at any
+  clearance, with a lead-in at the tip.
 - Face mounts (Nov 9, after a test print): hole-based posts were dropped, because the first print's posts
   didn't line up with the real boards (the generic 41 × 16 HC-SR04 grid was off; better data says 40 × 15,
   and hole positions vary between makers). Both modules are now held by their edges:
