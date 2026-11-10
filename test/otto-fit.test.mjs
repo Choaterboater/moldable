@@ -25,15 +25,25 @@ for(const params of settings) for(const [id,name] of names[params.part].entries(
   });
 }
 // Assembled parts touch but never overlap: head band inside the body, cover lip in
-// the head, legs between the foot brackets and just under the body floor.
+// the head, legs between the foot brackets and just under the body floor. The cover's
+// crush ribs press into the head walls on purpose; those small zones are excluded.
+const ribZones=[-20,-48].flatMap(y=>[-1,1].map(s=>`translate([${s>0?29.7:-30},32.7,${142.5+y-0.7}]) cube([0.3,3.1,1.4]);`)).join(' ');
 for(const params of [{},{headStyle:0},{headStyle:3,grow:10,corner:12},{clearance:0.1},{clearance:0.5}])
 for(const [a,b] of [[0,1],[8,1],[0,8],[2,1],[3,1],[2,4],[3,5]]) test(`Otto assembled parts ${a}/${b} do not overlap ${JSON.stringify(params)}`,async()=> {
   const g=generate('otto',{...params,part:7});
   const call=g.source.match(/otto_part\(part,([^;]+)\);/);
-  const source=g.source.replace(call[0],`intersection(){ otto_placed(${a},${call[1]}); otto_placed(${b},${call[1]}); }`);
+  const both=`intersection(){ otto_placed(${a},${call[1]}); otto_placed(${b},${call[1]}); }`;
+  const source=g.source.replace(call[0],a===0&&b===8?`difference(){ ${both} union(){ ${ribZones} } }`:both);
   const r=await compile(source,g.files);
   assert.deepEqual({empty:r.stl===null,diagnostic:/Current top level object is empty/i.test(r.log),error:/ERROR:|WARNING:/i.test(r.log)},
     {empty:true,diagnostic:true,error:false},r.log);
+});
+// ...and each rib really does press into the head wall, at every clearance.
+for(const params of [{},{clearance:0.1},{clearance:0.5}]) test(`Otto back-cover crush ribs grip the head ${JSON.stringify(params)}`,async()=> {
+  const g=generate('otto',{...params,part:7});
+  const call=g.source.match(/otto_part\(part,([^;]+)\);/);
+  const r=await compile(g.source.replace(call[0],`intersection(){ otto_placed(0,${call[1]}); otto_placed(8,${call[1]}); }`),g.files);
+  assert.ok(r.stl && r.info.max[0]>29.9 && r.info.min[0]<-29.9,r.log);
 });
 // Fit-critical placements are read from the fixed file. No styling parameter is
 // referenced in the core: geometric intersection tests above also exercise this.

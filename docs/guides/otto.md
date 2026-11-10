@@ -48,7 +48,7 @@ sample pockets/openings, sometimes called **coupons**, not the printer's corners
 5. Shield clips: the top of the back cover with both side clips. Your shield should snap
    in between them, its two top corner holes over the two pegs, without force. It should
    rest on the peg shoulders and the two edge ledges, with the metal pin tails on the back
-   clear of the plastic.
+   clear of the plastic. It should take a firm press to snap in and not lift off by itself.
 
 Fit clearance starts at **0.25 mm per side**. It is the extra room around hardware,
 not printer bed clearance. Adjust in **0.05 mm** steps within **0.1–0.5 mm** and

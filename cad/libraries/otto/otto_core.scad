@@ -67,8 +67,8 @@ module usbc_top_slot(clearance=0.25) {
 // board, pins through its corner holes (secure with a melted tip or a drop of glue).
 // Edge guide along +x of a board edge at x = edge (mirrored for -x): a wall from the face plate,
 // with a 45-degree snap ridge just behind the PCB. Board edges, not screw holes, locate it.
-module edge_guide(edge, y0, y1, pcb_back, clearance) {
-  g=otto_guide; x0=edge+clearance; zr=pcb_back+clearance; d=clearance+g[2]; rise=1.2*(d+0.01);   // steeper than 45 degrees
+module edge_guide(edge, y0, y1, pcb_back, clearance, overlap=otto_guide[2]) {
+  g=otto_guide; x0=edge+clearance; zr=pcb_back+clearance; d=clearance+overlap; rise=1.2*(d+0.01);   // steeper than 45 degrees
   for(m=[0,1]) mirror([m,0,0]) {
     translate([x0,y0,otto_wall-0.01]) cube([g[0],y1-y0,zr+2*rise+0.5-otto_wall+0.01]);
     translate([0,(y0+y1)/2,0]) rotate([90,0,0]) linear_extrude(y1-y0,center=true)
@@ -104,7 +104,7 @@ module oled_window(clearance=0.25) {
 module shield_mount(clearance=0.25) {
   w=otto_shield[0]/2; yt=otto_shield_top; yb=-head_h_cover();
   y0=max(yb+1,yt-otto_shield[1]+2);
-  edge_guide(w,y0,yt-2,otto_wall+otto_shield_standoff+otto_shield[2],clearance);
+  edge_guide(w,y0,yt-2,otto_wall+otto_shield_standoff+otto_shield[2],clearance,otto_shield_snap);
   shield_ledges(y0,yt-2,clearance);
   shield_pegs();
 }
@@ -120,6 +120,15 @@ module shield_pegs() {
 module shield_ledges(y0, y1, clearance=0.25) {
   w=otto_shield[0]/2;
   for(m=[0,1]) mirror([m,0,0]) translate([w-otto_shield_ledge,y0,otto_wall-0.01]) cube([otto_shield_ledge+clearance+0.01,y1-y0,otto_shield_standoff+0.01]);
+}
+// Crush ribs on the back-cover lip: they press otto_cover_crush into the head's side walls
+// whatever the clearance, so the cover pushes in snugly and stays put. Lead-in at the tip.
+module cover_ribs(clearance=0.25) {
+  xw=otto_head[0]/2-otto_wall; l=otto_cover_lip;
+  for(m=[0,1], y=otto_cover_ribs) mirror([m,0,0]) hull() {
+    translate([xw-clearance-0.5,y-0.6,otto_wall-0.01]) cube([0.5+clearance+otto_cover_crush,1.2,l-1+0.01]);
+    translate([xw-clearance-0.5,y-0.6,otto_wall]) cube([0.5,1.2,l]);
+  }
 }
 function head_h_cover() = otto_head[1]-otto_head_insert;   // the cover stops at the body rim
 
@@ -212,7 +221,7 @@ module otto_coupon(kind=0, clearance=0.25) {
   if(kind==4) {   // shield clips: the top of the back cover with both side clips and the top stops
     yt=otto_shield_top; w=otto_shield[0]/2;
     translate([-w-4,yt-20,0]) cube([2*w+8,24,otto_wall]);
-    edge_guide(w,yt-19,yt-2,otto_wall+otto_shield_standoff+otto_shield[2],clearance);
+    edge_guide(w,yt-19,yt-2,otto_wall+otto_shield_standoff+otto_shield[2],clearance,otto_shield_snap);
     shield_ledges(yt-19,yt-2,clearance);
     shield_pegs();
   }

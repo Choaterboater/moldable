@@ -47,6 +47,9 @@ otto_shield_under = 3; // solder tails behind the PCB (they touched the plate on
 // [x seen from the back, depth of the centre below the top edge]; depths from a photo (unmeasured).
 otto_shield_holes = [[-23.9,2.8],[23.9,4.0]];
 otto_shield_peg = [4.5,2.2]; // stepped peg: [base dia (the PCB rests on it), pin dia through the hole]
+otto_shield_snap = 0.8; // clip ridge reach past the PCB edge: 0.3 let the board slip off (it has 0.5 side play)
+otto_cover_ribs = [-20,-48]; // y of the crush ribs on each side of the back-cover lip
+otto_cover_crush = 0.2; // how far each rib presses into the head wall: 0.25 gap alone was loose (test print)
 otto_shield_ledge = 1.2; // ledge under each bare side edge: holds the PCB off the cover, tails clear
 otto_nano_usb = [0,11.7,3.0]; // Type-C port: [x, centre height in front of the shield PCB, out past the top edge]
 // HC-SR04: Elecfreaks 45 x 20 board; transducers D16 at 27.0 c-c, centred on the board

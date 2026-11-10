@@ -56,6 +56,7 @@ for (const [name, probe] of [
   ['OLED bottom stop sits under the PCB', near(9, 11, -28, -27, 89.4, 90.3)]
   , ['Shield snap ridge reaches in front of the PCB', near(26.33, 26.55, 26.2, 26.6, 100, 110)]
   , ['Shield ledge holds the PCB off the cover', near(25.6, 26.4, 29, 29.4, 100, 110)]
+  , ['Shield snap ridge reaches 0.8 over the PCB edge', near(25.85, 26.1, 25.75, 26.0, 100, 110)]
   , ['Shield peg pin passes through the top hole', near(23.5, 24.3, 27.6, 28.8, 128.4, 129.1)]
   , ['Shield peg base holds the PCB off the cover', near(22, 23, 29, 29.4, 128.5, 129)],
 ]) test('Otto face mount: ' + name, async () => assert.notEqual(await hits({ headStyle: 2, mouth: 1 }, probe), null));
