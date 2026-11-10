@@ -53,7 +53,7 @@ Blank actual fields mean **unmeasured**, not zero. Units: mm.
 | Shield stack in front of the PCB | 28.4 (Nano on female headers + Dupont plugs) | Nov 1 fit check estimate | |
 | Type-C port on the shield | centred, 11.7 in front of the PCB, at the top edge, pointing up | Estimate: 8.5 female header + 1.6 PCB + half the receptacle | |
 | OLED board | 24.8 × 27.05, holes 22.8 apart (not used); active area 21.74 × 10.86, 2.1 toward the header (LCDWiki) | [LCDWiki MC096 drawing](https://www.lcdwiki.com/0.96inch_OLED_Module_SKU:MC096VX) (active area) | **24.8 × 27.05, holes 22.8 (user calipers, Nov 9)** |
-| HC-SR04 transducers | Ø16 at 27.0 c-c, centred on the board; 12 tall (holes 40 × 15, not used) | [PartReel hc_sr04](https://partreel.com/p/hc_sr04/): Cytron drawing + calibrated photo | |
+| HC-SR04 transducers | Ø16 at 27.0 c-c, centred on the board; 12 tall (holes 40 × 15, not used) | [PartReel hc_sr04](https://partreel.com/p/hc_sr04/): Cytron drawing + calibrated photo | **27.0 printed 0.1–0.2 too close; now 27.2 (test print, Nov 9)** |
 | OLED visible screen | 21.74 × 10.86 | Supplied plan, module drawing needed | |
 | Buzzer | Ø12; height 8.5–9.5; pins 6.5 apart | Supplied plan, vendor drawing needed | |
 | 4×AA two-layer holder | 56 × 30 × 28 (L × W × H) | [LAMPVPATH listing, Amazon B01CVJC8I4](https://www.amazon.com/dp/B01CVJC8I4) | |
@@ -93,7 +93,7 @@ electronics, so 142.5) but are prototype allowances, not measurements of the pur
 - Four MG90S servos: two hip servos stand shaft-down on the body floor at X ±22 (posts carry the ears,
   the shaft passes the floor into the leg's horn recess); one ankle servo inside each leg, shaft forward,
   driving a horn recessed in the foot's front bracket, with a Ø2.5 pivot pin through the rear bracket.
-- Head prints face-down with open underside and rear. HC-SR04 eyes at X ±13.5, Y −15 from the head
+- Head prints face-down with open underside and rear. HC-SR04 eyes at X ±13.6, Y −15 from the head
   top, Ø16.75 holes (17.25 printed at 0.25 clearance: a snug press fit; 17.0 was slightly too tight); its 4-pin header points down, plugs hang 20 mm below the board. Nose Ø6 at Y −30,
   OLED window centre Y −40 (mouth 1) or three grille slots (mouth 2).
 - OLED mounts upside down (header at the bottom edge) so its rear plugs pass 4 mm under the HC-SR04
@@ -105,7 +105,8 @@ electronics, so 142.5) but are prototype allowances, not measurements of the pur
   The stack in front (24–25 mm measured to the top pin; 28.4 allowed for plugs and wire bends) reaches y −1 in
   the assembled frame, 2.25 mm behind the OLED plugs. Its lower 4.5 mm sits in the body, 2.5 mm above the
   battery holder. Two 1.6 mm side clips on the cover (snap ridges 0.3 mm past the PCB edges, inside the 4.5 mm
-  header-free edge strips) and two stops above the top edge, clear of the DC jack, hold it. No screws.
+  header-free edge strips), two 1.2 mm edge ledges and two stepped pegs in its top mounting holes hold it.
+  No screws.
 - The Nano's Type-C port points up; a 12.85 × 7.0 slot with a 45° rear gable passes through the head top.
   The old rails could not take a Nano with soldered headers (pin rows hit the rail lips), so they are gone.
 - Back cover: U-shaped 3 mm lip and the two shield clips; it stops at the body rim.
@@ -120,7 +121,17 @@ electronics, so 142.5) but are prototype allowances, not measurements of the pur
 - Assembly order: shield on cover, leads plugged in, cover into head, head into body. Lift the head out
   before removing the cover (the shield's lower edge is behind the body's rear wall).
 - Provisional horn hub Ø7.4 / single arm 14 long / screw Ø2.5, recessed 2 mm with 45° roofs.
-- Provisional USB opening 12.85×7.0 at clearance 0.25. The real plastic cable boot may be larger.
+- Provisional USB opening 12.85×7.0 at clearance 0.25. It is sized for the cable's plastic boot, not the
+  port: the Nano's port sits about 7 mm under the head top, so the boot has to pass through the wall.
+  The real plastic cable boot may be larger or smaller.
+- Shield ledges (Nov 9, after a test print): with only the snap ridges, the shield slid back until its
+  solder tails touched the cover. Two 1.2 mm ledges under its bare side edges now hold the PCB back
+  6.75 mm off the cover (tails up to 3 mm clear); the snap ridges hold it from the front.
+- Shield pegs (Nov 9, after the same print): the two top stops ended up inside the shield's top mounting
+  holes but sat too close together. They are now stepped pegs in those holes: a Ø4.5 base the PCB rests
+  on, then a Ø2.2 pin with a pointed tip. Holes Ø3.2, 51.0 across their outer edges (user calipers), so
+  47.8 c-c. Hole depths below the top edge (2.8 jack side, 4.0 other side) are from a photo; the
+  1 mm of play around each pin covers that.
 - Face mounts (Nov 9, after a test print): hole-based posts were dropped, because the first print's posts
   didn't line up with the real boards (the generic 41 × 16 HC-SR04 grid was off; better data says 40 × 15,
   and hole positions vary between makers). Both modules are now held by their edges:

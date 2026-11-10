@@ -11,7 +11,7 @@ module otto_dummy(part,id) {
     if(id==1) dummy_box([12.35,35.25,6.5],[0,10.875,47.45]); // Type-C plug boot, from the port up through the head top
     if(id==2) { // HC-SR04: PCB 5 mm behind the face, rear parts inside its edges, eyes 5 mm proud, downward plugs
       dummy_box([45,20,1.6],[0,-15,7.8]); dummy_box([39,18,2.4],[0,-15,9.8]);
-      for(x=[-13.5,13.5]) translate([x,-15,-5]) cylinder(d=16,h=12,$fn=48);
+      for(x=[-13.6,13.6]) translate([x,-15,-5]) cylinder(d=16,h=12,$fn=48);
       dummy_box([12,20,5],[0,-35,9.75]);
     }
     if(id==3) { // OLED upside down: glass on the face, PCB, rear parts inside its edges, flex at the top edge, rear plugs at the bottom
@@ -43,7 +43,10 @@ module otto_dummy(part,id) {
     if(id==1) translate([0,20,17]) rotate([90,0,0]) cylinder(d=2.5,h=5,$fn=24); // pivot pin
   }
   if(part==8) if(id==0) { // IO shield on the cover clips: solder side, PCB, Nano + plugs inside the edge strips, jack, USB-C
-    dummy_box([53.2,54.8,2],[0,-37.15,7.75]); dummy_box([53.2,54.8,1.6],[0,-37.15,9.55]);
+    difference() { // tails inside the ledges and clear of the peg bases; PCB with its two top mounting holes
+      union() { dummy_box([50.2,54.8,3],[0,-37.15,7.25]); dummy_box([53.2,54.8,1.6],[0,-37.15,9.55]); }
+      for(h=[[-23.9,-12.55],[23.9,-13.75]]) { translate([h[0],h[1],5]) cylinder(d=4.7,h=3.8,$fn=32); translate([h[0],h[1],5]) cylinder(d=3.2,h=10,$fn=32); }
+    }
     dummy_box([44.2,54.8,28.4],[0,-37.15,24.55]);
     dummy_box([9.9,4,11.4],[-15.35,-7.75,16.05]); dummy_box([9,3,3.2],[0,-8.25,22.05]);
   }

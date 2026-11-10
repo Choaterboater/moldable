@@ -8,8 +8,8 @@ const box = (x0, x1, y0, y1, z0, z1) => ({ box: [x0, x1, y0, y1, z0, z1] });
 export const OTTO_ELECTRONICS = [
   // PCB 5 mm behind the face, rear parts inside its edges (where the snap guides reach over).
   { name: 'HC-SR04 board', shapes: [box(-22.5, 22.5, -24.75, -23.15, 117.5, 137.5), box(-19.5, 19.5, -23.15, -20.75, 118.5, 136.5)] },
-  // Transducers D16 at 27.0 c-c (PartReel hc_sr04 / Cytron drawing), 5 mm proud of the face.
-  { name: 'HC-SR04 transducers', shapes: [-13.5, 13.5].map(x => ({ cyl: { x, z: 127.5, r: 8, y0: -36.75, y1: -24.75 } })) },
+  // Transducers D16 at 27.2 c-c (27.0 printed 0.1-0.2 too close) (PartReel hc_sr04 / Cytron drawing), 5 mm proud of the face.
+  { name: 'HC-SR04 transducers', shapes: [-13.6, 13.6].map(x => ({ cyl: { x, z: 127.5, r: 8, y0: -36.75, y1: -24.75 } })) },
   // 4-pin header points down in the board plane; Dupont housings + wire bend.
   { name: 'HC-SR04 plugs', shapes: [box(-6, 6, -24.5, -19.5, 97.5, 117.5)] },
   // 0.96" OLED (user's YouKeyi: 24.8 x 27.05 measured), mounted upside down (header at the bottom):
@@ -20,10 +20,12 @@ export const OTTO_ELECTRONICS = [
   // Blue Nano IO shield V3.0 (user's calipers: 53.2 x 54.8) upright on the cover clips, top edge
   // 9.75 below the head top: PCB, Nano + plugs in front (inside the 4.5 mm edge strips),
   // the DC jack and the Nano's USB-C sticking out of the top edge.
-  { name: 'Shield PCB', shapes: [box(-26.6, 26.6, 27.4, 29, 77.95, 132.75)] },
+  { name: 'Shield PCB', shapes: [box(-26.6, 26.6, 27.4, 29, 77.95, 132.75)],   // minus its two top mounting holes (pegs)
+    minus: [{ cyl: { x: -23.9, z: 129.95, r: 1.6, y0: 27, y1: 29.5 } }, { cyl: { x: 23.9, z: 128.75, r: 1.6, y0: 27, y1: 29.5 } }] },
   { name: 'Shield Nano + plugs', shapes: [box(-22.1, 22.1, -1, 27.4, 77.95, 132.75), box(-20.3, -10.4, 16, 27.4, 132.75, 136.75),
     box(-4.5, 4.5, 14.1, 17.3, 132.75, 135.75)] },
-  { name: 'Shield solder side', shapes: [box(-26.6, 26.6, 29, 31, 77.95, 132.75)] },
+  { name: 'Shield solder side', shapes: [box(-25.1, 25.1, 29, 32, 77.95, 132.75)],   // tails inside the edge ledges, clear of the peg bases
+    minus: [{ cyl: { x: -23.9, z: 129.95, r: 2.35, y0: 28.9, y1: 32.1 } }, { cyl: { x: 23.9, z: 128.75, r: 2.35, y0: 28.9, y1: 32.1 } }] },
   // Type-C plug boot (USB-C R2.1 max 12.35 x 6.5) from the port up through the head top.
   { name: 'Type-C plug', shapes: [box(-6.175, 6.175, 12.45, 18.95, 135.75, 175)] },
   ...[['L', -22], ['R', 22]].map(([s, x]) => ({ name: 'Hip servo ' + s, shapes: [
