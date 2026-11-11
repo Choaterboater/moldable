@@ -58,11 +58,14 @@ module head_part(style=1,r=4,grow=0,ear=0,ant=0,hat=0,mouth=0,c=0.25) {
         translate([0,0,otto_wall]) linear_extrude(head_depth()) head_cavity_outline(style,r,mouth);
       }
       ears(ear,otto_head[0]/2+grow,grow); antenna(ant,grow); hats(hat,grow);
+      if(grow<=1) head_snap();   // ridges on the insert band click into the body rim (thicker shells can't flex: plain slip fit)
     }
     // Behind the insert band the head rests on the body's rear rim instead.
     translate([-100,-head_h(mouth)-1,otto_head_band]) cube([200,otto_head_insert+1,100]);
     hcsr04_eyes(c);
     usbc_top_slot(c);
+    // Grooves the back cover's side ridges snap into (0.15 deeper than the ridge).
+    cover_latch(otto_head[2]-otto_wall-otto_latch_z,otto_head[0]/2-otto_wall-0.01,otto_head[0]/2-otto_wall+otto_latch+0.15);
     if(mouth==0) translate([0,otto_nose_y,-1]) cylinder(d=otto_nose_d,h=otto_wall+2,$fn=32);
     if(mouth==1) oled_window(c);
     if(mouth==2) for(x=[-8,0,8]) translate([x,otto_grille_y,-1]) fit_box([3,8,otto_wall+2],c);
@@ -73,7 +76,8 @@ module head_part(style=1,r=4,grow=0,ear=0,ant=0,hat=0,mouth=0,c=0.25) {
   }
 }
 // Back cover: outside face on the bed. A U-shaped lip locates it in the head's
-// open rear and two edge clips carry the I/O shield. It sits behind the body, so it
+// open rear, a ridge on each side of the lip snaps into the head walls, and two
+// edge clips carry the I/O shield. It sits behind the body, so it
 // stops at the body rim (no insert band); the bottom stays open.
 module head_cover_part(style=1,r=4,grow=0,mouth=0,c=0.25) {
   h=head_h(mouth); iw=otto_head[0]-2*otto_wall;
@@ -90,6 +94,8 @@ module head_cover_part(style=1,r=4,grow=0,mouth=0,c=0.25) {
       }
       shield_mount(c);
       cover_ribs(c);
+      // Snap ridges: the head's side walls spring over them, so the cover stays on without glue.
+      if(grow<=1) cover_latch(otto_wall+otto_latch_z,otto_head[0]/2-otto_wall-c-0.01,otto_head[0]/2-otto_wall+otto_latch);
     }
   }
 }
@@ -117,10 +123,14 @@ module leg_part(side=0,c=0.25) {
   difference() {
     union() {
       difference() {
-        linear_extrude(otto_leg[2]) offset(delta=ch,chamfer=true) square([otto_leg[0]-2*ch,otto_leg[1]-2*ch],center=true);
+        intersection() {
+          linear_extrude(otto_leg[2]) offset(delta=ch,chamfer=true) square([otto_leg[0]-2*ch,otto_leg[1]-2*ch],center=true);
+          leg_swing_envelope();   // bottom corners rounded about the ankle axis
+        }
         leg_cavities(c);
       }
       ankle_ear_seat(c);
+      horn_ribs(c);
     }
     ankle_ear_screw(c);
   }
@@ -152,12 +162,12 @@ module otto_single(part=0,headStyle=1,corner=4,grow=0,ear=0,ant=0,hat=0,mouth=0,
 // Robot in walking pose, front facing -Y, every part on its real interface:
 // feet on the ground, legs pivot between the foot brackets, hip horns 1 mm under
 // the body floor, head dropped otto_head_insert into the body, cover flush at the rear.
-function leg_bottom_z() = otto_sole+otto_leg_gap;
-function body_z() = leg_bottom_z()+otto_leg[2]+otto_leg_gap;
+function leg_bottom_z() = otto_sole+otto_ankle_gap;
+function body_z() = leg_bottom_z()+otto_leg[2]+otto_hip_gap;
 module otto_placed(part=0,headStyle=1,corner=4,grow=0,ear=0,ant=0,hat=0,mouth=0,feet=0,clearance=0.25) {
   head_bottom=body_z()+otto_body[2]-otto_head_insert; top=head_bottom+head_h(mouth); d=otto_head[2];
   face=-otto_head_band/2;   // face plane; the extra head depth goes to the rear
-  if(part==2 || part==3) translate([otto_hip_x[part-2],otto_hip_y,body_z()-otto_leg_gap]) rotate([0,180,0])
+  if(part==2 || part==3) translate([otto_hip_x[part-2],otto_hip_y,body_z()-otto_hip_gap]) rotate([0,180,0])
     otto_single(part,headStyle,corner,grow,ear,ant,hat,mouth,feet,clearance);
   if(part==4 || part==5) translate([otto_hip_x[part-4],otto_hip_y,0])
     otto_single(part,headStyle,corner,grow,ear,ant,hat,mouth,feet,clearance);

@@ -29,6 +29,7 @@ function envelope(model, p) {
           // Accessories extend upward in the face plane because the head prints face-down.
           y += Math.max(m.antenna ? m.antenna + 4 : 0, m.hat ? 29 : 0, m.ears ? 14 : 0);
           z -= wall;
+          x = Math.max(x, 64 + 2*0.45);   // snap ridges on the insert band reach 0.45 into the body walls (cavity 64)
         } else { y -= 3; z = wall + 6.75; }   // cover stops at the body rim; plate + shield posts
         return {x, y, z};
       }

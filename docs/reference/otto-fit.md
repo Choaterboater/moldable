@@ -84,7 +84,7 @@ Blank actual fields mean **unmeasured**, not zero. Units: mm.
 
 `cad/libraries/otto/otto_fit.scad` keeps these fixed. They follow Otto V9's overall
 proportions (V9 assembled height 117.5; this head is 25 mm taller for the
-electronics, so 142.5) but are prototype allowances, not measurements of the purchased parts:
+electronics and the joints need 3.5 mm more, so 146) but are prototype allowances, not measurements of the purchased parts:
 
 - Head 63.5 wide × 62 tall × 69.5 deep including the 2 mm back cover, the same for every mouth.
   Its bottom 3 mm band (63.5 deep from the face) drops inside the body; behind the band the head
@@ -107,9 +107,16 @@ electronics, so 142.5) but are prototype allowances, not measurements of the pur
   battery holder. Two 1.6 mm side clips on the cover (snap ridges 0.3 mm past the PCB edges, inside the 4.5 mm
   header-free edge strips), two 1.2 mm edge ledges and two stepped pegs in its top mounting holes hold it.
   No screws.
-- The Nano's Type-C port points up; a 12.85 × 7.0 slot with a 45° rear gable passes through the head top.
+- The Nano's Type-C port points up; a 14.5 × 8.5 slot with a 45° rear gable passes through the head top
+  (Nov 10: enlarged from 12.85 × 7.0 so a cable boot bigger than the USB spec still reaches the port; raising the
+  shield instead gains only 3 mm before the DC jack meets the head top, and breaks the bevel and dome corners).
   The old rails could not take a Nano with soldered headers (pin rows hit the rail lips), so they are gone.
-- Back cover: U-shaped 3 mm lip and the two shield clips; it stops at the body rim.
+- Back cover: U-shaped 3 mm lip and the two shield clips; it stops at the body rim. A 50° ridge 18 mm long on
+  each side of the lip (Y −40 to −22, 0.45 mm into the wall) snaps into a groove in the head's side walls, so the
+  cover stays on without glue (Nov 10: the first print's cover had nothing holding it). Push it out from inside.
+- Head on body (Nov 10): the same 50° ridge, 20 mm long, on each side of the head's 3 mm insert band (22–42 mm
+  back from the face) clicks into a groove 1.5 mm under the body rim. The band's free bottom edge flexes inward.
+  The ridges run straight up when the head prints face-down, with a ramped lower end.
 - Power (Nov 2026): 4×AA NiMH (4.8 V) straight to the shield's 5 V rail, as official Otto does, replacing the
   9 V cell (USB-C 9 V Li-ion cells are typically rated 0.35–0.5 A continuous, and a linear 5 V regulator
   would burn the extra 4 V as heat). The two-layer holder sits between the hip servo cases (31.8 gap, 0.9 per
@@ -118,10 +125,35 @@ electronics, so 142.5) but are prototype allowances, not measurements of the pur
 - Body floor: KCD11 rocker cutout 13 × 8 (plus clearance) at X 24.5, Y −24; its 15 × 10.5 flange stays 18.75 mm
   from the right hip axis, outside the 16.7 mm leg swing. Buzzer ring at X −24.75, Y −22 (merged into the side
   wall) with a Ø5 sound hole through the floor.
-- Assembly order: shield on cover, leads plugged in, cover into head, head into body. Lift the head out
+- Assembly order: hip servos into the body; trimmed horns into the leg tops, legs onto the hip shafts, horn
+  screws from inside the legs; ankle servos up into the legs (lead out of a side notch, ear screw through the
+  rear-wall hole); horns onto the ankle shafts, legs down into the feet, horn screws from the front, pivot screws
+  from the rear; then shield on cover, leads plugged in, cover into head, head into body. Lift the head out
   before removing the cover (the shield's lower edge is behind the body's rear wall).
-- Provisional horn hub Ø7.4 / single arm 14 long / screw Ø2.5, recessed 2 mm with 45° roofs.
-- Provisional USB opening 12.85×7.0 at clearance 0.25. It is sized for the cable's plastic boot, not the
+- Provisional horn hub Ø7.4 / single arm **trimmed to 11 mm** from the centre (4.5 wide at the cut), recessed with 45° roofs.
+- Joints (Nov 10 redesign; the old 1 mm gaps and closed horn pockets could not be assembled, because the
+  dummies had no boss, spline or horn). Reference stack, UNMEASURED: MG90S boss Ø11.8 × 5.6 with a raised gear
+  housing beside it, spline 4.1 more, horn 4 thick, ears 1.8 behind the shaft face (SG90: boss 4.0, ears 4.2).
+  - Hip: posts stay 4.2 tall (an SG90 rests on the floor, an MG90S hangs 2.4 above it; the boss ends 1–2 mm under
+    the floor either way). The floor hole is a 12.5 × 18 slot for the gear housing; ear-screw pilots run through
+    the floor so a stock 8 mm screw never bottoms out. Nominal body-to-leg gap 3 mm; the horn sets the real one.
+  - Hip horn pocket in the leg top: 2 mm deep, with a Ø5.8 hole through to the leg cavity, so the stock horn
+    screw is driven from inside the leg with its head on the horn. Four 0.15 mm crush ribs grip the arm (the leg
+    hangs from them when the robot is lifted; add a drop of glue if the real horn is loose).
+  - Ankle: front bracket 6 thick, 3 mm from the leg, with a keyhole open to its top (4.8 deep, 1.2 web: room for
+    boss 5.6 + spline 4 + a 1 mm horn end wall): the leg
+    drops in with the horn already on the servo. The horn screw goes in from outside through a Ø5.8 hole; its
+    head in that hole also stops the foot sliding off. Rear bracket 5 thick (an 8 mm screw then stops about 1 mm short of the servo case), 1.5 mm from the leg; the pivot is
+    a servo ear screw threaded into a Ø1.8 pilot there, its tip turning in a Ø2.7 bore in the leg's rear wall.
+  - Leg: U-slot widened for the gear housing; ear seat only 1.8 deep so an MG90S ear slides past; bottom corners
+    rounded to R13 about the ankle axis and the leg raised 2.5 mm off the sole, so it rolls ±30° (tested);
+    lead notches at the bottom rear of both side walls.
+  - Body floor: a 9 × 3.7 slot behind each hip servo (Y 27) passes the ankle servo's plug.
+  - Both snaps exist only for Shell growth ≤ 1; thicker shells cannot flex, so they keep the plain slip fit.
+  - Independent review (Nov 10) found and fixed: horn pocket 1 mm too shallow for a horn with a closed end, the
+    pivot screw reaching the servo case, the ear-screw access hole (Ø4) smaller than the screw head (now Ø5.1),
+    and pockets too narrow at the cut end of a trimmed horn.
+- Provisional USB opening 14.5×8.5 at clearance 0.25 (boot allowance 14 × 8; spec maximum 12.35 × 6.5). It is sized for the cable's plastic boot, not the
   port: the Nano's port sits about 7 mm under the head top, so the boot has to pass through the wall.
   The real plastic cable boot may be larger or smaller.
 - Shield ledges (Nov 9, after a test print): with only the snap ridges, the shield slid back until its
@@ -149,7 +181,7 @@ electronics, so 142.5) but are prototype allowances, not measurements of the pur
   - The OLED PCB centre sits 2.1 above the window so the upside-down active area stays centred in it.
   - The "Face mounts" fit test is a strip of the face with both mounts, for checking the real boards.
 - Retention: four 1 mm crush ribs in the buzzer ring press 0.15 mm into a nominal Ø12 buzzer. In each leg a seat in front of the top ear takes the ear screw
-  (Ø1.8 teardrop pilot 14 mm from the case centre), with a Ø4 teardrop access hole through the rear wall.
+  (Ø1.8 teardrop pilot 14 mm from the case centre), with a Ø5.1 teardrop access hole through the rear wall (the screw head passes it).
 - Every purchased-hardware number above is a reference value. Re-check with calipers when the parts arrive.
 - No claim of V9 or V13 part interchangeability.
 

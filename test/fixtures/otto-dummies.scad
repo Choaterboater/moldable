@@ -22,9 +22,11 @@ module otto_dummy(part,id) {
     }
   }
   if(part==1) {
-    for(s=[0,1]) if(id==s) translate([s==0?-22:22,0,0]) { // hip servo, shaft down
-      dummy_box([12.2,22.8,22.7],[0,5.5,13.35]);
-      dummy_box([12.2,32.5,2.5],[0,5.5,7.45]); // mounting ears
+    for(s=[0,1]) if(id==s) translate([s==0?-22:22,0,0]) { // hip servo, shaft down: an SG90 rests on the floor, an MG90S hangs 2.4 higher on its ears
+      dummy_box([12.2,22.8,25.1],[0,5.5,14.55]);
+      dummy_box([12.2,32.5,2.5],[0,5.5,7.45]); // mounting ears on the 4.2 posts
+      hull() { translate([0,0,-2]) cylinder(d=11.8,h=6.4,$fn=48); translate([0,5,-2]) cylinder(d=9,h=6.4,$fn=32); } // boss + raised gear housing, through the floor
+      translate([0,0,-6.1]) cylinder(d=4.8,h=4.2,$fn=24); // output spline under the floor
     }
     if(id==2) dummy_box([30,56,28],[0,-2.5,16]); // 4xAA two-layer holder
     if(id==3) dummy_box([8,6,22],[0,28.5,15.5]); // holder leads leaving the rear end
@@ -35,12 +37,32 @@ module otto_dummy(part,id) {
     }
   }
   if(part==2 || part==3) {
-    if(id==0) { dummy_box([12.2,22.7,22.8],[0,0,22]); dummy_box([12.2,2.5,32.5],[0,-5.9,22]); } // ankle servo + ears
-    if(id==1) cylinder(d=7,h=2,$fn=32); // hip horn hub
+    if(id==0) { // ankle servo, shaft forward: case, ears anywhere from 1.8 (MG90S) to 6.7 (SG90) behind the shaft face,
+      // boss + raised gear housing through the U-slot, spline beyond
+      dummy_box([12.2,22.7,22.8],[0,0,22]); dummy_box([12.2,4.9,32.5],[0,-7.1,22]);
+      translate([0,-11.35,27.5]) rotate([90,0,0]) { hull() { cylinder(d=11.8,h=5.6,$fn=48); translate([0,-5,0]) cylinder(d=9,h=5.6,$fn=32); } cylinder(d=4.8,h=9.7,$fn=24); }
+    }
+    if(id==1) { // hip horn in its pocket, hub up, with its screw head inside the leg.
+      // Arm at its nominal width (4.5 where it is cut); only the four crush-rib zones, which press 0.15 into it
+      // on purpose, are left out.
+      translate([0,0,-2]) cylinder(d=7,h=4,$fn=32);
+      difference() {
+        translate([0,0,0.5]) linear_extrude(1.5) polygon([[-3,0],[3,0],[2.25,11],[-2.25,11]]);
+        for(m=[0,1]) mirror([m,0,0]) { translate([2.5,3.9,0]) cube([1,1,3]); translate([2.2,7.75,0]) cube([1,1,3]); }
+      }
+      translate([0,0,2]) cylinder(d=4.8,h=1.8,$fn=24);
+    }
+    if(id==2) translate([0,15.5,27.5]) rotate([90,0,0]) cylinder(d=2.2,h=4,$fn=24); // tip of the pivot screw in its bore
   }
   if(part==4 || part==5) {
-    if(id==0) translate([0,-16,17]) rotate([90,0,0]) cylinder(d=7,h=1.5,$fn=32); // ankle horn hub
-    if(id==1) translate([0,20,17]) rotate([90,0,0]) cylinder(d=2.5,h=5,$fn=24); // pivot pin
+    if(id==0) translate([0,-17.5,18.5]) rotate([90,0,0]) { // ankle horn in the keyhole, placed from the spline tip outward:
+      // 4 mm hub with a 1 mm closed end beyond the 4.1 mm spline, arm pointing down, screw head in the web
+      translate([0,0,0.55]) cylinder(d=7,h=4,$fn=32);
+      translate([0,0,3.05]) linear_extrude(1.5) mirror([0,1]) polygon([[-3,0],[3,0],[2.2,11],[-2.2,11]]);
+      translate([0,0,4.55]) cylinder(d=4.8,h=1.6,$fn=24);
+    }
+    // ankle servo boss + raised gear housing in the gap between the leg and the front bracket
+    if(id==1) translate([0,-11.35,18.5]) rotate([90,0,0]) hull() { cylinder(d=11.8,h=5.6,$fn=48); translate([0,5,0]) cylinder(d=9,h=5.6,$fn=32); }
   }
   if(part==8) if(id==0) { // IO shield on the cover clips: solder side, PCB, Nano + plugs inside the edge strips, jack, USB-C
     difference() { // tails inside the ledges and clear of the peg bases; PCB with its two top mounting holes

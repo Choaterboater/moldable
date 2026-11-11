@@ -2,18 +2,18 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { generate } from '../cad/scad-gen.js';
 import { compile } from './helpers/otto-engine.mjs';
-import { OTTO_ELECTRONICS, componentScad, bounds } from './fixtures/otto-electronics.mjs';
+import { OTTO_ELECTRONICS, LIFT, componentScad, bounds } from './fixtures/otto-electronics.mjs';
 
 // Every purchased component + its plugs, placed in the assembled robot, must clear
 // every printed part for every head style, mouth and shell extreme, and must not
 // overlap another component. Passing proves only that the coded envelopes fit;
 // the hardware itself is unmeasured (docs/reference/otto-fit.md).
 const PARTS = [0, 1, 2, 3, 4, 5, 8];
-async function hits(params, components) {
+async function hits(params, components, parts = PARTS) {
   const g = generate('otto', { ...params, part: 7 });
   const call = g.source.match(/otto_part\(part,([^;]+)\);/);
-  const parts = PARTS.map(i => `otto_placed(${i},${call[1]});`).join(' ');
-  const r = await compile(g.source.replace(call[0], `intersection(){ union(){ ${parts} } union(){ ${components.map(componentScad).join(' ')} } }`), g.files);
+  const placed = parts.map(i => `otto_placed(${i},${call[1]});`).join(' ');
+  const r = await compile(g.source.replace(call[0], `intersection(){ union(){ ${placed} } union(){ ${components.map(componentScad).join(' ')} } }`), g.files);
   // An empty intersection exits 1; do not mistake a parser/library error for success.
   assert.doesNotMatch(r.log, /ERROR:|WARNING:/i, r.log);
   if (r.stl) return { min: r.info.min.map(v => +v.toFixed(2)), max: r.info.max.map(v => +v.toFixed(2)) };
@@ -22,7 +22,7 @@ async function hits(params, components) {
 }
 
 test('Otto electronics check detects a real collision (control)', async () => {
-  assert.notEqual(await hits({}, [{ shapes: [{ box: [-5, 5, -33, -30, 100, 105] }] }]), null);   // crosses the face plate
+  assert.notEqual(await hits({}, [{ shapes: [{ box: [-5, 5, -33, -30, 100 + LIFT, 105 + LIFT] }] }]), null);   // crosses the face plate
 });
 for (let i = 0; i < OTTO_ELECTRONICS.length; i++) for (let j = i + 1; j < OTTO_ELECTRONICS.length; j++) {
   const [a, b] = [OTTO_ELECTRONICS[i], OTTO_ELECTRONICS[j]];
@@ -48,7 +48,7 @@ for (const params of settings) test('Otto electronics fit, all components ' + JS
 });
 // The face holds both modules by their edges (no screw holes): pads touch the HC-SR04 PCB,
 // snap ridges reach behind both PCBs, and two stops sit under the OLED's bottom corners.
-const near = (x0, x1, y0, y1, z0, z1) => [{ shapes: [{ box: [x0, x1, y0, y1, z0, z1] }] }];
+const near = (x0, x1, y0, y1, z0, z1) => [{ shapes: [{ box: [x0, x1, y0, y1, z0 + LIFT, z1 + LIFT] }] }];   // z as written for the old frame
 for (const [name, probe] of [
   ['HC-SR04 corner pad touches the PCB front', near(20.5, 21.5, -24.8, -24.76, 135.5, 136.5)],
   ['HC-SR04 side guide sits beside the PCB', near(22.8, 23.2, -24.2, -23.4, 126, 128)],
@@ -73,9 +73,17 @@ async function legHits(box) {
   assert.doesNotMatch(r.log, /ERROR:|WARNING:/i, r.log);
   return r.stl !== null;
 }
-test('Otto ankle servo ear is backed by a screw seat', async () => assert.equal(await legHits([2, 3, -8, -7.5, 7.5, 8.5]), true));
-test('Otto ankle ear seat has a screw pilot', async () => assert.equal(await legHits([-0.5, 0.5, -10, -7.5, 7.6, 8.4]), false));
-test('Otto ankle ear screw is reachable through the rear wall', async () => assert.equal(await legHits([-1, 1, 11, 16, 7, 9]), false));
+test('Otto ankle servo ear is backed by a screw seat', async () => assert.equal(await legHits([2, 3, -10.6, -10.1, 7.5, 8.5]), true));
+// An MG90S ear starts only 1.8 mm behind the shaft face: nothing may stand in its way as the servo slides in.
+test('Otto ankle ear seat leaves room for an MG90S ear', async () => assert.equal(await legHits([-6, 6, -9.5, -7.1, 5.8, 10]), false));
+test('Otto ankle ear seat has a screw pilot', async () => assert.equal(await legHits([-0.5, 0.5, -11.5, -9.9, 7.6, 8.4]), false));
+// The whole screw head (up to 4.2 across) has to pass the rear wall, not just the driver.
+test('Otto ankle ear screw head passes the rear wall', async () => assert.equal(await legHits([-1.7, 1.7, 11, 16, 6.3, 9.7]), false));
+test('Otto leg lead notch, wall +x', async () => assert.equal(await legHits([6.5, 8.1, 7, 11, 34, 38.4]), false));
+test('Otto leg lead notch, wall -x', async () => assert.equal(await legHits([-8.1, -6.5, 7, 11, 34, 38.4]), false));
+// Crush ribs in the hip pocket: each probe lies inside the nominal horn arm, where only a rib can be.
+for (const [i, b] of [[2.57, 2.65, 4.1, 4.7], [-2.65, -2.57, 4.1, 4.7], [2.31, 2.39, 7.95, 8.55], [-2.39, -2.31, 7.95, 8.55]].entries())
+  test('Otto hip horn crush rib grips the arm at zone ' + i, async () => assert.equal(await legHits([...b, 0.6, 1.9]), true));
 // The rocker flange sits under the floor, in the plane the legs swing through: keep it
 // outside the circle a leg corner sweeps around each hip axis.
 test('Otto switch flange clears the leg swing', () => {
@@ -87,4 +95,33 @@ test('Otto switch flange clears the leg swing', () => {
   }
 });
 test('Otto battery holder is stopped at the rear by a post', async () =>
-  assert.notEqual(await hits({}, [{ shapes: [{ box: [9, 11, 25.6, 26.2, 48, 52] }] }]), null));
+  assert.notEqual(await hits({}, [{ shapes: [{ box: [9, 11, 25.6, 26.2, 48 + LIFT, 52 + LIFT] }] }]), null));
+// Joints and latch (Nov 10), probed in the assembled frame (head top 146, ankle axis z 18.5, body floor z 49-51).
+const probe = (...b) => [{ shapes: [{ box: b }] }];
+for (const [name, box, solid, parts] of [
+  ['Cover snap ridge stands on the cover lip', [29.85, 30.1, 33.95, 34.15, 110, 120], true, [8]],
+  ['Head side wall has the groove for the cover ridge', [29.85, 30.1, 33.95, 34.15, 110, 120], false, [0]],
+  ['Foot keyhole is open to the bracket top', [-23, -21, -21, -18, 23, 24.9], false],
+  ['Foot bracket web backs the horn pocket', [-18.8, -18.2, -23.4, -22.4, 18, 19], true],
+  ['Foot horn screw hole passes the screw head', [-23.5, -20.5, -23.6, -22.2, 17.5, 19.5], false],
+  ['Rear bracket pilot is open on the ankle axis', [-22.3, -21.7, 16.2, 20.8, 18.2, 18.8], false],
+  ['Rear bracket pilot is only a pilot (plastic just under a dia 1.8 hole)', [-22.2, -21.8, 16.2, 20.8, 17.3, 17.5], true],
+  ['Body floor passes a 3-pin servo plug', [18.1, 25.9, 25.7, 28.3, 49.2, 50.8], false],
+  ['Body floor boss hole covers the raised gear housing', [20, 24, 4, 9, 49.2, 50.8], false],
+  ['Hip ear screw pilot runs through the floor', [21.7, 22.3, 19.2, 19.8, 49.2, 50.8], false],
+  ['Head snap ridge stands on the insert band', [32.1, 32.35, -5, 5, 85.4, 85.6], true, [0]],
+  ['Body side wall has the groove for the head ridge', [32.1, 32.35, -5, 5, 85.4, 85.6], false, [1]],
+  ['Head top passes a chunky Type-C boot (14 x 8)', [-6.9, 6.9, 11.8, 19.6, 144.1, 145.9], false],
+]) test('Otto joint: ' + name, async () => {
+  const hit = await hits({ headStyle: 2, mouth: 1 }, probe(...box), parts);
+  if (solid) assert.notEqual(hit, null); else assert.equal(hit, null);
+});
+// The leg may roll 30 degrees either way on the foot without touching the sole or brackets.
+for (const side of [2, 3]) for (const roll of [-30, 30]) test(`Otto leg ${side} rolls ${roll} degrees clear of its foot`, async () => {
+  const g = generate('otto', { part: 7 });
+  const call = g.source.match(/otto_part\(part,([^;]+)\);/);
+  const x = side === 2 ? -22 : 22;
+  const source = g.source.replace(call[0], `intersection(){ translate([${x},0,18.5]) rotate([0,${roll},0]) translate([${-x},0,-18.5]) otto_placed(${side},${call[1]}); otto_placed(${side + 2},${call[1]}); }`);
+  const r = await compile(source, g.files);
+  assert.deepEqual({ empty: r.stl === null, error: /ERROR:|WARNING:/i.test(r.log) }, { empty: true, error: false }, r.log);
+});

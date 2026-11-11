@@ -95,7 +95,7 @@ test('Otto assembled preview is not warned as broken disconnected geometry',asyn
 test('Otto default plate stays seven separate printable components',async()=>assert.equal((await compiledPart({part:6})).info.components,7));
 test('Otto assembled view is Otto height; the head rests on the body rim',async()=> {
   const i=(await compiledPart({part:7})).info;
-  assert.deepEqual([+(i.max[2]-i.min[2]).toFixed(1),i.components],[142.5,5]);
+  assert.deepEqual([+(i.max[2]-i.min[2]).toFixed(1),i.components],[146,5]);
 });
 test('Otto fit notice appears in both view templates',()=>assert.equal((html.match(/\{\{ ottoNotice \}\}/g)||[]).length,2));
 test('Otto fit status is visible in view bindings',async()=> {
@@ -179,7 +179,7 @@ test('Otto assembled colour groups recombine into the full robot',async()=> {
   const stl=ui._concatStl(pieces);
   const tris=b=>new DataView(b.buffer,b.byteOffset,b.byteLength).getUint32(80,true);
   assert.equal(stl.length,84+50*pieces.reduce((n,b)=>n+tris(b),0));
-  assert.ok(Math.abs(ui._printEstimate(stl).dims[2]-142.5)<0.1);
+  assert.ok(Math.abs(ui._printEstimate(stl).dims[2]-146)<0.1);
 });
 test('Otto Show and Paint chips have distinct accessible names',async()=> {
   const {ui}=await createUi();ui.loadGallery(OTTO_PRESETS[0]);

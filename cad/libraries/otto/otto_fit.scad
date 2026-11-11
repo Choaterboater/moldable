@@ -19,17 +19,29 @@ otto_cover_lip = 3; // back-cover locating lip depth (design allowance)
 // Leg: [width, length front-back, height]; holds the ankle servo.
 otto_leg = [16.5,29,38.5];
 otto_leg_chamfer = 1.5;
-otto_leg_gap = 1; // under the body floor and above the foot sole
+// Joint gaps (Nov 10): the old single 1 mm gap left no room for the servo boss, spline and horn.
+otto_hip_gap = 3; // body floor underside to the leg top: the servo boss and the horn hub sit here (the horn sets the real gap)
+otto_ankle_gap = 2.5; // leg bottom above the sole: the leg and its servo ear can roll 30 degrees about the ankle axis
+otto_ankle_front_gap = 3; // leg front face to the front bracket: an MG90S boss sticks about 2.5 out of the leg
+otto_ankle_rear_gap = 1.5; // leg rear face to the rear bracket
 // Foot: flat sole + front/back brackets the leg pivots between. [width, length, bracket height]
 otto_foot = [40,62,25];
 otto_sole = 5;
 otto_foot_outboard = 10; // sole centre offset outboard of the leg centre
-otto_bracket = [21,4]; // [width, thickness]
+// Front: 4.8 horn pocket + 1.2 web = room for boss 5.6 + spline 4 + a 1 mm horn end wall. Rear: thick enough
+// that an 8 mm pivot screw stops about 1 mm short of the servo case wherever the foot sits (review, Nov 10).
+otto_bracket = [21,6,5]; // [width, front thickness, rear thickness]
+otto_horn_web = 1.2; // front bracket wall left behind the horn pocket
 // Supplied component reference sizes (purchased variants still unverified).
 otto_servo = [22.8,12.2,28.5];
 otto_servo_body = 22.7; // SG90 case height without shaft boss
 otto_servo_ears = 32.5;
-otto_servo_ear_z = 4.2; // shaft face to underside of the mounting ears (provisional)
+// Shaft face to the NEARER face of the mounting ears: about 1.8 on an MG90S, 4.2 on an SG90
+// (UNMEASURED on the user's servos). Seats use the smaller value so either servo slides in.
+otto_servo_ear_z = 1.8;
+// Hip ear posts: an SG90 then rests on the floor and an MG90S hangs 2.4 above it; either way
+// the boss ends 1-2 mm under the floor.
+otto_hip_post = 4.2;
 otto_servo_shaft = 5.5; // shaft offset from case centre along the long axis (provisional)
 otto_servo_ear_hole = 14; // ear screw hole from case centre along the long axis (provisional)
 // Nano I/O shield standing upright on the back cover, Nano + Dupont plugs facing the face.
@@ -70,17 +82,32 @@ otto_guide = [1.6,8,0.3]; // [wall thickness, length along the board edge, snap 
 // Two-layer 4xAA holder, LAMPVPATH ASIN B01CVJC8I4, listed 56 x 30 x 28 (UNMEASURED).
 otto_battery = [56,30,28]; // [length front-back, width, height]
 otto_battery_stop = [3,2,6]; // rear stop posts: [width, depth, height]
-otto_usb = [12.35,6.5];
+otto_usb = [12.35,6.5]; // largest Type-C plug boot the USB spec allows
+// Hole in the head top. The port sits about 7 mm under the top, so the cable's plastic boot has to pass
+// through; chunky braided cables exceed the spec size, hence the extra room (Nov 10).
+otto_usb_slot = [14,8];
 otto_buzzer = [12,9.5]; // stands on the body floor, sound side down
 otto_buzzer_rib = 0.15; // four crush ribs press this far into the nominal buzzer
 // KCD11 mini rocker, AUXBC ASIN B0H9YNMTHZ: cutout 13 x 8, flange 15 x 10.5 (UNMEASURED)
 otto_switch = [13,8];
 otto_switch_flange = [15,10.5];
 otto_horn_hub = 7.4; // provisional, confirm actual supplied horns
-otto_horn_arm = [6,4,14]; // single-arm horn: [width at hub, width at tip, length]
-otto_horn_depth = 2;
-otto_horn_screw = 2.5;
-otto_pivot_d = 2.5;
+// Single-arm horn TRIMMED to 11 from the centre: [width at hub, width at the cut, length]. A 6-to-4 arm 14 long
+// is still 4.43 wide where it is cut.
+otto_horn_arm = [6,4.5,11];
+otto_horn_depth = 2; // hip pocket in the leg top
+otto_horn_head = 5.3; // horn screw head + driver tip: the head bears on the horn itself, so the stock screw reaches
+otto_horn_rib = 0.15; // crush ribs in the hip pocket press this far into the nominal arm
+// Ear screw head (UNMEASURED, typically 3.8-4.2): it passes the leg's rear wall to reach the ankle servo ear.
+// Not 4.5: that hole would exactly touch the servo cavity's roof at every clearance.
+otto_ear_head = 4.6;
+otto_pin = [1.8,2.2]; // ankle pivot = a servo ear screw: [pilot in the rear bracket, bore in the leg's rear wall]
+otto_wire = [3.2,8.5]; // slot that passes a 3-pin servo plug
+otto_wire_y = 27; // body floor slots for the ankle servo leads, behind the hip servos
+otto_latch = 0.45; // back-cover snap: ridge overlap into the head's side walls
+otto_latch_z = 1.7; // ridge centre above the root of the cover lip
+otto_latch_y = [-40,-22]; // ridge span down the head sides (below every top-corner style)
+otto_snap_z = [22,42]; // head-to-body snap: ridge span along the head's insert band, measured back from the face
 // NEW DESIGN placements; not verified against V9/V13 or purchased parts.
 // Head-local (x across, y down from the top, z back from the face):
 otto_eyes = [-13.6,13.6]; // 27.2 c-c: 27.0 printed 0.1-0.2 too close on the user's board (test print, Nov 9)
