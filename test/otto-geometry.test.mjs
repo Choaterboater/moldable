@@ -34,11 +34,11 @@ for(const p of variants) {
     assert.equal(r.info?.components,p.part===6?7:1,r.log);
   });
 }
-// Assembled view must stack to Otto height: sole 5 + ankle gap 2.5 + leg 38.5 + hip gap 3 + body 38 - insert 3 + head 62.
+// Assembled view must stack to Otto height: sole 5 + ankle gap 2.5 + leg 38.5 + hip gap 4 + body 38 - insert 3 + head 62.
 for(let headStyle=0;headStyle<4;headStyle++) test('Otto assembled view compiles headStyle '+headStyle,async()=> {
   const r=await compiledPart({part:7,headStyle});
   assert.deepEqual({rc:r.rc,error:/ERROR:|WARNING:/i.test(r.log),mesh:!!r.info?.ok},{rc:0,error:false,mesh:true},r.log);
-  assert.ok(Math.abs(r.info.min[2])<0.001 && Math.abs(r.info.max[2]-146)<0.01,r.log);
+  assert.ok(Math.abs(r.info.min[2])<0.001 && Math.abs(r.info.max[2]-147)<0.01,r.log);
 });
 for(const p of [0,1,2,3,4,5,8].map(part=>({part})).concat([{part:0,mouth:1}])) test('Otto default support-free analysis '+JSON.stringify(p),async()=> {
   const r=await compiledPart(p);

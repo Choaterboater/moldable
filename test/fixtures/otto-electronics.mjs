@@ -3,8 +3,8 @@
 // independent envelopes, NOT calls to the cavity modules they check.
 // Sizes: docs/reference/otto-fit.md (reported references, all UNMEASURED).
 // Face plane y -31.75, back-cover inner face y 35.75. The z values below were written for the
-// old 1 mm joint gaps (head top 142.5); LIFT raises them all for the real gaps (head top 146).
-export const LIFT = 3.5;   // ankle gap 2.5 + hip gap 3, instead of 1 + 1
+// old 1 mm joint gaps (head top 142.5); LIFT raises them all for the real gaps (head top 147).
+export const LIFT = 4.5;   // ankle gap 2.5 + hip gap 4, instead of 1 + 1
 // box: [x0,x1, y0,y1, z0,z1]; cyl (axis along Y): {x, z, r, y0, y1}; zcyl (axis along Z): {x, y, r, z0, z1}.
 const box = (x0, x1, y0, y1, z0, z1) => ({ box: [x0, x1, y0, y1, z0, z1] });
 const lift = s => s.box ? { box: [...s.box.slice(0, 4), s.box[4] + LIFT, s.box[5] + LIFT] }
@@ -33,7 +33,7 @@ const BODY_AND_HEAD = [
   // Type-C plug boot (USB-C R2.1 max 12.35 x 6.5) from the port up through the head top.
   { name: 'Type-C plug', shapes: [box(-6.175, 6.175, 12.45, 18.95, 135.75, 175)] },
   ...[['L', -22], ['R', 22]].map(([s, x]) => ({ name: 'Hip servo ' + s, shapes: [
-    box(x - 6.1, x + 6.1, -5.9, 16.9, 47.5, 72.6), box(x - 6.1, x + 6.1, -10.75, 21.75, 51.7, 54.2)] })),
+    box(x - 6.1, x + 6.1, -6.1, 17.1, 47.5, 72.9), box(x - 6.1, x + 6.1, -11.2, 22.2, 51.7, 54.4)] })),
   // 4xAA two-layer holder (LAMPVPATH B01CVJC8I4, 56 x 30 x 28) between the hip servos, leads out the rear end.
   { name: '4xAA holder', shapes: [box(-15, 15, -30.5, 25.5, 47.5, 75.5)] },
   { name: 'Holder leads', shapes: [box(-4, 4, 25.5, 31.5, 50, 72)] },
@@ -45,26 +45,28 @@ const BODY_AND_HEAD = [
   { name: 'Switch', shapes: [box(18, 31, -28, -20, 43.5, 67.5), box(17, 32, -29.25, -18.75, 41.5, 45.5)] },
 ];
 // Servo output stacks and joints (added Nov 10), already in the real frame: sole top 5, leg bottom 7.5,
-// ankle axis 18.5, leg top 46, body floor 49-51. MG90S reference sizes (UNMEASURED on the user's servos):
-// boss dia 11.8 x 5.6 with a raised gear housing beside it, spline 4.1 more, horn 4 thick with a 1.5 arm
-// trimmed to 11 mm. An MG90S hangs on the 4.2 mm hip posts with its shaft face 2.4 above the floor.
+// ankle axis 18.5, leg top 46, body floor 50-52. The user's ASKY MG90S (calipers + seller drawing, Nov 10):
+// case 23.2 x 12.2 x 24.2, boss dia 11.8 x 4.33 with a raised gear housing beside it, spline 4.0 more, ears
+// 33.4 x 2.7 with their nearer face 3.17 below the flat top. Horn (UNMEASURED): 4 thick with a 1 mm end wall
+// and a 1.5 arm trimmed to 11 mm. The servo hangs on the 4.2 mm hip posts, flat top 1.03 above the floor.
 const cyl = (x, z, r, y0, y1) => ({ cyl: { x, z, r, y0, y1 } });
 const zcyl = (x, y, r, z0, z1) => ({ zcyl: { x, y, r, z0, z1 } });
 const JOINTS = [['L', -22], ['R', 22]].flatMap(([s, x]) => [
-  { name: 'Hip servo boss ' + s, shapes: [zcyl(x, 0, 5.9, 47.8, 51), zcyl(x, 5, 4.5, 47.8, 51)] },
-  // Horn hub-up in the leg-top pocket, arm toward the rear, its screw head inside the leg. Drawn at the nominal
-  // 3 mm hip gap; a horn with a 1 mm end wall beyond the spline just lowers the leg about 1 mm (the gap is free).
-  { name: 'Hip horn ' + s, shapes: [zcyl(x, 0, 3.5, 43.7, 47.5), box(x - 2.4, x + 2.4, 0, 5.5, 44, 45.5), box(x - 2, x + 2, 5.5, 11, 44, 45.5),
+  { name: 'Hip servo boss ' + s, shapes: [zcyl(x, 0, 5.9, 48.7, 52), zcyl(x, 5, 4.5, 48.7, 52)] },
+  // Horn hub-up in the leg-top pocket, arm toward the rear, its screw head inside the leg: boss end 48.7,
+  // spline tip 44.7, 1 mm end wall, so the horn's outer face seats at 43.7 (2.3 down in the leg-top pocket).
+  { name: 'Hip horn ' + s, shapes: [zcyl(x, 0, 3.5, 43.7, 47.7), box(x - 2.4, x + 2.4, 0, 5.5, 44, 45.5), box(x - 2, x + 2, 5.5, 11, 44, 45.5),
     zcyl(x, 0, 2.4, 42, 43.5)] },
   // Ankle servo inside the leg, shaft forward: case, both ears, boss + gear housing out through the U-slot.
-  { name: 'Ankle servo ' + s, shapes: [box(x - 6.1, x + 6.1, -11.35, 11.35, 12.6, 35.4), box(x - 6.1, x + 6.1, -9.55, -7.05, 7.75, 40.25),
-    cyl(x, 18.5, 5.9, -16.95, -11.35), cyl(x, 23.5, 4.5, -16.95, -11.35)] },
+  { name: 'Ankle servo ' + s, shapes: [box(x - 6.1, x + 6.1, -12.1, 12.1, 12.4, 35.6), box(x - 6.1, x + 6.1, -8.93, -6.23, 7.3, 40.7),
+    cyl(x, 18.5, 5.9, -16.43, -12.1), cyl(x, 23.5, 4.5, -16.43, -12.1)] },
   // Horn in the front bracket's keyhole, placed from the spline tip outward: spline stub, 4 mm hub with a 1 mm
   // closed end beyond the spline, arm pointing down, screw head in the web.
-  { name: 'Ankle horn ' + s, shapes: [cyl(x, 18.5, 2.4, -18.05, -16.95), cyl(x, 18.5, 3.5, -22.05, -18.05), box(x - 2.5, x + 2.5, -22.05, -20.55, 13, 18.5),
-    box(x - 2.2, x + 2.2, -22.05, -20.55, 7.5, 13), cyl(x, 18.5, 2.4, -23.7, -22.05)] },
-  // Tip of the pivot screw: across the rear gap into the bore in the leg's rear wall (its thread bites the bracket).
-  { name: 'Ankle pivot screw tip ' + s, shapes: [cyl(x, 18.5, 1.1, 11.7, 15.9)] },
+  { name: 'Ankle horn ' + s, shapes: [cyl(x, 18.5, 2.4, -17.43, -16.43), cyl(x, 18.5, 3.5, -21.43, -17.43), box(x - 2.5, x + 2.5, -21.43, -19.93, 13, 18.5),
+    box(x - 2.2, x + 2.2, -21.43, -19.93, 7.5, 13), cyl(x, 18.5, 2.4, -23.0, -21.43)] },
+  // Tip of the pivot screw at its WORST case (foot pushed fully forward, 0.8): across the rear gap into the bore in
+  // the leg's rear wall, ending 0.2 short of the servo case (its thread bites the bracket).
+  { name: 'Ankle pivot screw tip ' + s, shapes: [cyl(x, 18.5, 1.1, 12.3, 15.2)] },
 ]);
 export const OTTO_ELECTRONICS = [
   ...BODY_AND_HEAD.map(c => ({ ...c, shapes: c.shapes.map(lift), ...(c.minus ? { minus: c.minus.map(lift) } : {}) })),

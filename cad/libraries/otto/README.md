@@ -59,4 +59,7 @@ an 80-byte credit/license header; keep this README and source with redistributio
   hip and ankle could not be assembled. Leg gaps 3 mm (hip) and 2.5 mm (ankle); open-top keyhole in the foot's
   front bracket; horn screws bear on the horns through head-sized holes; servo ear screws as ankle pivots;
   lead slots in the body floor and leg; leg bottom rounded for ±30° roll; snap ridges hold the back cover.
-  Robot height 146. Head snaps onto the body rim; Type-C hole enlarged to 14.5 × 8.5.
+  Head snaps onto the body rim; Type-C hole enlarged to 14.5 × 8.5.
+- Measured servo (Nov 10): the user's ASKY MG90S is 24.17 tall to the flat top, not 22.7, so the leg cavity,
+  ear seats, hip gap (4 mm) and foot bracket (5.4) follow the calipers and the seller's drawing. The ankle
+  servo's cable now leaves through a plug-sized window high in the leg's rear wall. Robot height 147.

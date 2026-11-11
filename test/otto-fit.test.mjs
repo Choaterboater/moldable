@@ -27,7 +27,7 @@ for(const params of settings) for(const [id,name] of names[params.part].entries(
 // Assembled parts touch but never overlap: head band inside the body, cover lip in
 // the head, legs between the foot brackets and just under the body floor. The cover's
 // crush ribs press into the head walls on purpose; those small zones are excluded.
-const ribZones=[-20,-48].flatMap(y=>[-1,1].map(s=>`translate([${s>0?29.7:-30},32.7,${146+y-0.7}]) cube([0.3,3.1,1.4]);`)).join(' ');
+const ribZones=[-20,-48].flatMap(y=>[-1,1].map(s=>`translate([${s>0?29.7:-30},32.7,${147+y-0.7}]) cube([0.3,3.1,1.4]);`)).join(' ');
 for(const params of [{},{headStyle:0},{headStyle:3,grow:10,corner:12},{clearance:0.1},{clearance:0.5}])
 for(const [a,b] of [[0,1],[8,1],[0,8],[2,1],[3,1],[2,4],[3,5]]) test(`Otto assembled parts ${a}/${b} do not overlap ${JSON.stringify(params)}`,async()=> {
   const g=generate('otto',{...params,part:7});

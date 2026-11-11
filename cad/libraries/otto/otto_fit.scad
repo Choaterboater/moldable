@@ -20,30 +20,35 @@ otto_cover_lip = 3; // back-cover locating lip depth (design allowance)
 otto_leg = [16.5,29,38.5];
 otto_leg_chamfer = 1.5;
 // Joint gaps (Nov 10): the old single 1 mm gap left no room for the servo boss, spline and horn.
-otto_hip_gap = 3; // body floor underside to the leg top: the servo boss and the horn hub sit here (the horn sets the real gap)
+otto_hip_gap = 4; // body floor underside to the leg top: boss end 1.3 under the floor, then spline 4, a 1 mm horn end wall, less the 2.3 pocket seat
 otto_ankle_gap = 2.5; // leg bottom above the sole: the leg and its servo ear can roll 30 degrees about the ankle axis
-otto_ankle_front_gap = 3; // leg front face to the front bracket: an MG90S boss sticks about 2.5 out of the leg
-otto_ankle_rear_gap = 1.5; // leg rear face to the rear bracket
+otto_ankle_front_gap = 3; // leg front face to the front bracket: the servo boss sticks about 1.9 out of the leg
+otto_ankle_rear_gap = 0.8; // leg rear face to the rear bracket: small, so the bracket meets the leg before the pivot screw can reach the servo
 // Foot: flat sole + front/back brackets the leg pivots between. [width, length, bracket height]
 otto_foot = [40,62,25];
 otto_sole = 5;
 otto_foot_outboard = 10; // sole centre offset outboard of the leg centre
-// Front: 4.8 horn pocket + 1.2 web = room for boss 5.6 + spline 4 + a 1 mm horn end wall. Rear: thick enough
-// that an 8 mm pivot screw stops about 1 mm short of the servo case wherever the foot sits (review, Nov 10).
-otto_bracket = [21,6,5]; // [width, front thickness, rear thickness]
+// Front: 4.2 horn pocket + 1.2 web. From the shaft face (2.4 behind the leg's front face): boss 4.33 + spline 4
+// + a 1 mm horn end wall = 9.33, and the pocket floor is 9.6 away. Rear: an 8 mm pivot screw stops 1.0 short
+// of the measured servo case at rest and 0.2 short with the foot pushed fully forward (review, Nov 10).
+otto_bracket = [21,5.4,5.8]; // [width, front thickness, rear thickness]
 otto_horn_web = 1.2; // front bracket wall left behind the horn pocket
-// Supplied component reference sizes (purchased variants still unverified).
-otto_servo = [22.8,12.2,28.5];
-otto_servo_body = 22.7; // SG90 case height without shaft boss
-otto_servo_ears = 32.5;
-// Shaft face to the NEARER face of the mounting ears: about 1.8 on an MG90S, 4.2 on an SG90
-// (UNMEASURED on the user's servos). Seats use the smaller value so either servo slides in.
-otto_servo_ear_z = 1.8;
-// Hip ear posts: an SG90 then rests on the floor and an MG90S hangs 2.4 above it; either way
-// the boss ends 1-2 mm under the floor.
+// The user's ASKY MG90S (AliExpress 2251832788894926). MEASURED with calipers Nov 10: case 23.16 long x 12.2 wide
+// x 24.17 from the bottom to the flat top (the first print assumed 22.7, so the servo did not go into the leg).
+// From the seller's drawing: 28.5 to the top of the boss (so the boss is 4.33), spline 4.0 more, ears 2.7 thick
+// with their underside 18.3 up (top face 21.0, i.e. 3.17 below the flat top), 33.4 across, holes 28.0 apart,
+// shaft 8.6 from the nearer hole (5.4 off the case centre).
+otto_servo = [23.2,12.2,28.5]; // [case length, width, height to the top of the boss]
+otto_servo_body = 24.2; // case height, bottom to the flat top (without the boss)
+otto_servo_ears = 33.4;
+// Depth of the ear seats behind the shaft face. The ears' nearer face is 3.17 down (drawing + calipers); the
+// seat stops 0.5 short of it so a clone whose ears sit a little higher still slides in.
+otto_servo_ear_z = 2.9;
+// Hip ear posts: with the ears 3.17 down, the servo's flat top hangs 1 mm above the floor and the boss
+// ends 1.3 mm under it.
 otto_hip_post = 4.2;
-otto_servo_shaft = 5.5; // shaft offset from case centre along the long axis (provisional)
-otto_servo_ear_hole = 14; // ear screw hole from case centre along the long axis (provisional)
+otto_servo_shaft = 5.5; // shaft offset from case centre along the long axis (drawing: 5.4)
+otto_servo_ear_hole = 14; // ear screw hole from case centre along the long axis (drawing: 28.0 between holes)
 // Nano I/O shield standing upright on the back cover, Nano + Dupont plugs facing the face.
 // YwRobot "Nano Sensor Shield" reference; the ZC board is UNMEASURED.
 // Blue "Nano IO Expansion Shield V3.0" (the user's ZC board), MEASURED with calipers Nov 9:
@@ -98,9 +103,6 @@ otto_horn_arm = [6,4.5,11];
 otto_horn_depth = 2; // hip pocket in the leg top
 otto_horn_head = 5.3; // horn screw head + driver tip: the head bears on the horn itself, so the stock screw reaches
 otto_horn_rib = 0.15; // crush ribs in the hip pocket press this far into the nominal arm
-// Ear screw head (UNMEASURED, typically 3.8-4.2): it passes the leg's rear wall to reach the ankle servo ear.
-// Not 4.5: that hole would exactly touch the servo cavity's roof at every clearance.
-otto_ear_head = 4.6;
 otto_pin = [1.8,2.2]; // ankle pivot = a servo ear screw: [pilot in the rear bracket, bore in the leg's rear wall]
 otto_wire = [3.2,8.5]; // slot that passes a 3-pin servo plug
 otto_wire_y = 27; // body floor slots for the ankle servo leads, behind the hip servos

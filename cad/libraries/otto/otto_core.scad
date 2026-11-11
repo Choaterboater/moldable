@@ -183,6 +183,9 @@ module body_cavities(clearance=0.25) {
     hull() for(dy=[0,otto_servo_shaft]) translate([x,otto_hip_y+dy,-1]) cylinder(d=12+2*clearance,h=otto_wall+otto_hip_post+2,$fn=40);
     // Ear screw pilots run through the post AND the floor, so a stock 8 mm screw never bottoms out.
     for(dy=[-otto_servo_ear_hole,otto_servo_ear_hole]) translate([x,hip_case_y()+dy,-1]) cylinder(d=1.8,h=otto_wall+otto_hip_post+2,$fn=16);
+    // Room for the servo case between the two ear posts: the measured 23.16 case left only 0.17 per end,
+    // and the posts did not follow the clearance setting.
+    translate([x,hip_case_y(),otto_wall+clearance]) fit_box([otto_servo[1],otto_servo[0],otto_hip_post+1],clearance);
     // Ankle servo lead comes up through the floor behind the hip servo, outside the leg's swing.
     translate([x,otto_wire_y,-1]) fit_box([otto_wire[1],otto_wire[0],otto_wall+2],clearance);
   }
@@ -218,8 +221,14 @@ module leg_cavities(clearance=0.25) {
   }
   translate([0,otto_leg[1]/2+1,axis]) rotate([90,0,0]) linear_extrude(otto_leg[1]/2-otto_servo_body/2+1.5) teardrop2d(otto_pin[1]+2*clearance);
   horn_recess_bed(clearance);
-  // Lead notches at the bottom rear of both side walls (the servo lead leaves at the shaft end,
-  // on the case bottom); both sides, so the two legs stay identical.
+  // Lead window high in the rear wall. The servo's cable leaves the case at the end AWAY from the shaft, on
+  // the case bottom (seller's photo), which is here: just under the leg top, against the rear wall. The window
+  // passes the 3-pin plug, so the lead is fed out before the servo is pushed home. 45-degree gable on the
+  // print-up side.
+  hw=otto_wire[1]/2+clearance; z1=top+otto_wire[0]+2*clearance+0.6;
+  translate([0,otto_leg[1]/2+1,0]) rotate([90,0,0]) linear_extrude(otto_leg[1]/2-otto_servo_body/2+1.5)
+    polygon([[-hw,top],[hw,top],[hw,z1],[0,z1+hw*1.1],[-hw,z1]]);
+  // Spare lead notches at the bottom rear of both side walls, for a servo whose cable leaves at the shaft end.
   for(s=[-1,1]) translate([s*otto_leg[0]/2,otto_servo_body/2+clearance-otto_wire[0]/2-1,h-2]) cube([6,otto_wire[0]+2,6+0.02],center=true);
 }
 // Everything below the ankle axis stays inside this radius, so the leg can roll on the foot
@@ -231,7 +240,8 @@ module leg_swing_envelope() {
   translate([0,0,axis]) rotate([90,0,0]) cylinder(r=ankle_swing_r(),h=100,center=true,$fn=96);
 }
 // Ankle servo retention: a seat in front of the top ear takes the servo's ear screw
-// (pilot along Y); a hole through the rear wall gives the screwdriver access.
+// (pilot along Y, open on the leg's front face). The screw is driven from the FRONT: it threads through the
+// front wall and the seat and its tip pins the ear's hole, so it never has to cross the cable at the rear.
 function ankle_case_centre() = otto_leg[2]-otto_ankle_z-otto_servo_shaft;
 module ankle_ear_seat(clearance=0.25) {
   y0=-otto_servo_body/2-clearance; y1=-otto_servo_body/2+otto_servo_ear_z-clearance;
@@ -241,7 +251,6 @@ module ankle_ear_seat(clearance=0.25) {
 module ankle_ear_screw(clearance=0.25) {
   z=ankle_case_centre()-otto_servo_ear_hole;
   translate([0,-otto_servo_body/2+otto_servo_ear_z-clearance+0.01,z]) rotate([90,0,0]) linear_extrude(5.5) teardrop2d(1.8);
-  translate([0,otto_leg[1],z]) rotate([90,0,0]) linear_extrude(otto_leg[1]-otto_servo_body/2) teardrop2d(otto_ear_head+2*clearance);
 }
 
 // ---------- foot (sole on the bed; x=0, y=0 is the leg centre) ----------

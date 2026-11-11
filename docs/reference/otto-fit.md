@@ -44,8 +44,8 @@ Blank actual fields mean **unmeasured**, not zero. Units: mm.
 | USB-C plug envelope | 12.35 × 6.5 | USB Type-C R2.1, supplied plan | |
 | USB-C mating section | 8.25 × 2.4 | USB Type-C R2.1, supplied plan | |
 | USB-C port opening | 8.34 × 2.56 | USB Type-C R2.1, supplied plan | |
-| MG90S body | 22.8 × 12.2 × 28.5 | TowerPro, supplied plan | |
-| MG90S including ears | 32.5 long | Supplied plan, vendor drawing needed | |
+| MG90S body | 22.8 × 12.2 × 28.5 | TowerPro, supplied plan | **Case 23.16 long × 12.2 wide × 24.17 to the flat top (user calipers, Nov 10)**; 28.5 to the boss top, so boss 4.33, and spline 4.0 (seller drawing, ASKY, AliExpress 2251832788894926) |
+| MG90S including ears | 32.5 long | Supplied plan, vendor drawing needed | 33.4 across (seller drawing; user read about 32.5) |
 | HC-SR04 board envelope | 45 × 20 × 15 | ElecFreaks, supplied plan | |
 | Nano board | 43.2 × 18; clone about 43 × 18 | Arduino, supplied plan | |
 | Nano mounting holes | Ø1.8 | Arduino, supplied plan | |
@@ -73,7 +73,7 @@ Blank actual fields mean **unmeasured**, not zero. Units: mm.
 | HC-SR04 eye diameters and spacing | | |
 | HC-SR04 retaining details | | |
 | OLED mounting holes | | |
-| MG90S ear thickness, hole pitch, output-axis location | | |
+| MG90S ear thickness, hole pitch, output-axis location | 2.7 thick, underside 18.3 from the bottom (nearer face 3.17 below the flat top); holes 28.0 apart; shaft 8.6 from the nearer hole (5.4 off centre); cable leaves the end away from the shaft | Seller drawing and photo + user calipers |
 | Supplied single/cross horn outline, depth and screw | | |
 | 4×AA holder: size, lead exit side and bend room | | |
 | Switch body depth, terminals and flange height | | |
@@ -84,7 +84,7 @@ Blank actual fields mean **unmeasured**, not zero. Units: mm.
 
 `cad/libraries/otto/otto_fit.scad` keeps these fixed. They follow Otto V9's overall
 proportions (V9 assembled height 117.5; this head is 25 mm taller for the
-electronics and the joints need 3.5 mm more, so 146) but are prototype allowances, not measurements of the purchased parts:
+electronics and the joints need 4.5 mm more, so 147) but are prototype allowances, not measurements of the purchased parts:
 
 - Head 63.5 wide × 62 tall × 69.5 deep including the 2 mm back cover, the same for every mouth.
   Its bottom 3 mm band (63.5 deep from the face) drops inside the body; behind the band the head
@@ -126,32 +126,35 @@ electronics and the joints need 3.5 mm more, so 146) but are prototype allowance
   from the right hip axis, outside the 16.7 mm leg swing. Buzzer ring at X −24.75, Y −22 (merged into the side
   wall) with a Ø5 sound hole through the floor.
 - Assembly order: hip servos into the body; trimmed horns into the leg tops, legs onto the hip shafts, horn
-  screws from inside the legs; ankle servos up into the legs (lead out of a side notch, ear screw through the
-  rear-wall hole); horns onto the ankle shafts, legs down into the feet, horn screws from the front, pivot screws
+  screws from inside the legs; ankle servos up into the legs (plug and lead fed out through the window high in the
+  rear wall before the servo is pushed home; ear screw driven in from the leg's front face); horns onto the ankle shafts, legs down into the feet, horn screws from the front, pivot screws
   from the rear; then shield on cover, leads plugged in, cover into head, head into body. Lift the head out
   before removing the cover (the shield's lower edge is behind the body's rear wall).
 - Provisional horn hub Ø7.4 / single arm **trimmed to 11 mm** from the centre (4.5 wide at the cut), recessed with 45° roofs.
 - Joints (Nov 10 redesign; the old 1 mm gaps and closed horn pockets could not be assembled, because the
-  dummies had no boss, spline or horn). Reference stack, UNMEASURED: MG90S boss Ø11.8 × 5.6 with a raised gear
-  housing beside it, spline 4.1 more, horn 4 thick, ears 1.8 behind the shaft face (SG90: boss 4.0, ears 4.2).
-  - Hip: posts stay 4.2 tall (an SG90 rests on the floor, an MG90S hangs 2.4 above it; the boss ends 1–2 mm under
-    the floor either way). The floor hole is a 12.5 × 18 slot for the gear housing; ear-screw pilots run through
-    the floor so a stock 8 mm screw never bottoms out. Nominal body-to-leg gap 3 mm; the horn sets the real one.
+  dummies had no boss, spline or horn). Servo stack as MEASURED Nov 10 (calipers + seller drawing): case 24.17
+  tall, boss Ø11.8 × 4.33 with a raised gear housing beside it, spline 4.0 more, ears 3.17 behind the shaft face.
+  The first print assumed a 22.7 case and the servo did not go into the leg. Horn still UNMEASURED: 4 thick, 1 mm end wall.
+  - Hip: posts stay 4.2 tall (the servo's flat top hangs 1 mm above the floor and the boss ends 1.3 mm under
+    it). The posts are relieved so the 23.16 case has the set clearance at each end. The floor hole is a 12.5 × 18 slot for the gear housing; ear-screw pilots run through
+    the floor so a stock 8 mm screw never bottoms out. Nominal body-to-leg gap 4 mm; the horn sets the real one.
   - Hip horn pocket in the leg top: 2 mm deep, with a Ø5.8 hole through to the leg cavity, so the stock horn
     screw is driven from inside the leg with its head on the horn. Four 0.15 mm crush ribs grip the arm (the leg
     hangs from them when the robot is lifted; add a drop of glue if the real horn is loose).
-  - Ankle: front bracket 6 thick, 3 mm from the leg, with a keyhole open to its top (4.8 deep, 1.2 web: room for
-    boss 5.6 + spline 4 + a 1 mm horn end wall): the leg
+  - Ankle: front bracket 5.4 thick, 3 mm from the leg, with a keyhole open to its top (4.2 deep, 1.2 web: the
+    shaft face is 2.4 behind the leg's front face, then boss 4.33 + spline 4 + a 1 mm horn end wall): the leg
     drops in with the horn already on the servo. The horn screw goes in from outside through a Ø5.8 hole; its
-    head in that hole also stops the foot sliding off. Rear bracket 5 thick (an 8 mm screw then stops about 1 mm short of the servo case), 1.5 mm from the leg; the pivot is
+    head in that hole also stops the foot sliding off. Rear bracket 5.8 thick, 0.8 mm from the leg (an 8 mm screw stops 1.0 short of the servo case at rest, 0.2 with the foot fully forward); the pivot is
     a servo ear screw threaded into a Ø1.8 pilot there, its tip turning in a Ø2.7 bore in the leg's rear wall.
-  - Leg: U-slot widened for the gear housing; ear seat only 1.8 deep so an MG90S ear slides past; bottom corners
+  - Leg: U-slot widened for the gear housing; front and rear leg walls 2.15 around the 24.7 mm cavity (side walls 1.9); ear seat 2.9 deep (0.5 short of the measured ear); bottom corners
     rounded to R13 about the ankle axis and the leg raised 2.5 mm off the sole, so it rolls ±30° (tested);
-    lead notches at the bottom rear of both side walls.
+    a 9 × 4.3 lead window with a gabled top high in the rear wall (the cable leaves the servo at the end away
+    from the shaft; the window passes the 3-pin plug), plus spare lead notches at
+    the bottom rear of both side walls.
   - Body floor: a 9 × 3.7 slot behind each hip servo (Y 27) passes the ankle servo's plug.
   - Both snaps exist only for Shell growth ≤ 1; thicker shells cannot flex, so they keep the plain slip fit.
   - Independent review (Nov 10) found and fixed: horn pocket 1 mm too shallow for a horn with a closed end, the
-    pivot screw reaching the servo case, the ear-screw access hole (Ø4) smaller than the screw head (now Ø5.1),
+    pivot screw reaching the servo case, the ear-screw access hole (Ø4) smaller than the screw head (now the lead window),
     and pockets too narrow at the cut end of a trimmed horn.
 - Provisional USB opening 14.5×8.5 at clearance 0.25 (boot allowance 14 × 8; spec maximum 12.35 × 6.5). It is sized for the cable's plastic boot, not the
   port: the Nano's port sits about 7 mm under the head top, so the boot has to pass through the wall.
@@ -181,7 +184,7 @@ electronics and the joints need 3.5 mm more, so 146) but are prototype allowance
   - The OLED PCB centre sits 2.1 above the window so the upside-down active area stays centred in it.
   - The "Face mounts" fit test is a strip of the face with both mounts, for checking the real boards.
 - Retention: four 1 mm crush ribs in the buzzer ring press 0.15 mm into a nominal Ø12 buzzer. In each leg a seat in front of the top ear takes the ear screw
-  (Ø1.8 teardrop pilot 14 mm from the case centre), with a Ø5.1 teardrop access hole through the rear wall (the screw head passes it).
+  (Ø1.8 teardrop pilot 14 mm from the case centre), driven from the leg's front face: it threads through the front wall and the seat (5 mm of plastic) and its tip pins the ear's hole, clear of the cable.
 - Every purchased-hardware number above is a reference value. Re-check with calipers when the parts arrive.
 - No claim of V9 or V13 part interchangeability.
 
