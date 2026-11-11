@@ -68,3 +68,9 @@ an 80-byte credit/license header; keep this README and source with redistributio
 - Back cover pinned by two servo ear screws through the head's side walls into posts on the cover (Nov 10):
   friction ribs and the snap ridge did not hold on the builder's printer. Drill guide for earlier heads is
   otto_coupon(5) (otto-cover-drill-guide.stl).
+- Legs and feet rebuilt on the official Otto DIY V13 leg (Nov 11): two legs of our own layout did not take the
+  builder's servo; the official leg and feet did (MakerWorld 1307980, CC BY-SA), once the servo arm was cut down.
+  Leg 17 × 35 × 42 with V13's 13 × 31 bay, ear block and closed end, measured from that mesh; hip horn inside the
+  leg under a 2.5 mm plate; horn pockets take the arm uncut; ear-screw slot instead of a hole; servo-screw rear
+  pivot; switch moved 1.5 mm forward for the longer leg. Robot height 149.5. The official V13 leg also fits this
+  body. Fit-test prints: otto_fit_cut(0) half a leg, otto_fit_cut(1) one hip station. Details: docs/reference/otto-fit.md.

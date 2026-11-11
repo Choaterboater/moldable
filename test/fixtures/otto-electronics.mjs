@@ -3,8 +3,8 @@
 // independent envelopes, NOT calls to the cavity modules they check.
 // Sizes: docs/reference/otto-fit.md (reported references, all UNMEASURED).
 // Face plane y -31.75, back-cover inner face y 35.75. The z values below were written for the
-// old 1 mm joint gaps (head top 142.5); LIFT raises them all for the real gaps (head top 147).
-export const LIFT = 4.5;   // ankle gap 2.5 + hip gap 4, instead of 1 + 1
+// old 1 mm joint gaps and 38.5 mm leg (head top 142.5); LIFT raises them all for the real stack (head top 149.5).
+export const LIFT = 7;   // ankle gap 4 + leg 42 + hip gap 1.5, instead of 1 + 38.5 + 1
 // box: [x0,x1, y0,y1, z0,z1]; cyl (axis along Y): {x, z, r, y0, y1}; zcyl (axis along Z): {x, y, r, z0, z1}.
 const box = (x0, x1, y0, y1, z0, z1) => ({ box: [x0, x1, y0, y1, z0, z1] });
 const lift = s => s.box ? { box: [...s.box.slice(0, 4), s.box[4] + LIFT, s.box[5] + LIFT] }
@@ -42,31 +42,33 @@ const BODY_AND_HEAD = [
     minus: [box(-18.95, -18.65, -22.6, -21.4, 47, 58), box(-30.85, -30.55, -22.6, -21.4, 47, 58),
       box(-25.35, -24.15, -16.2, -15.9, 47, 58), box(-25.35, -24.15, -28.1, -27.8, 47, 58)] },
   // KCD11 rocker (cutout 13 x 8) through the floor, terminals inside, flange under the floor.
-  { name: 'Switch', shapes: [box(18, 31, -28, -20, 43.5, 67.5), box(17, 32, -29.25, -18.75, 41.5, 45.5)] },
+  { name: 'Switch', shapes: [box(18, 31, -29.5, -21.5, 43.5, 67.5), box(17, 32, -30.75, -20.25, 41.5, 45.5)] },
 ];
-// Servo output stacks and joints (added Nov 10), already in the real frame: sole top 5, leg bottom 7.5,
-// ankle axis 18.5, leg top 46, body floor 50-52. The user's ASKY MG90S (calipers + seller drawing, Nov 10):
-// case 23.2 x 12.2 x 24.2, boss dia 11.8 x 4.33 with a raised gear housing beside it, spline 4.0 more, ears
-// 33.4 x 2.7 with their nearer face 3.17 below the flat top. Horn (UNMEASURED): 4 thick with a 1 mm end wall
-// and a 1.5 arm trimmed to 11 mm. The servo hangs on the 4.2 mm hip posts, flat top 1.03 above the floor.
+// Servo output stacks and joints, already in the real frame: sole top 5, leg bottom 9, ankle axis 20, leg top 51,
+// body floor 52.5-54.5. The user's ASKY MG90S (calipers + seller drawing): case 23.2 x 12.2 x 24.2, boss dia 12.2
+// (UNMEASURED) x 4.33 with a raised gear housing beside it, spline 4.0 more, ears 33.4 x 2.7 with their nearer
+// face 3.17 below the flat top. Horn (listing drawing): hub dia 6.76 x 4.82, arm 2.08 thick, 17.9 from the centre
+// to the tip, UNCUT. Layout as on Otto V13 (docs/reference/otto-fit.md).
 const cyl = (x, z, r, y0, y1) => ({ cyl: { x, z, r, y0, y1 } });
 const zcyl = (x, y, r, z0, z1) => ({ zcyl: { x, y, r, z0, z1 } });
 const JOINTS = [['L', -22], ['R', 22]].flatMap(([s, x]) => [
-  { name: 'Hip servo boss ' + s, shapes: [zcyl(x, 0, 5.9, 48.7, 52), zcyl(x, 5, 4.5, 48.7, 52)] },
-  // Horn hub-up in the leg-top pocket, arm toward the rear, its screw head inside the leg: boss end 48.7,
-  // spline tip 44.7, 1 mm end wall, so the horn's outer face seats at 43.7 (2.3 down in the leg-top pocket).
-  { name: 'Hip horn ' + s, shapes: [zcyl(x, 0, 3.5, 43.7, 47.7), box(x - 2.4, x + 2.4, 0, 5.5, 44, 45.5), box(x - 2, x + 2, 5.5, 11, 44, 45.5),
-    zcyl(x, 0, 2.4, 42, 43.5)] },
-  // Ankle servo inside the leg, shaft forward: case, both ears, boss + gear housing out through the U-slot.
-  { name: 'Ankle servo ' + s, shapes: [box(x - 6.1, x + 6.1, -12.1, 12.1, 12.4, 35.6), box(x - 6.1, x + 6.1, -8.93, -6.23, 7.3, 40.7),
-    cyl(x, 18.5, 5.9, -16.43, -12.1), cyl(x, 23.5, 4.5, -16.43, -12.1)] },
-  // Horn in the front bracket's keyhole, placed from the spline tip outward: spline stub, 4 mm hub with a 1 mm
-  // closed end beyond the spline, arm pointing down, screw head in the web.
-  { name: 'Ankle horn ' + s, shapes: [cyl(x, 18.5, 2.4, -17.43, -16.43), cyl(x, 18.5, 3.5, -21.43, -17.43), box(x - 2.5, x + 2.5, -21.43, -19.93, 13, 18.5),
-    box(x - 2.2, x + 2.2, -21.43, -19.93, 7.5, 13), cyl(x, 18.5, 2.4, -23.0, -21.43)] },
-  // Tip of the pivot screw at its WORST case (foot pushed fully forward, 0.8): across the rear gap into the bore in
-  // the leg's rear wall, ending 0.2 short of the servo case (its thread bites the bracket).
-  { name: 'Ankle pivot screw tip ' + s, shapes: [cyl(x, 18.5, 1.1, 12.3, 15.2)] },
+  // The boss ends 1.3 under the floor and bears on the leg top (z 51).
+  { name: 'Hip servo boss ' + s, shapes: [zcyl(x, 0, 6.1, 51.2, 54.5), zcyl(x, 5, 4.5, 51.2, 54.5)] },
+  // Horn inside the leg under the 2.5 mm plate, hub up through the plate to the boss, arm toward the rear and out
+  // through the rear wall, screw head below. Drawn from seated against the boss down to 0.8 lower.
+  { name: 'Hip horn ' + s, shapes: [zcyl(x, 0, 3.4, 45.6, 51.2), box(x - 2.8, x + 2.8, 0, 9, 45.6, 48.46), box(x - 2.2, x + 2.2, 9, 17.9, 45.6, 48.46),
+    zcyl(x, 0, 2.2, 44, 45.6)] },
+  // Ankle servo in the leg's bay, shaft forward, far ear against the block (seat y -9): case, both ears, boss +
+  // gear housing in the U-slot (the boss ends 1 mm inside the leg's front face, y -17.5).
+  { name: 'Ankle servo ' + s, shapes: [box(x - 6.1, x + 6.1, -12.2, 12, 13.82, 36.98), box(x - 6.1, x + 6.1, -8.95, -6.25, 8.7, 42.1),
+    cyl(x, 20, 6.1, -16.5, -12.2), cyl(x, 25, 4.5, -16.5, -12.2)] },
+  // Horn in the front bracket's keyhole (inner face y -18, pocket floor -22): hub screwed down on the boss (outer
+  // face -21.32) or standing up to 0.6 off it, uncut arm pointing down into the sole, screw head in the web.
+  { name: 'Ankle horn ' + s, shapes: [cyl(x, 20, 3.4, -21.95, -16.5), box(x - 2.8, x + 2.8, -21.95, -19.24, 11, 20),
+    box(x - 2.2, x + 2.2, -21.95, -19.24, 2.1, 11), cyl(x, 20, 2.2, -23.5, -21.95)] },
+  // Tip of the pivot screw at its WORST case (7.74 thread, foot pushed fully forward): across the rear gap into
+  // the bore in the leg's rear wall, ending inside the wall, 3.5 mm short of the servo.
+  { name: 'Ankle pivot screw tip ' + s, shapes: [cyl(x, 20, 1, 15.36, 17.75)] },
 ]);
 export const OTTO_ELECTRONICS = [
   ...BODY_AND_HEAD.map(c => ({ ...c, shapes: c.shapes.map(lift), ...(c.minus ? { minus: c.minus.map(lift) } : {}) })),

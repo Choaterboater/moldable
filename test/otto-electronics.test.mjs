@@ -64,8 +64,7 @@ for (const [name, probe] of [
 const buzzer = OTTO_ELECTRONICS.find(c => c.name === 'Buzzer');
 for (let i = 0; i < 4; i++) test('Otto buzzer crush rib grips at zone ' + i, async () =>
   assert.notEqual(await hits({}, [{ shapes: [buzzer.minus[i]] }]), null));
-// Ankle servo: in the leg's own frame, plastic backs the top ear's screw hole and a
-// pilot runs into that seat; the rear wall has a screwdriver opening on the same line.
+// Ankle servo, in the leg's own frame (z = 0 leg top, ankle axis z 31, case end z 13.9, ear hole z 11.5, seat y -9).
 async function legHits(box) {
   const g = generate('otto', { part: 2 });
   const call = g.source.match(/otto_part\([^;]+;/)[0];
@@ -73,28 +72,33 @@ async function legHits(box) {
   assert.doesNotMatch(r.log, /ERROR:|WARNING:/i, r.log);
   return r.stl !== null;
 }
-test('Otto ankle servo ear is backed by a screw seat', async () => assert.equal(await legHits([2, 3, -11.6, -11.1, 7.5, 8.5]), true));
-// The measured ear starts 3.17 mm behind the shaft face (y -8.93): nothing may stand in its way, with 0.4 to spare.
-test('Otto ankle ear seat leaves room for the servo ear', async () => assert.equal(await legHits([-6, 6, -9.3, -6.2, 5.5, 10]), false));
-test('Otto ankle ear seat has a screw pilot', async () => assert.equal(await legHits([-0.5, 0.5, -12.3, -9.5, 7.6, 8.4]), false));
-// The ear screw is driven from the leg's front face: its pilot must be open all the way from that face to the ear.
-test('Otto ankle ear screw pilot is open on the leg front face', async () => assert.equal(await legHits([-0.5, 0.5, -14.6, -9.4, 7.6, 8.4]), false));
-test('Otto ankle ear screw pilot is only a pilot (plastic around it)', async () => assert.equal(await legHits([1.1, 1.6, -14.4, -12.5, 7.6, 8.4]), true));
+test('Otto ankle servo ear is backed by the block', async () => assert.equal(await legHits([2, 3, -10, -9.5, 11, 12]), true));
+test('Otto ankle ear seat leaves room for the servo ear', async () => assert.equal(await legHits([-6, 6, -8.95, -6, 5.5, 13.5]), false));
+test('Otto ankle ear block has a screw slot on the hole line', async () => assert.equal(await legHits([-0.5, 0.5, -15.5, -9.2, 10.7, 13.5]), false));
+test('Otto ankle ear screw slot is only a pilot (plastic beside it)', async () => assert.equal(await legHits([1.1, 1.6, -15, -10, 11, 12]), true));
+test('Otto ankle ear screw slot is blind (front wall whole)', async () => assert.equal(await legHits([-0.5, 0.5, -17.4, -16.2, 11, 12]), true));
+test('Otto ankle ear block carries the far end of the case', async () => assert.equal(await legHits([3, 5, -12, -9.5, 13.2, 13.6]), true));
+// The bay is the V13 leg's: 13 wide and open from the front wall back, so the flat top may sit up to 6.4 in front of the ear.
+test('Otto leg bay is clear above the block', async () => assert.equal(await legHits([-6.4, 6.4, -13.4, 15.4, 14.1, 41.9]), false));
+test('Otto leg front wall is doubled under the U-slot', async () => assert.equal(await legHits([-5, 5, -15.3, -13.7, 14.5, 20.2]), true));
+test('Otto leg bay is 13 mm wide, not more', async () => assert.equal(await legHits([6.6, 6.8, -10, 10, 20, 30]), true));
 // Each hip servo case (23.16 long, plus the clearance) must drop between its two ear posts.
 test('Otto hip servo case fits between the ear posts', async () =>
-  assert.equal(await hits({}, [{ shapes: [{ box: [22 - 6.1, 22 + 6.1, 5.5 - 11.8, 5.5 + 11.8, 53.1, 56.1] }] }], [1]), null));
-// The ankle servo's cable leaves at the top rear of the leg: its 3-pin plug (7.7 x 2.6) must pass the window.
-test('Otto leg lead window passes a 3-pin servo plug', async () => assert.equal(await legHits([-3.9, 3.9, 12.5, 14.6, 5.6, 8.4]), false));
-test('Otto leg lead window leaves the rear wall whole beside it', async () => assert.equal(await legHits([5, 6, 12.6, 14.4, 6, 9]), true));
-test('Otto leg lead notch, wall +x', async () => assert.equal(await legHits([6.5, 8.1, 7.6, 12, 34, 38.4]), false));
-test('Otto leg lead notch, wall -x', async () => assert.equal(await legHits([-8.1, -6.5, 7.6, 12, 34, 38.4]), false));
-// Crush ribs in the hip pocket: each probe lies inside the nominal horn arm, where only a rib can be.
-for (const [i, b] of [[2.57, 2.65, 4.1, 4.7], [-2.65, -2.57, 4.1, 4.7], [2.31, 2.39, 7.95, 8.55], [-2.39, -2.31, 7.95, 8.55]].entries())
-  test('Otto hip horn crush rib grips the arm at zone ' + i, async () => assert.equal(await legHits([...b, 0.6, 1.9]), true));
+  assert.equal(await hits({}, [{ shapes: [{ box: [22 - 6.1, 22 + 6.1, 5.5 - 11.8, 5.5 + 11.8, 55.6, 58.6] }] }], [1]), null));
+// The ankle servo's cable leaves at the top rear of the leg: its 3-pin plug (7.7 x 2.6) must pass the rear window,
+// and the screwdriver for the ear screw goes in through the same window on the hole line.
+test('Otto leg rear window passes a 3-pin servo plug', async () => assert.equal(await legHits([-3.9, 3.9, 15.6, 17.4, 5.6, 8.4]), false));
+test('Otto leg rear window is open on the ear screw line', async () => assert.equal(await legHits([-1.5, 1.5, 15.4, 17.6, 10, 13]), false));
+test('Otto leg rear window leaves the rear wall whole beside it', async () => assert.equal(await legHits([5, 6, 15.7, 17.3, 6, 9]), true));
+// Hip horn pocket inside the leg (V13): hub hole through the plate, arm pocket above it running out through the
+// rear wall for an UNCUT 17.9 mm arm, plate left under the arm.
+test('Otto leg plate has the horn hub hole', async () => assert.equal(await legHits([-2.5, 2.5, -2.5, 2.5, 0.1, 4.9]), false));
+test('Otto leg horn pocket takes an uncut arm', async () => assert.equal(await legHits([-2, 2, 4, 18.4, 2.6, 4.9]), false));
+test('Otto leg plate is whole under the horn arm', async () => assert.equal(await legHits([-2, 2, 5, 15, 0.2, 2.3]), true));
 // The rocker flange sits under the floor, in the plane the legs swing through: keep it
 // outside the circle a leg corner sweeps around each hip axis.
 test('Otto switch flange clears the leg swing', () => {
-  const [lw, ll] = [16.5, 29], sweep = Math.hypot(lw / 2, ll / 2);
+  const [lw, ll, ch] = [17, 35, 0.88], sweep = Math.max(Math.hypot(lw / 2 - ch, ll / 2), Math.hypot(lw / 2, ll / 2 - ch));   // chamfered corners
   const flange = OTTO_ELECTRONICS.find(c => c.name === 'Switch').shapes[1].box;
   for (const hx of [-22, 22]) {
     const nx = Math.min(Math.max(hx, flange[0]), flange[1]), ny = Math.min(Math.max(0, flange[2]), flange[3]);
@@ -103,7 +107,10 @@ test('Otto switch flange clears the leg swing', () => {
 });
 test('Otto battery holder is stopped at the rear by a post', async () =>
   assert.notEqual(await hits({}, [{ shapes: [{ box: [9, 11, 25.6, 26.2, 48 + LIFT, 52 + LIFT] }] }]), null));
-// Joints and latch (Nov 10), probed in the assembled frame (head top 147, ankle axis z 18.5, body floor z 50-52).
+// Joints and latch, probed in the assembled frame (ankle axis z 20, leg top 51, body floor z 52.5-54.5, head top
+// 149.5). The body, head and cover probes below were written when the head top was 147: RAISE moves them up.
+const RAISE = 2.5;
+const raised = b => [...b.slice(0, 4), b[4] + RAISE, b[5] + RAISE];
 const probe = (...b) => [{ shapes: [{ box: b }] }];
 for (const [name, box, solid, parts] of [
   // Back-cover cross screws: axis along x at assembled y 23.75, z 111 (36 below the head top, 14 in from the cover's outside).
@@ -118,11 +125,14 @@ for (const [name, box, solid, parts] of [
   ['Head wall pilot is only a pilot', [29.8, 31.7, 23.55, 23.95, 109.85, 110.05], true, [0]],
   ['Head side wall is whole where the old groove was', [29.85, 30.1, 33.95, 34.15, 111, 121], true, [0]],
   ['Cover screw core passes the head wall and the post', [23.75, 31.75, 23.15, 24.35, 110.4, 111.6], false],
-  ['Foot keyhole is open to the bracket top', [-23, -21, -21, -18, 23, 24.9], false],
-  ['Foot bracket web backs the horn pocket', [-18.8, -18.2, -22.8, -21.8, 18, 19], true],
-  ['Foot horn screw hole passes the screw head', [-23.5, -20.5, -23.0, -21.6, 17.5, 19.5], false],
-  ['Rear bracket pilot is open on the ankle axis', [-22.3, -21.7, 16.2, 20.8, 18.2, 18.8], false],
-  ['Rear bracket pilot is only a pilot (plastic just under a dia 1.8 hole)', [-22.2, -21.8, 16.2, 20.8, 17.3, 17.5], true],
+  ['Foot keyhole is open to the bracket top', [-23, -21, -21.9, -18.1, 23.5, 24.9], false],
+  ['Foot bracket web backs the horn pocket', [-18.8, -18.2, -23.5, -22.1, 19.5, 20.5], true],
+  ['Foot horn screw hole passes the screw head', [-23.5, -20.5, -23.7, -22.1, 19, 21], false],
+  ['Foot horn pocket takes an uncut arm down into the sole', [-24, -20, -21.9, -18.1, 1.5, 19], false],
+  ['Foot sole is whole under the horn pocket', [-24, -20, -21.9, -18.5, 0.1, 0.8], true],
+  ['Rear bracket pilot is open on the ankle axis', [-22.3, -21.7, 17.9, 23.5, 19.7, 20.3], false],
+  ['Rear bracket pilot is only a pilot (plastic just under a dia 1.8 hole)', [-22.2, -21.8, 17.9, 23.5, 18.8, 19], true],
+  ['Leg plate lies between the servo boss and the horn arm', [-24, -20, 5, 10, 48.6, 50.9], true, [2]],
   ['Body floor passes a 3-pin servo plug', [18.1, 25.9, 25.7, 28.3, 50.2, 51.8], false],
   ['Body floor boss hole covers the raised gear housing', [20, 24, 4, 9, 50.2, 51.8], false],
   ['Hip ear screw pilot runs through the floor', [21.7, 22.3, 19.2, 19.8, 50.2, 51.8], false],
@@ -130,7 +140,7 @@ for (const [name, box, solid, parts] of [
   ['Body side wall has the groove for the head ridge', [32.1, 32.35, -5, 5, 86.4, 86.6], false, [1]],
   ['Head top passes a chunky Type-C boot (14 x 8)', [-6.9, 6.9, 11.8, 19.6, 145.1, 146.9], false],
 ]) test('Otto joint: ' + name, async () => {
-  const hit = await hits({ headStyle: 2, mouth: 1 }, probe(...box), parts);
+  const hit = await hits({ headStyle: 2, mouth: 1 }, probe(...(box[4] >= 50 ? raised(box) : box)), parts);
   if (solid) assert.notEqual(hit, null); else assert.equal(hit, null);
 });
 // The leg may roll 30 degrees either way on the foot without touching the sole or brackets.
@@ -138,13 +148,13 @@ for (const side of [2, 3]) for (const roll of [-30, 30]) test(`Otto leg ${side} 
   const g = generate('otto', { part: 7 });
   const call = g.source.match(/otto_part\(part,([^;]+)\);/);
   const x = side === 2 ? -22 : 22;
-  const source = g.source.replace(call[0], `intersection(){ translate([${x},0,18.5]) rotate([0,${roll},0]) translate([${-x},0,-18.5]) otto_placed(${side},${call[1]}); otto_placed(${side + 2},${call[1]}); }`);
+  const source = g.source.replace(call[0], `intersection(){ translate([${x},0,20]) rotate([0,${roll},0]) translate([${-x},0,-20]) otto_placed(${side},${call[1]}); otto_placed(${side + 2},${call[1]}); }`);
   const r = await compile(source, g.files);
   assert.deepEqual({ empty: r.stl === null, error: /ERROR:|WARNING:/i.test(r.log) }, { empty: true, error: false }, r.log);
 });
 
 // The two cover screws (2 mm thread, at most 9.5 long, 4.2 head) as steel pins on their axis.
-const coverScrews = r => [-1, 1].map(s => `translate([${s * 23.75},23.75,111]) rotate([0,${s * 90},0]) cylinder(r=${r},h=8,$fn=24);`).join(' ');
+const coverScrews = r => [-1, 1].map(s => `translate([${s * 23.75},23.75,113.5]) rotate([0,${s * 90},0]) cylinder(r=${r},h=8,$fn=24);`).join(' ');
 for (const [d, blocked] of [[0, false], [1, true], [5, true]]) test(`Otto back cover ${blocked ? 'cannot slide out past' : 'sits free on'} its screws (pulled back ${d} mm)`, async () => {
   const g = generate('otto', { part: 7 });
   const call = g.source.match(/otto_part\(part,([^;]+)\);/);
@@ -155,13 +165,13 @@ for (const [d, blocked] of [[0, false], [1, true], [5, true]]) test(`Otto back c
 // A 9.5 mm screw with its head must clear every component for every head style; a 12 mm one must not (control).
 test('Otto cover screw envelope clears every component', () => {
   for (const s of [-1, 1]) {
-    const env = s > 0 ? [22.25, 33.4, 22.65, 24.85, 109.9, 112.1] : [-33.4, -22.25, 22.65, 24.85, 109.9, 112.1];
+    const env = s > 0 ? [22.25, 33.4, 22.65, 24.85, 112.4, 114.6] : [-33.4, -22.25, 22.65, 24.85, 112.4, 114.6];
     for (const c of OTTO_ELECTRONICS) for (const sh of c.shapes) {
       const q = bounds(sh);
       assert.ok(![0, 2, 4].every(k => Math.min(env[k + 1], q[k + 1]) - Math.max(env[k], q[k]) > 0), c.name + ' ' + JSON.stringify(q));
     }
   }
-  const long = [19.75, 33.4, 22.65, 24.85, 109.9, 112.1];
+  const long = [19.75, 33.4, 22.65, 24.85, 112.4, 114.6];
   assert.ok(OTTO_ELECTRONICS.some(c => c.shapes.some(sh => { const q = bounds(sh); return [0, 2, 4].every(k => Math.min(long[k + 1], q[k + 1]) - Math.max(long[k], q[k]) > 0); })));
 });
 
@@ -174,8 +184,8 @@ test('Otto cover screw envelope clears every component', () => {
 }
 // Drill guide for an already printed head, placed as the builder's guide says: flat on the outside of a side wall,
 // hook over the cover's outside face, tooth in the notch on the cover's edge. Its hole must land on the pilot axis.
-const JIG = (dx = 0, dy = 0, dz = 0) => `multmatrix([[0,0,-1,${35.75 + dx}],[-1,0,0,${37.75 + dy}],[0,1,0,${111 + dz}],[0,0,0,1]]) cover_jig();`;
-const drillPin = dz => `translate([20,23.75,${111 + dz}]) rotate([0,90,0]) cylinder(r=0.8,h=20,$fn=24);`;
+const JIG = (dx = 0, dy = 0, dz = 0) => `multmatrix([[0,0,-1,${35.75 + dx}],[-1,0,0,${37.75 + dy}],[0,1,0,${113.5 + dz}],[0,0,0,1]]) cover_jig();`;
+const drillPin = dz => `translate([20,23.75,${113.5 + dz}]) rotate([0,90,0]) cylinder(r=0.8,h=20,$fn=24);`;
 for (const [name, body, empty] of [
   ['seats on the side wall, the cover face and the notch', a => `intersection(){ ${JIG()} union(){ otto_placed(0,${a}); otto_placed(8,${a}); } }`, true],
   ['plate lies on the wall (0.3 closer collides)', a => `intersection(){ ${JIG(-0.3)} otto_placed(0,${a}); }`, false],

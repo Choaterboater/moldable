@@ -126,14 +126,10 @@ module leg_part(side=0,c=0.25) {
   difference() {
     union() {
       difference() {
-        intersection() {
-          linear_extrude(otto_leg[2]) offset(delta=ch,chamfer=true) square([otto_leg[0]-2*ch,otto_leg[1]-2*ch],center=true);
-          leg_swing_envelope();   // bottom corners rounded about the ankle axis
-        }
+        linear_extrude(otto_leg[2]) offset(delta=ch,chamfer=true) square([otto_leg[0]-2*ch,otto_leg[1]-2*ch],center=true);
         leg_cavities(c);
       }
-      ankle_ear_seat(c);
-      horn_ribs(c);
+      ankle_ear_block(c);
     }
     ankle_ear_screw(c);
   }
@@ -163,8 +159,8 @@ module otto_single(part=0,headStyle=1,corner=4,grow=0,ear=0,ant=0,hat=0,mouth=0,
   if(part==8) head_cover_part(headStyle,corner,grow,mouth,clearance);
 }
 // Robot in walking pose, front facing -Y, every part on its real interface:
-// feet on the ground, legs pivot between the foot brackets, hip horns 1 mm under
-// the body floor, head dropped otto_head_insert into the body, cover flush at the rear.
+// feet on the ground, legs pivot between the foot brackets, leg tops against the hip
+// servos' bosses, head dropped otto_head_insert into the body, cover flush at the rear.
 function leg_bottom_z() = otto_sole+otto_ankle_gap;
 function body_z() = leg_bottom_z()+otto_leg[2]+otto_hip_gap;
 module otto_placed(part=0,headStyle=1,corner=4,grow=0,ear=0,ant=0,hat=0,mouth=0,feet=0,clearance=0.25) {
@@ -184,6 +180,15 @@ module otto_placed(part=0,headStyle=1,corner=4,grow=0,ear=0,ant=0,hat=0,mouth=0,
 }
 module otto_assembled(headStyle=1,corner=4,grow=0,ear=0,ant=0,hat=0,mouth=0,feet=0,clearance=0.25) {
   for(i=[0,1,2,3,4,5,8]) otto_placed(i,headStyle,corner,grow,ear,ant,hat,mouth,feet,clearance);
+}
+// Cut-away fit-test pieces, sliced from the production parts so they test exactly what will be printed:
+//  kind 0 = half a leg, cut lengthwise and laid on its side: the ankle servo is laid into the open trough, which
+//    shows its length, both ears, the ear block, the boss in the U-slot and the cable at the rear window;
+//  kind 1 = one hip station of the body (floor, the two ear posts, the boss slot): the hip servo stands in it
+//    shaft down.
+module otto_fit_cut(kind=0,c=0.25) {
+  if(kind==0) translate([0,0,otto_leg[0]/2]) rotate([0,-90,0]) intersection() { leg_part(0,c); translate([-50,-50,-1]) cube([50,100,100]); }
+  if(kind==1) translate([-otto_hip_x[1],0,0]) intersection() { body_part(0,c); translate([otto_hip_x[1]-9,hip_case_y()-19,0]) cube([18,38,otto_wall+otto_hip_post+0.8]); }
 }
 module otto_part(part=0,headStyle=1,corner=4,grow=0,ear=0,ant=0,hat=0,mouth=0,feet=0,clearance=0.25) {
   // Print plate: head + cover + body in a row, legs and feet below.
