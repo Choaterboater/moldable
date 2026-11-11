@@ -44,12 +44,13 @@ for(const p of [0,1,2,3,4,5,8].map(part=>({part})).concat([{part:0,mouth:1}])) t
   const r=await compiledPart(p);
   assert.equal(supportFaces(r.stl),0,'downward faces beyond 45 degrees above the bed');
 });
-for(let kind=0;kind<5;kind++) test('Otto fit-test print compiles '+kind,async()=> {
+for(let kind=0;kind<6;kind++) test('Otto fit-test print compiles '+kind,async()=> {
   const g=generate('otto');
   const source=g.source.replace('use <otto/otto_shells.scad>','use <otto/otto_core.scad>')
     .replace(/otto_part\([^;]+;/,`otto_coupon(${kind},clearance);`);
   const r=await compile(source,g.files);
   assert.deepEqual([r.rc,r.info?.openEdges,r.info?.nonManifoldEdges,r.info?.min[2]],[0,0,0,0],r.log);
+  if(kind===5) assert.equal(supportFaces(r.stl),0,'drill guide must print without supports');
 });
 test('Otto standalone SCAD compiles without external libraries',async()=> {
   const g=generate('otto');

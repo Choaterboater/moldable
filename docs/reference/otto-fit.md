@@ -100,18 +100,26 @@ electronics and the joints need 4.5 mm more, so 147) but are prototype allowance
   plugs; rotate the display 180° in software. With the header at the top the two sets of plugs
   crossed (12 × 5 × 4.5 mm), found by the Nov 1 fit check.
 - Nano I/O shield (Nov 9, measured): the blue V3.0 board, 53.2 wide × 54.8 tall, stands upright with the DC
-  jack and USB-C edge up, PCB back 6.75 mm in front of the back cover, top edge 9.75 mm under the head top so
-  its corners clear a 12 mm bevel (the tightest corner style); that is why the head grew from 61 to 62 mm.
+  jack and USB-C edge up, PCB back 6.75 mm in front of the back cover, top edge 6.25 mm under the head top
+  (raised 3.5 mm on Nov 10: the builder found the board too low for the USB-C cable). The DC jack, measured 3.03
+  above the top edge (caliper photos: 57.82 over the jack, 54.79 bare board), ends 1 mm under the roof. To keep
+  the board's corners clear, bevel corners are capped at 8 mm and the dome is 13 mm with an 11 mm cavity corner.
   The stack in front (24–25 mm measured to the top pin; 28.4 allowed for plugs and wire bends) reaches y −1 in
-  the assembled frame, 2.25 mm behind the OLED plugs. Its lower 4.5 mm sits in the body, 2.5 mm above the
+  the assembled frame, 2.25 mm behind the OLED plugs. Its lower 2 mm sits in the body, 6 mm above the
   battery holder. Two 1.6 mm side clips on the cover (snap ridges 0.3 mm past the PCB edges, inside the 4.5 mm
   header-free edge strips), two 1.2 mm edge ledges and two stepped pegs in its top mounting holes hold it.
   No screws.
 - The Nano's Type-C port points up; a 14.5 × 8.5 slot with a 45° rear gable passes through the head top
-  (Nov 10: enlarged from 12.85 × 7.0 so a cable boot bigger than the USB spec still reaches the port; raising the
-  shield instead gains only 3 mm before the DC jack meets the head top, and breaks the bevel and dome corners).
+  (Nov 10: enlarged from 12.85 × 7.0 so a cable boot bigger than the USB spec still reaches the port; the shield
+  was then also raised 3.5 mm, as far as the DC jack allows, with bevel corners capped at 8 mm and the dome at 13).
   The old rails could not take a Nano with soldered headers (pin rows hit the rail lips), so they are gone.
-- Back cover: U-shaped 3 mm lip and the two shield clips; it stops at the body rim. A 50° ridge 18 mm long on
+- Back cover: U-shaped 3 mm lip and the two shield clips; it stops at the body rim. It is PINNED by two spare servo
+  ear screws (about 2 × 8; at most 9 mm under the head), one through each head side wall into a 12 × 2.65 post
+  19 tall on the cover, on an axis 36 mm below the head top and 14 mm in from the cover's outside face (2.55 mm in
+  front of the shield PCB's bare edge strip; tip 1.65 mm from the plug envelope). Nov 10: crush ribs and then a
+  0.45 mm snap ridge both let the cover slide out on the builder's printer, because the 2 mm head walls flex; a
+  steel pin through wall and post cannot. The shield's snap ridge is left out for 14 mm at each post. A head
+  printed earlier gets its two pilots drilled through the printed guide (otto_coupon(5), exported as otto-cover-drill-guide.stl; the app's fit-test buttons stop at kind 4): mark the wall through the guide with the bare cover in, take the cover OUT, then drill, because the post's pilot 0.25 mm behind the wall is the screw's only thread. The old history: A 50° ridge 18 mm long on
   each side of the lip (Y −40 to −22, 0.45 mm into the wall) snaps into a groove in the head's side walls, so the
   cover stays on without glue (Nov 10: the first print's cover had nothing holding it). Push it out from inside.
 - Head on body (Nov 10): the same 50° ridge, 20 mm long, on each side of the head's 3 mm insert band (22–42 mm
@@ -120,7 +128,7 @@ electronics and the joints need 4.5 mm more, so 147) but are prototype allowance
 - Power (Nov 2026): 4×AA NiMH (4.8 V) straight to the shield's 5 V rail, as official Otto does, replacing the
   9 V cell (USB-C 9 V Li-ion cells are typically rated 0.35–0.5 A continuous, and a linear 5 V regulator
   would burn the extra 4 V as heat). The two-layer holder sits between the hip servo cases (31.8 gap, 0.9 per
-  side) at Y −2.5, under the shield (2.5 mm gap), with two 3 × 2 × 6 rear stop posts at X ±10 leaving the middle
+  side) at Y −2.5, under the shield (6 mm gap), with two 3 × 2 × 6 rear stop posts at X ±10 leaving the middle
   free for its leads. The 9 V ribs, strap slots, clip allowance and DC jack are gone.
 - Body floor: KCD11 rocker cutout 13 × 8 (plus clearance) at X 24.5, Y −24; its 15 × 10.5 flange stays 18.75 mm
   from the right hip axis, outside the 16.7 mm leg swing. Buzzer ring at X −24.75, Y −22 (merged into the side
@@ -128,7 +136,7 @@ electronics and the joints need 4.5 mm more, so 147) but are prototype allowance
 - Assembly order: hip servos into the body; trimmed horns into the leg tops, legs onto the hip shafts, horn
   screws from inside the legs; ankle servos up into the legs (plug and lead fed out through the window high in the
   rear wall before the servo is pushed home; ear screw driven in from the leg's front face); horns onto the ankle shafts, legs down into the feet, horn screws from the front, pivot screws
-  from the rear; then shield on cover, leads plugged in, cover into head, head into body. Lift the head out
+  from the rear; then shield on cover, leads plugged in, cover into head, one ear screw through each head side wall into the cover posts, head into body. Lift the head out and take both screws out
   before removing the cover (the shield's lower edge is behind the body's rear wall).
 - Provisional horn hub Ø7.4 / single arm **trimmed to 11 mm** from the centre (4.5 wide at the cut), recessed with 45° roofs.
 - Joints (Nov 10 redesign; the old 1 mm gaps and closed horn pockets could not be assembled, because the
@@ -152,12 +160,13 @@ electronics and the joints need 4.5 mm more, so 147) but are prototype allowance
     from the shaft; the window passes the 3-pin plug), plus spare lead notches at
     the bottom rear of both side walls.
   - Body floor: a 9 × 3.7 slot behind each hip servo (Y 27) passes the ankle servo's plug.
-  - Both snaps exist only for Shell growth ≤ 1; thicker shells cannot flex, so they keep the plain slip fit.
+  - The head-to-body snap exists only for Shell growth ≤ 1; thicker shells cannot flex, so they keep the plain slip
+    fit. The cover screws work at every growth (a 5.5 mm well lets the screw head reach the standard wall).
   - Independent review (Nov 10) found and fixed: horn pocket 1 mm too shallow for a horn with a closed end, the
     pivot screw reaching the servo case, the ear-screw access hole (Ø4) smaller than the screw head (now the lead window),
     and pockets too narrow at the cut end of a trimmed horn.
 - Provisional USB opening 14.5×8.5 at clearance 0.25 (boot allowance 14 × 8; spec maximum 12.35 × 6.5). It is sized for the cable's plastic boot, not the
-  port: the Nano's port sits about 7 mm under the head top, so the boot has to pass through the wall.
+  port: the Nano's port sits about 3.25 mm under the head top (6.75 before the board was raised), so the boot still has to enter the wall.
   The real plastic cable boot may be larger or smaller.
 - Shield ledges (Nov 9, after a test print): with only the snap ridges, the shield slid back until its
   solder tails touched the cover. Two 1.2 mm ledges under its bare side edges now hold the PCB back
@@ -189,7 +198,7 @@ electronics and the joints need 4.5 mm more, so 147) but are prototype allowance
 - No claim of V9 or V13 part interchangeability.
 
 Shell growth changes XY exterior only. Rounded, bevel and dome styles shape the head's top corners
-outside the fixed core; the dome radius is capped at 14 mm so the sensor board and shield stay enclosed.
+outside the fixed core; the dome is a fixed 13 mm (11 mm cavity corner) and bevel corners stop at 8 mm, so the sensor board and the raised shield's corners stay enclosed.
 Accessories are flat-backed extensions printed on the bed, not floating hats.
 The fixed cavity subtraction is applied after accessories are added.
 

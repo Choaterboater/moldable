@@ -63,3 +63,8 @@ an 80-byte credit/license header; keep this README and source with redistributio
 - Measured servo (Nov 10): the user's ASKY MG90S is 24.17 tall to the flat top, not 22.7, so the leg cavity,
   ear seats, hip gap (4 mm) and foot bracket (5.4) follow the calipers and the seller's drawing. The ankle
   servo's cable now leaves through a plug-sized window high in the leg's rear wall. Robot height 147.
+- Board raised 3.5 mm on the back cover (Nov 10) so the Type-C port sits 3.25 mm under the head top instead of
+  6.75; bevel corners capped at 8 mm, dome 13 mm.
+- Back cover pinned by two servo ear screws through the head's side walls into posts on the cover (Nov 10):
+  friction ribs and the snap ridge did not hold on the builder's printer. Drill guide for earlier heads is
+  otto_coupon(5) (otto-cover-drill-guide.stl).

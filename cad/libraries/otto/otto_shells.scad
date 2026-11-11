@@ -5,8 +5,10 @@ use <otto_core.scad>
 
 // Head silhouette seen from the front: top corners styled, bottom corners square
 // so the bottom band drops into the body. Spans y = top-h .. top.
-module head_profile(w,h,top,r=4,style=1) {
-  rr=style==0?0:(style==3?min(14,w/2-1,h/2-1):min(r,w/2-1,h/2-1));   // dome radius keeps the HC-SR04 board clear
+// Bevel corners stop at 8 mm and the dome is a fixed 13 (cavity 11): beyond that the raised shield's corners would touch them.
+function head_corner(style,r) = style==2 ? min(r,8) : r;
+module head_profile(w,h,top,r=4,style=1,dome=13) {
+  rr=style==0?0:(style==3?min(dome,w/2-1,h/2-1):min(r,w/2-1,h/2-1));   // dome radius keeps the HC-SR04 board and the shield corners clear
   if(rr<=0) translate([-w/2,top-h]) square([w,h]);
   else hull() {
     translate([-w/2,top-h]) square([w,1]);
@@ -19,12 +21,12 @@ function head_h(mouth) = otto_head[1];   // same for every mouth: fixed electron
 module head_outline(style,r,grow,mouth) {
   h=head_h(mouth);
   union() {
-    head_profile(otto_head[0]+2*grow,h+grow-otto_head_insert,grow,r,style);
+    head_profile(otto_head[0]+2*grow,h+grow-otto_head_insert,grow,head_corner(style,r),style);
     translate([-otto_head[0]/2,-h]) square([otto_head[0],otto_head_insert+0.01]);
   }
 }
 module head_cavity_outline(style,r,mouth) {
-  head_profile(otto_head[0]-2*otto_wall,head_h(mouth)+1-otto_wall,-otto_wall,max(0,r-otto_wall),style);
+  head_profile(otto_head[0]-2*otto_wall,head_h(mouth)+1-otto_wall,-otto_wall,max(0,head_corner(style,r)-otto_wall),style,13-otto_wall);
 }
 // Ears sit on the head top, overlapping it by 3 mm.
 module ears(style=0,edge=31,top=0) {
@@ -64,8 +66,8 @@ module head_part(style=1,r=4,grow=0,ear=0,ant=0,hat=0,mouth=0,c=0.25) {
     translate([-100,-head_h(mouth)-1,otto_head_band]) cube([200,otto_head_insert+1,100]);
     hcsr04_eyes(c);
     usbc_top_slot(c);
-    // Grooves the back cover's side ridges snap into (0.15 deeper than the ridge).
-    cover_latch(otto_head[2]-otto_wall-otto_latch_z,otto_head[0]/2-otto_wall-0.01,otto_head[0]/2-otto_wall+otto_latch+0.15);
+    // Pilots for the two ear screws that pin the back cover (one through each side wall).
+    cover_screw_holes();
     if(mouth==0) translate([0,otto_nose_y,-1]) cylinder(d=otto_nose_d,h=otto_wall+2,$fn=32);
     if(mouth==1) oled_window(c);
     if(mouth==2) for(x=[-8,0,8]) translate([x,otto_grille_y,-1]) fit_box([3,8,otto_wall+2],c);
@@ -76,8 +78,8 @@ module head_part(style=1,r=4,grow=0,ear=0,ant=0,hat=0,mouth=0,c=0.25) {
   }
 }
 // Back cover: outside face on the bed. A U-shaped lip locates it in the head's
-// open rear, a ridge on each side of the lip snaps into the head walls, and two
-// edge clips carry the I/O shield. It sits behind the body, so it
+// open rear, one screw through each head side wall into a post on the cover pins it,
+// and two edge clips carry the I/O shield. It sits behind the body, so it
 // stops at the body rim (no insert band); the bottom stays open.
 module head_cover_part(style=1,r=4,grow=0,mouth=0,c=0.25) {
   h=head_h(mouth); iw=otto_head[0]-2*otto_wall;
@@ -86,6 +88,7 @@ module head_cover_part(style=1,r=4,grow=0,mouth=0,c=0.25) {
       linear_extrude(otto_wall) difference() {
         head_outline(style,r,grow,mouth);
         translate([-200,-h-10]) square([400,10+otto_head_insert]);
+        for(s=[-1,1]) translate([s*(otto_head[0]/2+grow),otto_cover_screw[0]]) rotate(45) square(otto_cover_mark[0],center=true);   // screw-height mark
       }
       translate([0,0,otto_wall-0.01]) linear_extrude(otto_cover_lip+0.01) difference() {
         offset(delta=-c) head_cavity_outline(style,r,mouth);
@@ -94,9 +97,9 @@ module head_cover_part(style=1,r=4,grow=0,mouth=0,c=0.25) {
       }
       shield_mount(c);
       cover_ribs(c);
-      // Snap ridges: the head's side walls spring over them, so the cover stays on without glue.
-      if(grow<=1) cover_latch(otto_wall+otto_latch_z,otto_head[0]/2-otto_wall-c-0.01,otto_head[0]/2-otto_wall+otto_latch);
+      cover_posts(c);   // the two cross screws thread into these
     }
+    cover_post_pilots(c);
   }
 }
 // Body: open-top box with chamfered vertical edges; hip servos stand on the floor.

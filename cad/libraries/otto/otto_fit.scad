@@ -56,7 +56,9 @@ otto_servo_ear_hole = 14; // ear screw hole from case centre along the long axis
 // The DC jack and the Nano's USB-C stick out of the same edge, which faces up; the Nano is
 // centred (user photo). Held by its side edges, not its holes (positions vary between boards).
 otto_shield = [53.2,54.8,1.6]; // [width, height, PCB thickness]
-otto_shield_jack = [-20.3,-10.4,4]; // DC jack: [x from, x to, height above the top edge], seen from the face
+// DC jack: [x from, x to, height above the top edge], seen from the face. Height from the builder's caliper
+// photos: 57.82 over the jack against 54.79 for the bare board, so 3.03; 3.2 here.
+otto_shield_jack = [-20.3,-10.4,3.2];
 otto_shield_edge = 4.5; // flat strip along each side edge (no headers): the clips use it
 otto_shield_stack = 28.4; // Nano on female headers + Dupont plugs in front of the PCB (provisional)
 otto_shield_under = 3; // solder tails behind the PCB (they touched the plate on a test print with no ledges)
@@ -88,7 +90,7 @@ otto_guide = [1.6,8,0.3]; // [wall thickness, length along the board edge, snap 
 otto_battery = [56,30,28]; // [length front-back, width, height]
 otto_battery_stop = [3,2,6]; // rear stop posts: [width, depth, height]
 otto_usb = [12.35,6.5]; // largest Type-C plug boot the USB spec allows
-// Hole in the head top. The port sits about 7 mm under the top, so the cable's plastic boot has to pass
+// Hole in the head top. The port sits about 3.25 mm under the top, so the cable's plastic boot has to pass
 // through; chunky braided cables exceed the spec size, hence the extra room (Nov 10).
 otto_usb_slot = [14,8];
 otto_buzzer = [12,9.5]; // stands on the body floor, sound side down
@@ -106,9 +108,15 @@ otto_horn_rib = 0.15; // crush ribs in the hip pocket press this far into the no
 otto_pin = [1.8,2.2]; // ankle pivot = a servo ear screw: [pilot in the rear bracket, bore in the leg's rear wall]
 otto_wire = [3.2,8.5]; // slot that passes a 3-pin servo plug
 otto_wire_y = 27; // body floor slots for the ankle servo leads, behind the hip servos
-otto_latch = 0.45; // back-cover snap: ridge overlap into the head's side walls
-otto_latch_z = 1.7; // ridge centre above the root of the cover lip
-otto_latch_y = [-40,-22]; // ridge span down the head sides (below every top-corner style)
+otto_latch = 0.45; // head-to-body snap: ridge overlap into the body's side walls
+// Back-cover cross screws (Nov 10): one spare servo ear screw (about 2 x 8, at most 9 mm under the head) through
+// each head side wall into a post on the cover. Crush ribs and a 0.45 mm snap ridge both let the cover slide out
+// on the builder's printer, because the head's 2 mm side walls flex; a steel pin through wall and post cannot.
+otto_cover_screw = [-36,14]; // [y down the head sides (below every top-corner style), axis in from the cover's OUTSIDE face]: 2.55 in front of the shield PCB
+otto_cover_post = [12,19,0.6]; // post on the cover: [length along y, height above the outside face (3.7 of plastic over the pilot), lead-in chamfer]
+otto_cover_mark = [2.1,1.2]; // [side of the square that notches each cover edge at the screw height, drill-guide tooth half width = height]
+otto_screw_head = 5.5; // well for the screw head and driver shaft; cuts only in grown shells
+otto_cover_jig = [14,22,4]; // drill guide for an already printed head: [width, length, thickness]
 otto_snap_z = [22,42]; // head-to-body snap: ridge span along the head's insert band, measured back from the face
 // NEW DESIGN placements; not verified against V9/V13 or purchased parts.
 // Head-local (x across, y down from the top, z back from the face):
@@ -122,7 +130,12 @@ otto_sensor_pos = [0,-15,7]; // PCB front face; the eyes stick out 5 mm (the OLE
 // OLED mounts upside down (pin header at the BOTTOM edge) so its rear plugs pass
 // under the HC-SR04's downward plugs; rotate the display 180 degrees in the sketch.
 otto_oled_pos = [0,-40,2]; // visible-area centre; the PCB centre sits otto_oled_offset above it
-otto_shield_top = -9.75; // y of the shield's top edge: its corners clear a 12 mm bevel (the tightest style)
+// y of the shield's top edge. Raised 3.5 mm on Nov 10 (the builder found the board too low for the USB-C cable):
+// the DC jack now ends 1 mm under the head's roof and the Type-C port 1.25 under it (3.25 under the outside,
+// was 6.75). Bevel corners are capped at 8 mm and the dome is 13 mm with an 11 mm cavity corner
+// (otto_shells.scad), so the board's corners keep at least 0.6 mm from every head style.
+otto_shield_top = -6.25;
+otto_shield_rail_top = -11.75; // top of the two side rails: fixed, so they stay inside every head-corner style
 otto_shield_standoff = 6.75; // back-cover inner face to the shield PCB back
 // Body-local (x across, y front-to-back, z up from the floor underside):
 otto_buzzer_pos = [-24.75,-22]; // ring merges into the side wall, clear of the battery holder

@@ -84,11 +84,12 @@ module usbc_top_slot(clearance=0.25) {
 // board, pins through its corner holes (secure with a melted tip or a drop of glue).
 // Edge guide along +x of a board edge at x = edge (mirrored for -x): a wall from the face plate,
 // with a 45-degree snap ridge just behind the PCB. Board edges, not screw holes, locate it.
-module edge_guide(edge, y0, y1, pcb_back, clearance, overlap=otto_guide[2]) {
+module edge_guide(edge, y0, y1, pcb_back, clearance, overlap=otto_guide[2], gap=[0,0]) {
   g=otto_guide; x0=edge+clearance; zr=pcb_back+clearance; d=clearance+overlap; rise=1.2*(d+0.01);   // steeper than 45 degrees
   for(m=[0,1]) mirror([m,0,0]) {
     translate([x0,y0,otto_wall-0.01]) cube([g[0],y1-y0,zr+2*rise+0.5-otto_wall+0.01]);
-    translate([0,(y0+y1)/2,0]) rotate([90,0,0]) linear_extrude(y1-y0,center=true)
+    // The snap ridge may be left out over a span (where a cover screw post stands).
+    for(s=gap[1]>gap[0]?[[y0,gap[0]],[gap[1],y1]]:[[y0,y1]]) translate([0,s[1],0]) rotate([90,0,0]) linear_extrude(s[1]-s[0])
       polygon([[x0+0.01,zr],[x0-d,zr+rise],[x0+0.01,zr+2*rise]]);
   }
 }
@@ -117,12 +118,14 @@ module oled_window(clearance=0.25) {
 // ---------- back cover (outside face on the bed) ----------
 // The shield snaps between two side guides on the back cover and rests on two edge ledges;
 // two stepped pegs through its top mounting holes set its height (fat base under the PCB,
-// thin pointed pin through the hole). Its lower edge hangs 2 mm above the battery holder.
+// thin pointed pin through the hole). Its lower edge hangs 6 mm above the battery holder.
 module shield_mount(clearance=0.25) {
   w=otto_shield[0]/2; yt=otto_shield_top; yb=-head_h_cover();
   y0=max(yb+1,yt-otto_shield[1]+2);
-  edge_guide(w,y0,yt-2,otto_wall+otto_shield_standoff+otto_shield[2],clearance,otto_shield_snap);
-  shield_ledges(y0,yt-2,clearance);
+  y1=min(yt-2,otto_shield_rail_top);
+  edge_guide(w,y0,y1,otto_wall+otto_shield_standoff+otto_shield[2],clearance,otto_shield_snap,
+    [otto_cover_screw[0]-otto_cover_post[0]/2-1,otto_cover_screw[0]+otto_cover_post[0]/2+1]);
+  shield_ledges(y0,y1,clearance);
   shield_pegs();
 }
 module shield_pegs() {
@@ -267,12 +270,47 @@ module foot_cavities(clearance=0.25) {
   // Pilot for the pivot screw (a servo ear screw): it threads into the rear bracket.
   translate([0,bracket_rear_y()+otto_bracket[2]+1,ankle_axis_z()]) rotate([90,0,0]) linear_extrude(otto_bracket[2]+2) teardrop2d(otto_pin[0]);
 }
-// Back-cover snap: a 50-degree ridge along each side of the cover lip (tip at half-width `tip`)
-// and a matching groove in the head's side walls, at head/cover-local depth z.
-module cover_latch(z, x0, tip) {
-  h=(tip-x0)*1.2;
-  for(m=[0,1]) mirror([m,0,0]) translate([0,otto_latch_y[1],z]) rotate([90,0,0])
-    linear_extrude(otto_latch_y[1]-otto_latch_y[0]) polygon([[x0,-h],[tip,0],[x0,h]]);
+// ---------- back-cover cross screws ----------
+// One servo ear screw through each head side wall into a post on the cover: the cover cannot slide out
+// without shearing a steel screw, however much the walls flex. The posts stand outside the shield's side
+// edges (on the rail and the gap to the wall), so the screw passes in FRONT of the PCB's bare edge strip.
+// Head-local z of the screw axis:
+function cover_screw_z() = otto_head[2]-otto_cover_screw[1];
+// Posts: vertical prisms from the cover plate (print-up), from the shield rail's inner face to the lip's
+// outer face, with a lead-in chamfer on the outer top edge.
+function cover_post_x(clearance) = [otto_shield[0]/2+clearance,otto_head[0]/2-otto_wall-clearance];
+module cover_posts(clearance=0.25) {
+  x=cover_post_x(clearance); l=otto_cover_post[0]; h=otto_cover_post[1]; ch=otto_cover_post[2];
+  for(m=[0,1]) mirror([m,0,0]) translate([0,otto_cover_screw[0]+l/2,0]) rotate([90,0,0]) linear_extrude(l)
+    polygon([[x[0],otto_wall-0.01],[x[1],otto_wall-0.01],[x[1],h-ch],[x[1]-ch,h],[x[0],h]]);
+}
+// Pilot along x through each post (and the rail it stands on): a teardrop with its point toward print-up.
+module cover_post_pilots(clearance=0.25) {
+  x=cover_post_x(clearance);
+  for(m=[0,1]) mirror([m,0,0]) translate([x[0]-1,otto_cover_screw[0],otto_cover_screw[1]]) rotate([0,90,0])
+    linear_extrude(x[1]-x[0]+2) rotate(90) teardrop2d(otto_pin[0]);
+}
+// Matching pilot through each head side wall (point toward the rear edge = print-up), and a well for the
+// screw head that only cuts into shells grown thicker than the standard wall.
+module cover_screw_holes() {
+  xw=otto_head[0]/2;
+  for(m=[0,1]) mirror([m,0,0]) translate([0,otto_cover_screw[0],cover_screw_z()]) rotate([0,90,0]) {
+    translate([0,0,xw-otto_wall-1]) linear_extrude(otto_wall+1.02) rotate(90) teardrop2d(otto_pin[0]);
+    translate([0,0,xw+0.01]) linear_extrude(100) rotate(90) teardrop2d(otto_screw_head);
+  }
+}
+// Drill guide for a head printed before the cover screws existed: lies flat on the outside of a side wall,
+// hook over the cover's outside face, tooth in the notch on the cover's edge; the hole marks the pilot.
+module cover_jig() {
+  j=otto_cover_jig; t=j[2]; k=otto_cover_mark[1];
+  difference() {
+    union() {
+      translate([-otto_wall,-j[0]/2,0]) cube([j[1],j[0],t]);            // plate against the side wall
+      translate([-otto_wall,-j[0]/2,0]) cube([otto_wall,j[0],t+3]);     // hook over the cover's outside face
+      translate([0,0,t-0.01]) rotate([90,0,90]) linear_extrude(otto_wall-0.2) polygon([[-k,0],[k,0],[0,k]]);   // tooth for the notch
+    }
+    translate([otto_cover_screw[1],0,-1]) cylinder(d=2.2,h=t+2,$fn=24);
+  }
 }
 
 // Four independent small fit-test prints, all using the production cutters.
@@ -289,6 +327,7 @@ module otto_coupon(kind=0, clearance=0.25) {
     fit_box([22,16,3]);
     translate([0,0,-1]) fit_box([otto_usb_slot[0],otto_usb_slot[1],5],clearance);
   }
+  if(kind==5) cover_jig();   // drill guide for a head printed before the cover screws
   if(kind==4) {   // shield clips: the top of the back cover with both side clips and the top stops
     yt=otto_shield_top; w=otto_shield[0]/2;
     translate([-w-4,yt-20,0]) cube([2*w+8,24,otto_wall]);

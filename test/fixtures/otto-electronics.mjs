@@ -22,16 +22,16 @@ const BODY_AND_HEAD = [
     box(-10, 10, -26.65, -25.75, 92.1, 117.1), box(-7, 7, -29.75, -25.75, 114.23, 118.62)] },
   { name: 'OLED plugs', shapes: [box(-6, 6, -25.75, -3.25, 89.95, 94.45)] },
   // Blue Nano IO shield V3.0 (user's calipers: 53.2 x 54.8) upright on the cover clips, top edge
-  // 9.75 below the head top: PCB, Nano + plugs in front (inside the 4.5 mm edge strips),
+  // 6.25 below the head top (raised 3.5 mm, Nov 10): PCB, Nano + plugs in front (inside the 4.5 mm edge strips),
   // the DC jack and the Nano's USB-C sticking out of the top edge.
-  { name: 'Shield PCB', shapes: [box(-26.6, 26.6, 27.4, 29, 77.95, 132.75)],   // minus its two top mounting holes (pegs)
-    minus: [{ cyl: { x: -23.9, z: 129.95, r: 1.6, y0: 27, y1: 29.5 } }, { cyl: { x: 23.9, z: 128.75, r: 1.6, y0: 27, y1: 29.5 } }] },
-  { name: 'Shield Nano + plugs', shapes: [box(-22.1, 22.1, -1, 27.4, 77.95, 132.75), box(-20.3, -10.4, 16, 27.4, 132.75, 136.75),
-    box(-4.5, 4.5, 14.1, 17.3, 132.75, 135.75)] },
-  { name: 'Shield solder side', shapes: [box(-25.1, 25.1, 29, 32, 77.95, 132.75)],   // tails inside the edge ledges, clear of the peg bases
-    minus: [{ cyl: { x: -23.9, z: 129.95, r: 2.35, y0: 28.9, y1: 32.1 } }, { cyl: { x: 23.9, z: 128.75, r: 2.35, y0: 28.9, y1: 32.1 } }] },
+  { name: 'Shield PCB', shapes: [box(-26.6, 26.6, 27.4, 29, 81.45, 136.25)],   // minus its two top mounting holes (pegs)
+    minus: [{ cyl: { x: -23.9, z: 133.45, r: 1.6, y0: 27, y1: 29.5 } }, { cyl: { x: 23.9, z: 132.25, r: 1.6, y0: 27, y1: 29.5 } }] },
+  { name: 'Shield Nano + plugs', shapes: [box(-22.1, 22.1, -1, 27.4, 81.45, 136.25), box(-20.3, -10.4, 16, 27.4, 136.25, 139.45),
+    box(-4.5, 4.5, 14.1, 17.3, 136.25, 139.25)] },
+  { name: 'Shield solder side', shapes: [box(-25.1, 25.1, 29, 32, 81.45, 136.25)],   // tails inside the edge ledges, clear of the peg bases
+    minus: [{ cyl: { x: -23.9, z: 133.45, r: 2.35, y0: 28.9, y1: 32.1 } }, { cyl: { x: 23.9, z: 132.25, r: 2.35, y0: 28.9, y1: 32.1 } }] },
   // Type-C plug boot (USB-C R2.1 max 12.35 x 6.5) from the port up through the head top.
-  { name: 'Type-C plug', shapes: [box(-6.175, 6.175, 12.45, 18.95, 135.75, 175)] },
+  { name: 'Type-C plug', shapes: [box(-6.175, 6.175, 12.45, 18.95, 139.25, 175)] },
   ...[['L', -22], ['R', 22]].map(([s, x]) => ({ name: 'Hip servo ' + s, shapes: [
     box(x - 6.1, x + 6.1, -6.1, 17.1, 47.5, 72.9), box(x - 6.1, x + 6.1, -11.2, 22.2, 51.7, 54.4)] })),
   // 4xAA two-layer holder (LAMPVPATH B01CVJC8I4, 56 x 30 x 28) between the hip servos, leads out the rear end.
