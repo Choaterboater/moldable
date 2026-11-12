@@ -34,8 +34,8 @@ module otto_dummy(part,id) {
     if(id==3) dummy_box([8,6,22],[0,28.5,15.5]); // holder leads leaving the rear end
     if(id==4) { dummy_box([13,8,24],[24.5,-25.5,10]); dummy_box([15,10.5,4],[24.5,-25.5,-2]); } // rocker switch + flange under the floor
     if(id==5) difference() { // buzzer on the floor; the four crush-rib zones are deliberate interference
-      translate([-24.75,-22,2]) cylinder(d=12,h=9.5,$fn=48);
-      for(a=[0,90,180,270]) translate([-24.75,-22,0]) rotate(a) translate([5.8,-0.6,0]) cube([0.3,1.2,20]);
+      translate([-24.75,-25.5,2]) cylinder(d=12,h=9.5,$fn=48);
+      for(a=[0,90,180,270]) translate([-24.75,-25.5,0]) rotate(a) translate([5.8,-0.6,0]) cube([0.3,1.2,20]);
     }
   }
   if(part==2 || part==3) { // leg-local: z=0 is the leg top, ankle axis z 31, case centre z 25.5, ear seat y -9
@@ -50,7 +50,6 @@ module otto_dummy(part,id) {
       translate([0,0,2.54]) linear_extrude(2.86) polygon([[-2.8,0],[2.8,0],[2,17.9],[-2,17.9]]);
       translate([0,0,5.4]) cylinder(d=4.4,h=1.6,$fn=24);
     }
-    if(id==2) translate([0,17.8,31]) rotate([90,0,0]) cylinder(d=2,h=2.44,$fn=24); // tip of the pivot screw in its bore, foot fully forward
   }
   if(part==4 || part==5) { // foot-local: ankle axis z 20, front bracket inner face y -18, pocket floor y -22
     if(id==0) translate([0,-18,20]) rotate([90,0,0]) { // ankle horn in the keyhole: hub 0.4 proud of the bracket,

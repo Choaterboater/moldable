@@ -60,7 +60,7 @@ test('Otto standalone SCAD compiles without external libraries',async()=> {
 });
 
 // Cut-away fit-test pieces come from the production parts and must print flat without supports.
-for (const [kind, name, size] of [[0, 'half leg', [42, 35, 8.5]], [1, 'hip station', [18, 38, 6.2]]]) test('Otto cut-away fit test: ' + name, async () => {
+for (const [kind, name, size] of [[0, 'half leg', [42, 35, 8.5]], [1, 'hip station', [18, 35.5, 6.2]]]) test('Otto cut-away fit test: ' + name, async () => {
   const g = generate('otto');
   const r = await compile(g.source.replace(/otto_part\([^;]+;/, `otto_fit_cut(${kind},clearance);`), g.files);
   assert.deepEqual([r.rc, r.info?.openEdges, r.info?.nonManifoldEdges, r.info?.components, +r.info?.min[2].toFixed(3)], [0, 0, 0, 1, 0], r.log);

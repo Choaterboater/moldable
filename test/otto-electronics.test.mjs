@@ -130,18 +130,76 @@ for (const [name, box, solid, parts] of [
   ['Foot horn screw hole passes the screw head', [-23.5, -20.5, -23.7, -22.1, 19, 21], false],
   ['Foot horn pocket takes an uncut arm down into the sole', [-24, -20, -21.9, -18.1, 1.5, 19], false],
   ['Foot sole is whole under the horn pocket', [-24, -20, -21.9, -18.5, 0.1, 0.8], true],
-  ['Rear bracket pilot is open on the ankle axis', [-22.3, -21.7, 17.9, 23.5, 19.7, 20.3], false],
-  ['Rear bracket pilot is only a pilot (plastic just under a dia 1.8 hole)', [-22.2, -21.8, 17.9, 23.5, 18.8, 19], true],
+  ['Rear bracket dimple takes the leg knob on the ankle axis', [-22.3, -21.7, 18, 19.3, 19.7, 20.3], false, [4]],
+  ['Rear bracket is whole behind the dimple (no hole a screw could go through)', [-22.3, -21.7, 20.2, 23.6, 19.7, 20.3], true, [4]],
+  ['Rear bracket ramp leads the knob down from the bracket top', [-23.5, -20.5, 18, 18.4, 21, 24.9], false, [4]],
+  ['Leg knob reaches the bottom of the dimple', [-22.2, -21.8, 19.2, 19.55, 18.6, 19], true, [2]],
+  ['Leg knob is cut away on its upper side (prints without support)', [-22.2, -21.8, 19.2, 19.55, 20.6, 22.4], false, [2]],
+  ['Rear bracket is whole behind the ramp (the knob has to click past it)', [-23.5, -20.5, 19.15, 19.4, 23.6, 24.9], true, [4]],
+  ['Leg side walls have a finger window under the plate', [-31, -13, -7.5, 13.5, 38.5, 45.5], false, [2]],
+  ['Leg side wall is whole below the finger window', [-30.9, -30.1, 0, 6, 12, 24], true, [2]],
+  ['Leg top plate has the slot for the arm screw', [-22.3, -21.7, 7.5, 12, 48.4, 51.2], false, [2]],
+  ['Arm screw slot is 2.2 wide on the plate underside (plate left beside it)', [-20.75, -20.65, 8, 11.5, 48.52, 48.6], true, [2]],
+  ['Arm screw head recess is 4.6 wide and 1.25 deep', [-24.2, -19.8, 8, 11.5, 49.8, 51.2], false, [2]],
+  ['Arm screw head recess is no wider than 4.6 (a small head seats in it)', [-19.6, -19.3, 8, 11.5, 49.9, 50.9], true, [2]],
+  ['Cable way is open from the bay to the opening in the leg top', [-25.9, -18.1, -9.5, -8.5, 43.2, 45.8], false, [2]],
+  ['Cable way is cut back under the plate so a plug can turn the corner', [-27, -17, -8.8, -5.8, 46.2, 48.3], false, [2]],
+  ['Leg plate is whole above that cut', [-27, -17, -8.8, -5.8, 48.7, 50.9], true, [2]],
+  ['Ear-screw slot keeps a skin over the cable way', [-22.5, -21.5, -9.6, -9.4, 40.6, 40.9], true, [2]],
+  ['Front hip ear post is not cut by the cable window', [21.5, 22.5, -10.7, -10.5, 50.2, 51.8], true, [1]],
+  ['Foot arm-screw slot is only a pilot (plastic beside a 1.8 slot)', [-23.2, -23.0, -23.4, -22.2, 9, 11.5], true, [4]],
+  ['Leg top has the cable opening in front of the ear seat', [-27.5, -16.5, -15.3, -9.2, 47.9, 51.2], false, [2]],
+  ['Leg shelf above the cable way carries the servo end', [-27, -17, -15, -9.6, 37.2, 39.9], true, [2]],
+  ['Body floor has a cable window in front of each hip servo', [15.9, 30.3, -16.8, -11.2, 50.2, 51.8], false, [1]],
+  ['Body floor cable window (left)', [-30.3, -15.9, -16.8, -11.2, 50.2, 51.8], false, [1]],
+  ['Front hip ear post keeps its floor behind the cable window', [19.9, 24.1, -10.7, -6.4, 50.2, 51.8], true, [1]],
+  ['Leg top plate is whole between the hub hole and the arm slot', [-22.3, -21.7, 4.3, 5.1, 48.7, 50.9], true, [2]],
+  ['Front bracket has the slot for the arm screw, through the web', [-22.3, -21.7, -24, -22.2, 9, 11.5], false, [4]],
+  ['Front bracket has no pad on its outside (the arm screw is a short one)', [-25, -19, -25.6, -23.8, 5.5, 14], false, [4]],
+  ['Leg rear wall is whole on the ankle axis (nothing can reach the cable)', [-22.3, -21.7, 15.6, 17.4, 19.7, 20.3], true, [2]],
   ['Leg plate lies between the servo boss and the horn arm', [-24, -20, 5, 10, 48.6, 50.9], true, [2]],
   ['Body floor passes a 3-pin servo plug', [18.1, 25.9, 25.7, 28.3, 50.2, 51.8], false],
   ['Body floor boss hole covers the raised gear housing', [20, 24, 4, 9, 50.2, 51.8], false],
   ['Hip ear screw pilot runs through the floor', [21.7, 22.3, 19.2, 19.8, 50.2, 51.8], false],
-  ['Head snap ridge stands on the insert band', [32.1, 32.35, -5, 5, 86.4, 86.6], true, [0]],
-  ['Body side wall has the groove for the head ridge', [32.1, 32.35, -5, 5, 86.4, 86.6], false, [1]],
+  // Head-to-body clip (V13 style): barb crest 6 below the body rim (z 84.5), reaching x 33.3; body inner wall x 32.
+  ['Head clip barb reaches 1.3 into the body wall', [33.1, 33.25, -5, 5, 81.8, 82.2], true, [0]],
+  ['Head clip tab hangs 5 below the insert band', [30, 31.5, -5, 5, 80.1, 80.4], true, [0]],
+  ['Head clip tab ends 8 below the body rim', [29.5, 33.5, -5, 5, 79.2, 79.9], false, [0]],
+  ['Body side wall has the groove for the clip barb', [32.05, 33.5, -5, 5, 81.7, 82.3], false, [1]],
+  ['Body bump keeps plastic behind the clip groove', [34.2, 35.1, -5, 5, 81.5, 82.5], true, [1]],
+  ['Body has a seat under each front corner of the head', [29.5, 31.5, -31.8, -30.5, 84.6, 84.95], true, [1]],
   ['Head top passes a chunky Type-C boot (14 x 8)', [-6.9, 6.9, 11.8, 19.6, 145.1, 146.9], false],
 ]) test('Otto joint: ' + name, async () => {
   const hit = await hits({ headStyle: 2, mouth: 1 }, probe(...(box[4] >= 50 ? raised(box) : box)), parts);
   if (solid) assert.notEqual(hit, null); else assert.equal(hit, null);
+});
+// The body wall must be WHOLE from 0.4 above the clip groove's mouth to the rim: the barb has to click past it.
+// A solid probe passes on any overlap, so this one subtracts the body from the slab and expects nothing left.
+for (const sx of [-1, 1]) test(`Otto body wall is whole above the clip groove (${sx < 0 ? 'left' : 'right'})`, async () => {
+  const g = generate('otto', { headStyle: 2, mouth: 1, part: 7 });
+  const call = g.source.match(/otto_part\(part,([^;]+)\);/);
+  const slab = `translate([${sx < 0 ? -33.6 : 32},-5,86.9]) cube([1.6,10,3.5]);`;
+  const r = await compile(g.source.replace(call[0], `difference(){ ${slab} otto_placed(1,${call[1]}); }`), g.files);
+  assert.doesNotMatch(r.log, /ERROR:|WARNING:/i, r.log);
+  assert.match(r.log, /Current top level object is empty/i, 'the wall above the groove is cut');
+});
+// Clip features on both sides (the table above probes the right side only).
+for (const [name, box, solid, parts] of [
+  ['Head clip barb (left)', [-33.25, -33.1, -5, 5, 84.3, 84.7], true, [0]],
+  ['Body groove for the clip barb (left)', [-33.5, -32.05, -5, 5, 84.2, 84.8], false, [1]],
+  ['Wall left behind the clip groove', [33.65, 33.75, -5, 5, 84.3, 84.7], true, [1]],
+  ['Clip bump stands 1.2 out of the body wall', [35.05, 35.15, -5, 5, 84.3, 84.7], true, [1]],
+  ['Clip tab is as long as the groove needs (front end)', [30, 31.5, -10.4, -10.2, 83, 87], true, [0]],
+  ['Clip tab is as long as the groove needs (rear end)', [30, 31.5, 10.7, 10.9, 83, 87], true, [0]],
+  ['Seat under the left front corner of the head', [-31.5, -29.5, -31.8, -30.5, 87.1, 87.45], true, [1]],
+]) test('Otto clip: ' + name, async () => {
+  const hit = await hits({ headStyle: 2, mouth: 1 }, probe(...box), parts);
+  if (solid) assert.notEqual(hit, null); else assert.equal(hit, null);
+});
+// The clip is for the standard shell only: a grown shell has neither tabs nor grooves nor bumps.
+test('Otto grown shell has no clip on head or body', async () => {
+  assert.equal(await hits({ grow: 1 }, probe(30, 33.5, -5, 5, 84 + 0, 87.3), [0]), null);
+  assert.notEqual(await hits({ grow: 1 }, probe(32.05, 32.9, -5, 5, 84.2, 84.8), [1]), null);
 });
 // The leg may roll 30 degrees either way on the foot without touching the sole or brackets.
 for (const side of [2, 3]) for (const roll of [-30, 30]) test(`Otto leg ${side} rolls ${roll} degrees clear of its foot`, async () => {

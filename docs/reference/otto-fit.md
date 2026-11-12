@@ -89,10 +89,10 @@ electronics and the V13-size legs and joints need 7 mm more, so 149.5) but are p
 - Head 63.5 wide × 62 tall × 69.5 deep including the 2 mm back cover, the same for every mouth.
   Its bottom 3 mm band (63.5 deep from the face) drops inside the body; behind the band the head
   rests on the body's rear rim. The face plane is unchanged; the extra 6 mm depth is at the rear. Body 68×68×38 with 3 mm chamfered vertical edges, cavity 64×64.
-  Leg 17×35×42 (the official V13 leg's outside); foot sole 40×62×5 with front/rear brackets, sitting 10 mm outboard of the leg.
+  Leg 17×35×42 (the official V13 leg's outside) plus a 2.1 pivot knob on its rear face; foot sole 40×62×5 with front/rear brackets, sitting 10 mm outboard of the leg.
 - Four MG90S servos: two hip servos stand shaft-down on the body floor at X ±22 (posts carry the ears,
   the shaft passes the floor into the horn inside the leg top); one ankle servo inside each leg, shaft forward,
-  driving a horn recessed in the foot's front bracket, with a servo-screw pivot through the rear bracket.
+  driving a horn recessed in the foot's front bracket, with a printed knob on the leg's rear wall turning in a dimple in the rear bracket.
 - Head prints face-down with open underside and rear. HC-SR04 eyes at X ±13.6, Y −15 from the head
   top, Ø16.75 holes (17.25 printed at 0.25 clearance: a snug press fit; 17.0 was slightly too tight); its 4-pin header points down, plugs hang 20 mm below the board. Nose Ø6 at Y −30,
   OLED window centre Y −40 (mouth 1) or three grille slots (mouth 2).
@@ -122,22 +122,35 @@ electronics and the V13-size legs and joints need 7 mm more, so 149.5) but are p
   printed earlier gets its two pilots drilled through the printed guide (otto_coupon(5), exported as otto-cover-drill-guide.stl; the app's fit-test buttons stop at kind 4): mark the wall through the guide with the bare cover in, take the cover OUT, then drill, because the post's pilot 0.25 mm behind the wall is the screw's only thread. The old history: A 50° ridge 18 mm long on
   each side of the lip (Y −40 to −22, 0.45 mm into the wall) snaps into a groove in the head's side walls, so the
   cover stays on without glue (Nov 10: the first print's cover had nothing holding it). Push it out from inside.
-- Head on body (Nov 10): the same 50° ridge, 20 mm long, on each side of the head's 3 mm insert band (22–42 mm
-  back from the face) clicks into a groove 1.5 mm under the body rim. The band's free bottom edge flexes inward.
-  The ridges run straight up when the head prints face-down, with a ramped lower end.
+- Head on body (Nov 12): CLIP COPIED FROM OTTO V13, at the builder's request. Measured on their printed V13 parts:
+  each head side wall continues 5.0 past the rim as a tab 21.5 long and 2.0 thick; on its outside a barb 4.0 tall
+  at the base, 1.6 proud, 0.8 flat crest, 45° both ways, its lower flank starting at the tab's tip; inside each
+  body side wall a groove 22 long, 4.0 tall at the mouth, 1.6 deep, centre 5.0 below the rim under 3.0 of full
+  wall, and a 1.2 bump on the outside so 1.6 of wall remains. Overlap 1.3 per side. Ours is the same clip on our
+  head: tab 21.5 × 5 below the 3 mm insert band (21.25 to 42.75 back from the face), barb crest 1.55 out of the
+  head wall (0.25 side gap + 1.3 overlap), groove centre 6.0 below the body rim, 1.6 deep, bump 1.2. Both flanks
+  slope, so the head pulls off by hand. The tab and barb are upright prisms with ramped lower ends when the
+  head prints face-down; the groove's upper flank and the bump's underside are 46°. Two seats in the body's
+  front corners, level with the bottom of the band, carry the front of the head (the rear rests on the rear
+  rim), so the clip only holds the head down (the head can lift about 0.25 before the barbs meet the grooves' upper
+  flanks). The body is 70.4 wide across the two bumps, the head 66.6 across the barbs. Checked in review (Nov 12):
+  nothing else touches on the way down, the barb passes 3.8 of plain wall at full overlap, and the two walls in
+  series are within 10 to 15 % of V13's stiffness (estimate), so the click should feel like the one the builder knows.
+  It replaces a 0.45 ridge on the band 1.5 below the rim (Nov 10), which had a third of the overlap under a
+  0.78 lip; a ridge of that size did not hold the back cover on the builder's printer.
 - Power (Nov 2026): 4×AA NiMH (4.8 V) straight to the shield's 5 V rail, as official Otto does, replacing the
   9 V cell (USB-C 9 V Li-ion cells are typically rated 0.35–0.5 A continuous, and a linear 5 V regulator
   would burn the extra 4 V as heat). The two-layer holder sits between the hip servo cases (31.8 gap, 0.9 per
   side) at Y −2.5, under the shield (6 mm gap), with two 3 × 2 × 6 rear stop posts at X ±10 leaving the middle
   free for its leads. The 9 V ribs, strap slots, clip allowance and DC jack are gone.
 - Body floor: KCD11 rocker cutout 13 × 8 (plus clearance) at X 24.5, Y −25.5; its 15 × 10.5 flange stays 20.25 mm
-  from the right hip axis, outside the 19.1 mm circle the corners of a V13-size leg sweep. Buzzer ring at X −24.75, Y −22 (merged into the side
-  wall) with a Ø5 sound hole through the floor.
+  from the right hip axis, outside the 19.1 mm circle the corners of a V13-size leg sweep. Buzzer ring at X −24.75, Y −25.5 (merged into the side
+  and front walls; moved 3.5 forward on Nov 12 to clear the cable window) with a Ø5 sound hole through the floor.
 - Assembly order: hip servos into the body; a horn into each leg's top pocket from inside, leg onto the hip shaft,
-  horn screw driven from the leg's open end; ankle servo up into the leg, far ear first, cable up the back of the
-  servo and out of the rear window, one ear screw through the window into the block; horn onto the ankle shaft, leg
-  down into the foot, horn screw from the front, pivot screw from the rear; then shield on cover, leads plugged in,
-  cover into head, one ear screw through each head side wall into the cover posts, head into body. Lift the head
+  horn screw driven from the leg's open end; ankle servo up into the leg, far ear first, its plug fed first through the opening in the leg top (cable
+  over the top of the servo), one ear screw through the window into the block; horn onto the ankle shaft, leg
+  down into the foot, horn screw from the front (the knob on the back of the leg clicks into the rear bracket as the leg goes down); then shield on cover, leads plugged in,
+  cover into head, one ear screw through each head side wall into the cover posts, head pushed down into the body until both clips click. Pull the head straight up
   out and take both screws out before removing the cover (the shield's lower edge is behind the body's rear wall).
 - Legs and feet (Nov 11): REBUILT ON THE OFFICIAL OTTO DIY V13 LEG. Two legs of our own layout (a 24.7 mm bay
   exactly as deep as the servo) did not take the builder's servo. They then printed the official parts
@@ -157,11 +170,65 @@ electronics and the V13-size legs and joints need 7 mm more, so 149.5) but are p
     listing drawing the builder says matches, AliExpress 1005008315780030; V13 leaves 17.5 in the leg and 18.4 in
     the foot, hence the cutting): in the leg the arm pocket runs out through the rear wall, in the foot it is
     18.85 long (4.0 deep with a 1.6 web, as V13) and the ankle axis is 20 above the ground; the ear pilot is a 1.8 mm slot open to the block top, so
-    a hole nearer the case than the drawing says still catches; U-slot 12.9; one rear window (9 wide, from the
-    plate to 13.5 with a gable) serves the plug, the screwdriver and the horn arm instead of V13's side windows;
-    the rear pivot is a servo ear screw in a Ø1.8 pilot (rear gap 0.3; its 7.7 mm thread reaches 1.6 into the leg's 2 mm rear wall, Ø2.4 bore)
-    instead of a printed hemisphere, because the front bracket's keyhole is open to its top: the leg drops in
-    with the horn on the servo and nothing has to be bent.
+    a hole nearer the case than the drawing says still catches; U-slot 12.9; a rear window (9 wide, from the
+    plate to 13.5 with a gable) serves the screwdriver and the horn arm (side windows and the cable's way out of the
+    leg top were added on Nov 12, see below);
+    the rear pivot is a printed round pin instead of a hemisphere (see "Rear pivot" below); the front bracket's keyhole is open to its top: the leg drops in
+    with the horn on the servo.
+  - Rear pivot (Nov 12): KNOB, NOT A SCREW. The first V13-based version drove a servo ear screw through the rear
+    bracket into a bore in the leg's rear wall. The builder pointed out that this screw goes in exactly where the
+    cable runs up the inside of that wall, and that the official parts have a knob there instead. Now, as on V13:
+    a round pin on the leg's rear wall (Ø4.4, 2.1 long, 0.3 tip chamfer) in a Ø4.7 dimple 2.0 deep in the rear
+    bracket, rear gap 0.4. The leg's rear wall and the bracket behind the dimple are whole. The pin's upper side
+    (the side on the bed when the leg prints) is cut away at 45° from the wall outward so it prints without
+    support; the lower side, which carries the robot, is a full half cylinder, so the play is 0.15 down and
+    sideways wherever the leg sits front to back. Upward it is 0.4 with the leg 0.3 back, 0.55 nominal and 1.0
+    with the leg 0.5 forward (measured in review): it only shows when the foot is lifted, and the horn holds the
+    foot then.
+    A first attempt with a cone was dropped in review: its play grew to 0.67 as the leg slid forward. A 4.8 wide
+    ramp runs down the bracket's inner face from 1.1 deep at the top to 0.6 at the axis; the pin reaches 1.7 into
+    the bracket, and the brackets have to spread up to 0.93 for it to click in (measured; the tip chamfer takes
+    the rest), 0.5 of which the leg's play front to back gives for free (V13: 2.1 less 0.8). Pulling the foot off
+    is the same click backwards, because the pin's upper side is the 45° cut: nothing has to be pried. Anything below that still says "pivot screw"
+    or "pivot bore" describes the superseded version.
+  - Arm screws and finger windows (Nov 12), both asked for by the builder after using the V13 parts. V13 has a
+    Ø2.2 hole 11.0 from the hub in the leg's top plate and one 10.5 below the axis in the foot's front bracket:
+    a small screw through each into a hole of the horn's arm. Ours are slots for screw centres 8 to 11.5 from the
+    horn centre, because the hole positions along the builder's arm are unmeasured.
+    Leg: 2.2 slot through the plate from the top, under a 4.6 wide recess 1.25 deep whose 46° seat ends at the
+    slot's own width on the plate's underside. It is for a SMALL head (up to Ø4.4, e.g. the 4.26 horn-type
+    screw), which comes to rest 1.4 below the leg top; it has to end below the top, because the hip servo's boss
+    and gear housing turn 0.2 above the leg top right over the slot's near end. A 4.84 ear-screw head does not
+    fit the recess and must not be used here (a 5.2 recess for it left no seat in a 2.5 plate: second review). (The first version
+    hulled the whole section, which filled the V in and left a 4.2 wide funnel: review.) The screw goes in before
+    the leg is fitted. Thread 6.5 or less: a 7.7 ear screw ends in the path of the ankle ear screw's head.
+    Foot: 1.8 PILOT slot through the 1.6 web, not a clearance slot: the arm lies 0.7 behind the web, so a screw
+    that only threaded into the arm would pull the bracket against the leg's front face. Threading in the web,
+    the screw just reaches into the arm's hole like a pin. Thread 5.5 or less: the leg's front face is 6.1 behind
+    the bracket's outside, and a longer screw's tip meets the edge of the leg's U-slot as the ankle rolls (there is
+    no front wall on the centreline there, so it does not jam straight away, which makes it easy to miss). A pad
+    that made room for the long screw was removed the same day: the builder's screw there is a short one.
+    Screws: these four are NOT in the servo bags' count. Four servos bring eight ear screws: four hold the hip
+    servos, two the ankle servos, two the back cover; the four short horn screws are on the shafts. The arm
+    screws are optional; the robot assembles without them.
+    V13's side windows (23.7 long, 5 to 20 below the leg top, both sides) let a finger and thumb hold the horn on
+    the hip shaft; ours are 23 long from 5 to 13 below the top with a gable above (to 25), both sides.
+  - Cable out of the leg top (Nov 12), as on V13, asked for by the builder: the cable goes up into the body, so it
+    should leave the leg at the top, not through the rear window and around the outside. V13 (measured): an
+    11.3 × 7.2 opening through the top plate between the front wall and the ear seat; the block behind it is a
+    4 mm shelf on a brace, hollow underneath, open to the bay; in the body floor a 7 deep window 10 to 17 in
+    front of each hip axis, notched round the front ear post. Ours: the same opening (11.3 wide, front wall to
+    the seat), the block hollowed under a 46° roof that starts 3.2 below the leg top at the front wall and ends
+    0.5 under the ear-screw slot at the seat; body floor windows 6 deep, 11 to 17 in front of each hip axis,
+    from 6.3 inside the axis (the battery holder's side) to 8.5 outside it, ending 0.25 short of the front ear
+    post. The buzzer moved 3.5 forward to clear the left window. Route: over the top of the ankle servo, forward
+    into the hollow, up through the plate and the floor window. The plug has to go through BEFORE the servo
+    goes in (afterwards only the bare lead fits past the ear). The layer between plate and bay is cut back 3.5
+    behind the opening, as on V13: without that a 14 mm plug had 0.1 mm to spare round the corner, now a box
+    14 × 4.0 passes (second review, motion search on the compiled leg; V13's own leg passes 4.0 to 4.7). Leg
+    opening and floor window overlap 51 mm² at hip angle 0, 23 to 28 at 30°, 5 to 13 at 45°: with this route the
+    hips should stay within about ±35°. The rear floor slots behind the hip servos are
+    still there and still work with the leg's rear window.
   - Hip: as V13. The horn lies inside the leg under the plate, so the leg hangs on its arm and cannot drop off;
     the body rests on the leg top by the servo's boss (1.3 under the floor; modelled gap 1.5). Posts stay 4.2 tall.
     The official V13 leg has the same closed end, so it also hangs on this body (its rear bump sweeps a 20.0 mm
@@ -169,8 +236,7 @@ electronics and the V13-size legs and joints need 7 mm more, so 149.5) but are p
   - Stack per the drawing (ear 3.17 below the flat top): flat top 5.33 behind the leg's front face, boss end 1.0
     inside it, spline tip 3.0 in front of it; bracket face at 0.5, pocket floor at 4.5. A horn screwed down on the
     boss has its outer face at 3.8, leaving 0.7; its screw head sits about 0.8 deep in the web's hole and is what
-    keeps the front of the foot up. Limit: ear offset plus any horn stand-off up to 3.85 (4.15 using the leg's
-    rear gap); beyond that the hub bottoms in the pocket. V13 has the same limit. The hip posts (4.2) take an ear
+    keeps the front of the foot up. Limit: ear offset plus any horn stand-off up to 3.85 (4.15 using the 0.3 behind the knob's tip); beyond that the hub bottoms in the pocket. V13 has the same limit. The hip posts (4.2) take an ear
     offset up to 4.2 before the case meets the floor. MEASURE the ear face to the flat top before printing a set.
   - Reviews (Nov 11, two independent passes against the V13 mesh): web hole reduced to Ø4.9 so the screw head
     carries the front of the foot with 0.3 play, web 1.6, rear gap 0.3 with a Ø2.4 pivot bore, block top at V13's
@@ -180,8 +246,9 @@ electronics and the V13-size legs and joints need 7 mm more, so 149.5) but are p
   - UNVERIFIED on hardware: nothing above has been printed. Boss diameter and the ear's height on the case are
     still unmeasured.
   - Body floor: a 9 × 3.7 slot behind each hip servo (Y 27) passes the ankle servo's plug.
-  - The head-to-body snap exists only for Shell growth ≤ 1; thicker shells cannot flex, so they keep the plain slip
-    fit. The cover screws work at every growth (a 5.5 mm well lets the screw head reach the standard wall).
+  - The head-to-body clip exists only for Shell growth 0 (head tabs, body grooves and bumps together); at growth 1
+    the walls are 3 mm and the click would need about 3.4 times the force, so grown shells keep the plain slip
+    fit (the corner seats stay). The cover screws work at every growth (a 5.5 mm well lets the screw head reach the standard wall).
   - Independent review (Nov 10) found and fixed: horn pocket 1 mm too shallow for a horn with a closed end, the
     pivot screw reaching the servo case, the ear-screw access hole (Ø4) smaller than the screw head (now the lead window),
     and pockets too narrow at the cut end of a trimmed horn.

@@ -34,15 +34,15 @@ otto_ankle_pad = [2,10.5]; // V13's step behind the front wall, from the block u
 otto_hip_gap = 1.5; // body floor underside to the leg top
 otto_ankle_gap = 4; // leg bottom above the sole (V13: 4): a square leg bottom rolls freely (corner radius 13.9 < 15)
 otto_ankle_front_gap = 0.5; // leg face to each bracket (V13: 0.4)
-otto_ankle_rear_gap = 0.3; // small, so the pivot screw's tip reaches 1.6 mm into the leg's rear wall
+otto_ankle_rear_gap = 0.4; // leg's rear face to the rear bracket (V13: 0.4); the knob's tip stops the leg 0.3 back
 // Foot: flat sole + front/back brackets the leg pivots between. [width, length, bracket height]
 otto_foot = [40,62,25];
 otto_sole = 5;
 otto_foot_outboard = 10; // sole centre offset outboard of the leg centre
 // Front: 4.0 horn pocket + 1.6 web, exactly V13. A horn screwed down on the boss has its outer face 3.8 in front
 // of the leg face and the pocket floor is at 4.5, so the screw head sits 0.8 deep in the web's hole: that head is
-// what stops the front of the foot dropping (review, Nov 11: a 1.2 web held it by 0.4). Rear: the pivot screw's
-// 7.7 mm thread ends inside the leg's rear wall, 3.5 mm short of the servo.
+// what stops the front of the foot dropping (review, Nov 11: a 1.2 web held it by 0.4). Rear: a printed knob on the leg
+// turns in a dimple in the bracket (no screw: the servo cable runs up the inside of the leg's rear wall).
 otto_bracket = [21,5.6,5.8]; // [width, front thickness, rear thickness]
 otto_horn_web = 1.6; // front bracket wall left behind the horn pocket
 // The user's ASKY MG90S (AliExpress 2251832788894926). MEASURED with calipers Nov 10: case 23.16 long x 12.2 wide
@@ -117,11 +117,37 @@ otto_horn_hub = 7; // hub pocket and plate hole are this + 2 x clearance (V13: 7
 otto_horn_arm = [6.6,4.4,18.6]; // pocket for the arm: [width at the hub, width at the tip, length from the centre]
 otto_horn_tall = [4.82,2.08]; // [hub height, arm thickness], listing drawing
 otto_horn_head = 4.4; // hole in the web for the horn screw's 4.26 head (V13: 4.5): the head in it holds the front of the foot up, so it is only just wider than the head
-otto_pin = [1.8,1.9]; // ankle pivot = a servo ear screw: [pilot in the rear bracket, bore in the leg's rear wall]
+otto_pin = [1.8,1.9]; // pilot a servo ear screw cuts its thread in (back-cover screws); [1] is unused
+// Rear ankle pivot: a knob printed on the leg, in a dimple in the foot's rear bracket (V13: a dia 5 hemisphere
+// standing 2.5 out, in a dia 5.4 dimple 2.6 deep, snapped in by spreading the brackets 2.1 mm).
+otto_knob = [4.4,2.1,0.3]; // round pin on the leg's rear wall: [dia, length, tip chamfer]
+otto_knob_fit = [0.15,0.3]; // dimple: [radial play, depth beyond the knob's tip]
+otto_knob_ramp = [4.8,1.1,0.6]; // lead-in down the bracket's inner face: [width, depth at the bracket top, depth at the axis]
+// Extra screw through the horn's arm, at the hip (leg top plate) and at the ankle (front bracket), as on V13.
+// Small screws, about dia 2, NOT in the servo bags' count (all eight ear screws are used elsewhere). In the foot
+// the thread must be 5.5 mm or less (past 6.1 the tip leaves the bracket toward the leg); in the leg 6.5 or less
+// keeps the tip clear of the ankle ear screw's head. Hole positions along the arm are UNMEASURED: slots.
+// Leg: [slot width, nearest, farthest screw centre from the horn centre, head recess width, recess depth before
+// the 46-degree seat, which ends at the slot width on the plate's underside]. For a SMALL head (up to dia 4.4, such
+// as the 4.26 horn-type screw): it comes to rest 1.4 below the leg top, so a head up to 1.4 tall ends below the top,
+// where the hip servo's boss and gear housing turn 0.2 above it. A 4.84 ear-screw head does not fit and must not
+// be used here. The foot's slot is a 1.8 pilot of the same length.
+otto_arm_slot = [2.2,8,11.5,4.6,1.25];
+// Cable way out of the leg top, as on V13 (opening 11.3 x 7.2 there): [width, roof height at the front wall, how far behind the
+// ear seat the layer under the plate is cut back for the plug]
+otto_leg_cable = [11.3,3.2,3.5];
+// Body floor window above it, from the hip axis: [front edge y, rear edge y, reach toward the middle, toward the side wall]
+otto_floor_cable = [-17,-11,6.3,8.5];
+otto_leg_window = 13; // finger windows in the leg's sides: straight part ends this far below the leg top, gable above
 otto_ear_pilot = [1.8,2,7]; // slot the ear screw cuts its thread in: [width, how far below the screw axis it starts x 2, depth]; open upward (V13: a closed dia 2.0 hole 6.7 deep)
 otto_wire = [3.2,8.5]; // slot that passes a 3-pin servo plug
 otto_wire_y = 27; // body floor slots for the ankle servo leads, behind the hip servos
-otto_latch = 0.45; // head-to-body snap: ridge overlap into the body's side walls
+otto_latch = 1.3; // head-to-body clip: how far each barb reaches past the body's inner wall (V13: 1.3; was 0.45)
+otto_clip_tab = [21.5,5]; // tab continuing each head side wall below the insert band: [length, height] (V13: 21.5 x 5)
+otto_clip_barb = [4,0.8]; // barb on the tab: [height at its base, flat crest] (V13: 4.0, 0.8); its lower flank starts at the tab's tip
+otto_clip_air = 0.3; // the groove is this much deeper than the barb (V13: 0.3)
+otto_clip_bump = 1.2; // bump on the outside of the body wall behind the groove, so 1.6 of wall remains (V13: 1.2)
+otto_head_seat = 4; // leg of the corner seats under the front of the head
 // Back-cover cross screws (Nov 10): one spare servo ear screw (about 2 x 8, at most 9 mm under the head) through
 // each head side wall into a post on the cover. Crush ribs and a 0.45 mm snap ridge both let the cover slide out
 // on the builder's printer, because the head's 2 mm side walls flex; a steel pin through wall and post cannot.
@@ -130,7 +156,7 @@ otto_cover_post = [12,19,0.6]; // post on the cover: [length along y, height abo
 otto_cover_mark = [2.1,1.2]; // [side of the square that notches each cover edge at the screw height, drill-guide tooth half width = height]
 otto_screw_head = 5.5; // well for the screw head and driver shaft; cuts only in grown shells
 otto_cover_jig = [14,22,4]; // drill guide for an already printed head: [width, length, thickness]
-otto_snap_z = [22,42]; // head-to-body snap: ridge span along the head's insert band, measured back from the face
+otto_snap_z = [21.25,42.75]; // head-to-body clip: the tab's span along the head's side wall, measured back from the face
 // NEW DESIGN placements; not verified against V9/V13 or purchased parts.
 // Head-local (x across, y down from the top, z back from the face):
 otto_eyes = [-13.6,13.6]; // 27.2 c-c: 27.0 printed 0.1-0.2 too close on the user's board (test print, Nov 9)
@@ -151,7 +177,7 @@ otto_shield_top = -6.25;
 otto_shield_rail_top = -11.75; // top of the two side rails: fixed, so they stay inside every head-corner style
 otto_shield_standoff = 6.75; // back-cover inner face to the shield PCB back
 // Body-local (x across, y front-to-back, z up from the floor underside):
-otto_buzzer_pos = [-24.75,-22]; // ring merges into the side wall, clear of the battery holder
+otto_buzzer_pos = [-24.75,-25.5]; // ring merges into the side and front walls, clear of the battery holder and the cable window
 otto_hip_x = [-22,22];
 otto_hip_y = 0; // shaft axis; the case extends toward the back
 otto_battery_pos = [0,-2.5]; // between the hip servos, under the shield; leads leave at the rear end

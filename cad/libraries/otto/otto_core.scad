@@ -159,7 +159,7 @@ module battery_stops(clearance=0.25) {
   y=otto_battery_pos[1]+otto_battery[0]/2+clearance;
   for(s=[-1,1]) translate([s*10,y+otto_battery_stop[1]/2,otto_wall-0.01]) fit_box([otto_battery_stop[0],otto_battery_stop[1],otto_battery_stop[2]+0.01]);
 }
-module body_cavities(clearance=0.25) {
+module body_cavities(clearance=0.25,clip=true) {
   for(x=otto_hip_x) {
     // Boss hole, stretched toward the case centre: the gear housing beside the shaft is raised too.
     // Cut the full post height: at clearance 0.5 the hole grazes the front post, and a cut that stopped
@@ -174,20 +174,51 @@ module body_cavities(clearance=0.25) {
     translate([x,otto_wire_y,-1]) fit_box([otto_wire[1],otto_wire[0],otto_wall+2],clearance);
   }
   translate([otto_switch_pos[0],otto_switch_pos[1],-1]) fit_box([otto_switch[0],otto_switch[1],otto_wall+2],clearance);
-  // Grooves near the rim that the head's snap ridges click into (0.15 deeper than the ridge).
-  x0=otto_body_inner[0]/2-0.01; tip=otto_body_inner[0]/2+otto_latch+0.15; h=(tip-x0)*1.2;
-  y0=-otto_head_band/2+otto_snap_z[0]-2; y1=-otto_head_band/2+otto_snap_z[1]+1;
-  for(m=[0,1]) mirror([m,0,0]) translate([0,y1,otto_body[2]-otto_head_insert/2]) rotate([90,0,0])
-    linear_extrude(y1-y0) polygon([[x0,-h],[tip,0],[x0,h]]);
+  // Floor window in front of each hip servo, over the opening in the leg top: the ankle servo's cable comes up
+  // through it (V13: 7 deep, 10 to 17 in front of the hip axis). It stops short of the front ear post.
+  f=otto_floor_cable;
+  for(x=otto_hip_x) translate([x<0?x-f[3]:x-f[2],otto_hip_y+f[0],-1]) cube([f[2]+f[3],f[1]-f[0],otto_wall+2]);
+  // Grooves the head's clip barbs click into (as on V13: 1.6 deep, 4 tall at the mouth, centre 5 below the rim
+  // there; ours sits 6 below because the head's band goes 3 in). Upper flank 46 degrees, so no support.
+  if(clip) clip_groove();
 }
-// Head-to-body snap: a 50-degree ridge on each side of the head's insert band, running front to
-// back (straight up when the head prints face-down, with a ramped lower end, so no support).
-// The band's free bottom edge flexes inward as the head is pushed into the body.
+// Head-to-body clip, as on Otto V13 (measured on the builder's parts): each head side wall continues below the
+// insert band as a tab with a barb on its outside; the barb clicks into a groove inside the body's side wall,
+// behind which the wall carries a bump on the outside so it stays 1.6 thick. Overlap 1.3 per side (the first
+// version was a 0.45 ridge on the band, 1.5 below the rim, under a 0.78 lip). Both flanks slope, so the head
+// pulls off by hand. With the head printing face-down the tab and barb are upright prisms with ramped lower ends.
+function clip_out() = (otto_body_inner[0]-otto_head[0])/2+otto_latch;   // barb crest out of the head wall
+function clip_drop() = otto_head_insert+otto_clip_tab[1]-otto_clip_barb[0]/2;   // crest centre below the body rim
 module head_snap() {
-  x0=otto_head[0]/2-0.01; tip=otto_body_inner[0]/2+otto_latch; h=(tip-x0)*1.2; yc=-otto_head[1]+otto_head_insert/2;
-  for(m=[0,1]) mirror([m,0,0]) hull() {
-    translate([0,0,otto_snap_z[0]]) linear_extrude(otto_snap_z[1]-otto_snap_z[0]) polygon([[x0,yc-h],[tip,yc],[x0,yc+h]]);
-    translate([0,0,otto_snap_z[0]-h]) linear_extrude(0.01) polygon([[x0,yc-h],[x0+0.01,yc],[x0,yc+h]]);
+  x0=otto_head[0]/2; yb=-otto_head[1]; t=otto_clip_tab; b=otto_clip_barb; o=clip_out(); z0=otto_snap_z[0]; z1=otto_snap_z[1];
+  yc=yb-t[1]+b[0]/2;
+  for(m=[0,1]) mirror([m,0,0]) {
+    hull() {
+      translate([0,0,z0]) linear_extrude(z1-z0) polygon([[x0-otto_wall,yb+0.01],[x0,yb+0.01],[x0,yb-t[1]],[x0-otto_wall,yb-t[1]]]);
+      translate([0,0,z0-t[1]*1.04]) linear_extrude(0.01) polygon([[x0-otto_wall,yb+0.01],[x0,yb+0.01],[x0,yb],[x0-otto_wall,yb]]);
+    }
+    hull() {
+      translate([0,0,z0+o*1.04]) linear_extrude(z1-z0-o*1.04) polygon([[x0-0.01,yc+b[0]/2],[x0+o,yc+b[1]/2],[x0+o,yc-b[1]/2],[x0-0.01,yc-b[0]/2]]);
+      translate([0,0,z0]) linear_extrude(0.01) polygon([[x0-0.01,yc+b[0]/2],[x0,yc+b[1]/2],[x0,yc-b[1]/2],[x0-0.01,yc-b[0]/2]]);
+    }
+  }
+}
+function clip_y() = [-otto_head_band/2+otto_snap_z[0]-1,-otto_head_band/2+otto_snap_z[1]+1];
+module clip_groove() {
+  xi=otto_body_inner[0]/2; zc=otto_body[2]-clip_drop(); d=otto_latch+otto_clip_air; hm=otto_clip_barb[0]/2+0.2; hb=hm-d*1.045; y=clip_y();
+  for(m=[0,1]) mirror([m,0,0]) translate([0,y[1],zc]) rotate([90,0,0]) linear_extrude(y[1]-y[0]) polygon([[xi-0.01,-hm],[xi+d,-hb],[xi+d,hb-0.2],[xi-0.01,hm-0.2]]);   // no extra room above the barb: the head may lift only 0.25
+}
+module clip_bumps(out=0) {
+  xo=otto_body[0]/2+out; zc=otto_body[2]-clip_drop(); p=otto_clip_bump; hm=otto_clip_barb[0]/2+0.2; y=clip_y();
+  for(m=[0,1]) mirror([m,0,0]) translate([0,y[1]+p,zc]) rotate([90,0,0]) linear_extrude(y[1]-y[0]+2*p) polygon([[xo-0.01,-hm-p*1.045],[xo+p,-hm],[xo+p,hm],[xo-0.01,hm+p*1.045]]);
+}
+// Seats in the body's two front corners, level with the bottom of the head's band: the front of the head
+// stands on them (the rear already rests on the body's rear rim). V13 has such gussets in all four corners.
+module head_seats() {
+  l=otto_head_seat; x=otto_body_inner[0]/2+0.01; z=otto_body[2]-otto_head_insert;
+  for(s=[-1,1]) hull() {
+    translate([s*x,-x,z-0.01]) linear_extrude(0.01) polygon([[0,0],[-s*l,0],[0,l]]);
+    translate([s*x,-x,z-l*1.045]) linear_extrude(0.01) polygon([[s*0.05,-0.05],[s*0.02,-0.05],[s*0.05,-0.02]]);   // tip inside the wall
   }
 }
 
@@ -209,13 +240,18 @@ module leg_cavities(clearance=0.25) {
     translate([0,axis-otto_servo_shaft+0.5]) circle(d=10+2*clearance,$fn=40);   // the raised gear housing beside the shaft
     translate([0,h+10]) square(otto_servo_boss+0.2+2*clearance,center=true);
   }
-  // Pivot bore through the rear wall: the tip of the screw in the foot's rear bracket turns in it.
-  translate([0,otto_leg[1]/2+1,axis]) rotate([90,0,0]) linear_extrude(otto_wall+1.5) teardrop2d(otto_pin[1]+2*clearance);
   horn_pocket_leg(clearance);
-  // Rear window at the leg top. The cable leaves the case bottom at the SHAFT end (builder's photo, Nov 11) and
-  // runs up the back of the servo, in the 3.5 mm the bay leaves behind it (as on V13); its 3-pin plug passes out
-  // through this window, and the screwdriver for the ear screw goes in through it. It starts at the plate, so
-  // the horn's arm pocket opens into it. 45-degree gable on the print-up side.
+  // (The rear window is cut at the end of this module.) The cable leaves the case bottom at the SHAFT end
+  // (builder's photo, Nov 11) and runs up the back of the servo, in the 3.5 mm the bay leaves behind it (as on
+  // V13), then over the servo's top and out through leg_cable_way() in the leg top.
+  // Finger windows through both side walls under the plate, as on V13 (23.7 long there): a finger and thumb
+  // reach the horn to hold it on the hip servo's shaft while its screw goes in. Gabled, so no bridge.
+  wy=[ankle_seat_y()+0.5,leg_bay_y()-1];
+  translate([-otto_leg[0],0,0]) rotate([90,0,90]) linear_extrude(2*otto_leg[0])
+    polygon([[wy[0],otto_leg_top],[wy[1],otto_leg_top],[wy[1],otto_leg_window],[(wy[0]+wy[1])/2,otto_leg_window+(wy[1]-wy[0])/2*1.04],[wy[0],otto_leg_window]]);
+  // Rear window at the leg top: the screwdriver for the ear screw goes in through it, the horn's arm pocket
+  // opens into it (it starts at the plate), and a plug still passes (the older cable route, to the floor slot
+  // behind the hip servo). 45-degree gable on the print-up side.
   hw=otto_wire[1]/2+clearance; z1=ankle_case_centre()-otto_servo_ear_hole+2;
   translate([0,otto_leg[1]/2+1,0]) rotate([90,0,0]) linear_extrude(otto_wall+1.5)
     polygon([[-hw,otto_leg_plate],[hw,otto_leg_plate],[hw,z1],[0,z1+hw*1.1],[-hw,z1]]);
@@ -235,6 +271,47 @@ module ankle_ear_screw(clearance=0.25) {
   translate([-otto_ear_pilot[0]/2,ankle_seat_y()+0.01-otto_ear_pilot[2],z]) cube([otto_ear_pilot[0],otto_ear_pilot[2],otto_leg[2]]);
 }
 
+// Rear ankle pivot: a printed knob on the leg's rear wall, on the ankle axis (V13 has a hemisphere there). It
+// turns in a round dimple in the foot's rear bracket. No screw goes in from the rear, because the servo cable
+// runs up the inside of that wall. The knob is a short round pin, so the play in the dimple does not depend on
+// how far forward the leg sits (a cone got looser as the leg slid forward: review, Nov 12). The side that faces
+// the bed when the leg prints (the upper side on the robot, which carries no weight) is cut away at 45 degrees
+// from the wall outward, so the pin prints without support.
+module ankle_knob() {
+  k=otto_knob; a=otto_leg[2]-otto_ankle_z; y0=otto_leg[1]/2; c=0.7*k[0]/2;
+  intersection() {
+    translate([0,y0-0.01,a]) rotate([-90,0,0]) {
+      cylinder(d=k[0],h=k[1]-k[2]+0.02,$fn=48);
+      translate([0,0,k[1]-k[2]+0.01]) cylinder(d1=k[0],d2=k[0]-2*k[2],h=k[2],$fn=48);
+    }
+    translate([-k[0],0,0]) rotate([90,0,90]) linear_extrude(2*k[0])
+      polygon([[y0-0.02,a-c],[y0+k[1]+1,a-c+1.05*(k[1]+1.02)],[y0+k[1]+1,a+k[0]],[y0-0.02,a+k[0]]]);
+  }
+}
+// Slot for the extra screw that fixes the horn's arm to the leg's top plate (V13 has a hole 11 from the hub
+// centre). A slot, because where the holes sit along the builder's arm is unmeasured. The screw goes in from
+// the leg top before the leg is fitted; its head sinks into the V so it stays under the body floor.
+module leg_arm_slot() {
+  m=otto_arm_slot; hw=m[0]/2; t=otto_leg_plate;
+  // Two convex pieces, each hulled on its own (one hull over the whole section fills the V in: review, Nov 12).
+  hull() for(y=[m[1],m[2]]) translate([0,y,-0.01]) cylinder(r=hw,h=otto_leg_top+0.5,$fn=32);
+  hull() for(y=[m[1],m[2]]) translate([0,y,0]) {   // head recess and its seat: convex together
+    translate([0,0,-0.01]) cylinder(r=m[3]/2,h=m[4]+0.01,$fn=32);
+    translate([0,0,m[4]]) cylinder(r1=m[3]/2,r2=hw,h=t-m[4]+0.01,$fn=32);   // seat ends at the slot's own width
+  }
+}
+// Way out of the leg top for the ankle servo's cable, as on V13: an opening through the top plate in front of
+// the ear seat, and the space behind it hollowed out under a 46-degree roof, so the block that carries the servo
+// becomes a shelf on a brace. The cable comes over the top of the servo, into this space from the bay, and up
+// through the body floor in front of the hip servo.
+module leg_cable_way() {
+  w=otto_leg_cable[0]; yf=-leg_bay_y(); ys=ankle_seat_y()+0.01; zf=otto_leg_cable[1];
+  translate([-w/2,0,0]) rotate([90,0,90]) linear_extrude(w) polygon([[yf,-1],[ys,-1],[ys,zf+(ys-yf)*1.04],[yf,zf]]);
+  // The layer between the plate and the bay is cut back behind the opening, as on V13 (plate 2.5 thick at that
+  // edge): without it a 14 mm plug had 0.1 mm to spare on its way round the corner; with it 4.0 passes (review).
+  translate([-w/2,ys-0.1,otto_leg_plate]) cube([w,otto_leg_cable[2]+0.1,otto_leg_top-otto_leg_plate+0.01]);
+}
+
 // ---------- foot (sole on the bed; x=0, y=0 is the leg centre) ----------
 function ankle_axis_z() = otto_sole+otto_ankle_gap+otto_ankle_z;
 // Inner faces of the two brackets. The front gap is wider: the servo boss sticks out there.
@@ -246,8 +323,19 @@ module foot_brackets() {
 }
 module foot_cavities(clearance=0.25) {
   translate([0,-bracket_front_y()+0.01,ankle_axis_z()]) horn_recess_wall(clearance);
-  // Pilot for the pivot screw (a servo ear screw): it threads into the rear bracket.
-  translate([0,bracket_rear_y()+otto_bracket[2]+1,ankle_axis_z()]) rotate([90,0,0]) linear_extrude(otto_bracket[2]+2) teardrop2d(otto_pin[0]);
+  // Slot for the extra screw into the horn's arm (V13: a hole 10.5 below the axis), through the web. It is a pilot
+  // (1.8 wide): the screw cuts its thread in the web and only reaches into the arm's hole like a pin, so tightening
+  // it does not pull the bracket against the leg (the arm lies 0.7 behind the web). SHORT screw, 5.5 mm of
+  // thread or less: past 6.1 its tip comes out of the bracket and meets the edge of the leg's U-slot as the ankle rolls.
+  m=otto_arm_slot;
+  hull() for(d=[m[1],m[2]]) translate([0,-bracket_front_y(),ankle_axis_z()-d]) rotate([90,0,0]) linear_extrude(40) teardrop2d(otto_ear_pilot[0]);
+  // Round dimple for the leg's knob (teardrop roof, so it prints), and a ramp down the bracket's inner face that
+  // leads the knob to it: the leg is pushed straight down and the knob clicks in past the ramp's shallow end.
+  k=otto_knob; g=otto_ankle_rear_gap; d=k[1]-g+otto_knob_fit[1];
+  y=bracket_rear_y(); z=ankle_axis_z(); r=otto_knob_ramp;
+  translate([0,y+d,z]) rotate([90,0,0]) linear_extrude(d+0.01) teardrop2d(k[0]+2*otto_knob_fit[0]);
+  translate([-r[0]/2,0,0]) rotate([90,0,90]) linear_extrude(r[0])
+    polygon([[y-0.01,otto_foot[2]+0.01],[y+r[1],otto_foot[2]+0.01],[y+r[2],z],[y-0.01,z]]);
 }
 // ---------- back-cover cross screws ----------
 // One servo ear screw through each head side wall into a post on the cover: the cover cannot slide out

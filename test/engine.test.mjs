@@ -29,11 +29,11 @@ function envelope(model, p) {
           // Accessories extend upward in the face plane because the head prints face-down.
           y += Math.max(m.antenna ? m.antenna + 4 : 0, m.hat ? 29 : 0, m.ears ? 14 : 0);
           z -= wall;
-          x = Math.max(x, 64 + 2*0.45);   // snap ridges on the insert band reach 0.45 into the body walls (cavity 64)
+          if (!m.grow) { x = Math.max(x, 64 + 2*1.3); y += 5; }   // standard shell only: clip barbs reach 1.3 into the body walls (cavity 64), tabs hang 5 below the band
         } else { y -= 3; z = wall + 6.75; }   // cover stops at the body rim; plate + shield posts
         return {x, y, z};
       }
-      if (m.part === 1) { const [x, y, z] = ottoSize('body'); return {x: x + 2*m.grow, y: y + 2*m.grow, z}; }
+      if (m.part === 1) { const [x, y, z] = ottoSize('body'); return {x: x + 2*m.grow + (m.grow ? 0 : 2.4), y: y + 2*m.grow, z}; }   // 1.2 clip bump each side on the standard shell
       if (m.part <= 3) { const [x, y, z] = ottoSize('leg'); return {x, y, z}; }
       // Foot: sole offset outboard of the leg by 10, bracket height.
       const sole = [[40, 62], [42, 66], [52, 70]][m.feet];

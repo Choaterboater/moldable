@@ -102,19 +102,28 @@ All of this is coded from reference sizes, not measured parts. See the fit recor
   small ribs grip it. It sounds through a floor hole.
 - **Batteries:** the 4×AA holder sits flat between the hip servos, leads toward the back;
   two posts behind it stop it sliding. The shield's lower edge sits about 2.5 mm above it. Add a
-  hook-and-loop dot underneath if it rattles. To change batteries, lift the head out.
+  hook-and-loop dot underneath if it rattles. To change batteries, pull the head straight up: it unclips from the body (two clicks, one each side).
 - **Power wiring:** holder red → rocker switch → shield **5 V**; holder black → shield **GND**
   (two solder joints at the switch; the switch snaps into the floor hole at the front right).
   Use any spare G/V pin pair if the V pins are the 5 V rail: check with only USB connected,
   where a meter should read about 5 V between V and G. If the shield has a servo-power jumper, set it to 5 V.
   - **NiMH only.** Four fresh alkaline AAs give about 6.4 V, too much for the Nano's 5 V rail.
   - Switch the batteries off before plugging in USB-C to upload.
-- **Ankle servos:** slide each one up into its leg from the bottom. One of the servo's
-  own ear screws goes through the top ear into a seat in the leg; reach it with a small
-  screwdriver through the hole in the back of the leg.
+- **Ankle servos:** feed the plug first, up through the opening in the leg top (and the
+  window in the body floor above it), then slide the servo up into the leg from the bottom
+  with its cable lying over its top end. One of the servo's own ear screws goes through
+  the top ear into a seat in the leg; reach it with a small screwdriver through the hole
+  in the back of the leg.
+- **Feet:** with the horn on the ankle servo, push the leg straight down into the foot:
+  the knob on the back of the leg clicks into the rear bracket. Then the horn screw from
+  the front. There is no screw at the back.
+- **Optional arm screws:** a small screw (about 2 mm, short: 5.5 mm of thread or less in
+  the foot, a head no wider than 4.4 mm in the leg top) through the slot in the leg's top
+  plate and through the slot in the foot's front bracket into a hole of the horn's arm.
+  These are extra screws, not from the servo bags.
 - **Hip servos:** screwed to the floor posts through their ears.
 - **Order:** screw the shield to the cover; plug the sensor, OLED, buzzer, servo and
-  battery leads into it; slide the cover into the head; then drop the head into the body. To open it again, lift the head
+  battery leads into it; slide the cover into the head; then push the head straight down into the body until both sides click. To open it again, pull the head straight up
   out of the body first: the shield's lower edge sits behind the body's rear wall.
 
 ## Assembly and calibration

@@ -60,7 +60,7 @@ module head_part(style=1,r=4,grow=0,ear=0,ant=0,hat=0,mouth=0,c=0.25) {
         translate([0,0,otto_wall]) linear_extrude(head_depth()) head_cavity_outline(style,r,mouth);
       }
       ears(ear,otto_head[0]/2+grow,grow); antenna(ant,grow); hats(hat,grow);
-      if(grow<=1) head_snap();   // ridges on the insert band click into the body rim (thicker shells can't flex: plain slip fit)
+      if(grow==0) head_snap();   // clip tabs below the insert band click into the body's side walls (thicker shells are 3.4x stiffer or more: plain slip fit)
     }
     // Behind the insert band the head rests on the body's rear rim instead.
     translate([-100,-head_h(mouth)-1,otto_head_band]) cube([200,otto_head_insert+1,100]);
@@ -112,9 +112,9 @@ module body_part(grow=0,c=0.25) {
         linear_extrude(otto_body[2]) offset(delta=ch,chamfer=true) square([w-2*ch,d-2*ch],center=true);
         translate([0,0,otto_wall]) linear_extrude(otto_body[2]) square(otto_body_inner,center=true);
       }
-      hip_posts(); battery_stops(c); buzzer_ring(c);
+      hip_posts(); battery_stops(c); buzzer_ring(c); if(grow==0) clip_bumps(); head_seats();
     }
-    body_cavities(c);
+    body_cavities(c,grow==0);   // the clip exists only on the standard shell
     buzzer_seat(c);
   }
   buzzer_ribs(c);
@@ -130,8 +130,11 @@ module leg_part(side=0,c=0.25) {
         leg_cavities(c);
       }
       ankle_ear_block(c);
+      ankle_knob();
     }
     ankle_ear_screw(c);
+    leg_arm_slot();
+    leg_cable_way();
   }
 }
 // Foot: flat sole, sitting outboard of the leg, with front/back pivot brackets.
@@ -187,8 +190,8 @@ module otto_assembled(headStyle=1,corner=4,grow=0,ear=0,ant=0,hat=0,mouth=0,feet
 //  kind 1 = one hip station of the body (floor, the two ear posts, the boss slot): the hip servo stands in it
 //    shaft down.
 module otto_fit_cut(kind=0,c=0.25) {
-  if(kind==0) translate([0,0,otto_leg[0]/2]) rotate([0,-90,0]) intersection() { leg_part(0,c); translate([-50,-50,-1]) cube([50,100,100]); }
-  if(kind==1) translate([-otto_hip_x[1],0,0]) intersection() { body_part(0,c); translate([otto_hip_x[1]-9,hip_case_y()-19,0]) cube([18,38,otto_wall+otto_hip_post+0.8]); }
+  if(kind==0) translate([0,0,otto_leg[0]/2]) rotate([0,-90,0]) intersection() { leg_part(0,c); translate([-50,-otto_leg[1]/2,-1]) cube([50,otto_leg[1],100]); }   // without the pivot knob: it would overhang with the piece on its side
+  if(kind==1) translate([-otto_hip_x[1],0,0]) intersection() { body_part(0,c); translate([otto_hip_x[1]-9,otto_hip_y+otto_floor_cable[1],0]) cube([18,hip_case_y()+19-otto_hip_y-otto_floor_cable[1],otto_wall+otto_hip_post+0.8]); }   // starts behind the cable window
 }
 module otto_part(part=0,headStyle=1,corner=4,grow=0,ear=0,ant=0,hat=0,mouth=0,feet=0,clearance=0.25) {
   // Print plate: head + cover + body in a row, legs and feet below.

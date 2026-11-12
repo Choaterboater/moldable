@@ -38,9 +38,9 @@ const BODY_AND_HEAD = [
   { name: '4xAA holder', shapes: [box(-15, 15, -30.5, 25.5, 47.5, 75.5)] },
   { name: 'Holder leads', shapes: [box(-4, 4, 25.5, 31.5, 50, 72)] },
   // Four crush ribs press 0.15 mm into the nominal buzzer on purpose; those zones are excluded.
-  { name: 'Buzzer', shapes: [{ zcyl: { x: -24.75, y: -22, r: 6, z0: 47.5, z1: 57 } }],
-    minus: [box(-18.95, -18.65, -22.6, -21.4, 47, 58), box(-30.85, -30.55, -22.6, -21.4, 47, 58),
-      box(-25.35, -24.15, -16.2, -15.9, 47, 58), box(-25.35, -24.15, -28.1, -27.8, 47, 58)] },
+  { name: 'Buzzer', shapes: [{ zcyl: { x: -24.75, y: -25.5, r: 6, z0: 47.5, z1: 57 } }],
+    minus: [box(-18.95, -18.65, -26.1, -24.9, 47, 58), box(-30.85, -30.55, -26.1, -24.9, 47, 58),
+      box(-25.35, -24.15, -19.7, -19.4, 47, 58), box(-25.35, -24.15, -31.6, -31.3, 47, 58)] },
   // KCD11 rocker (cutout 13 x 8) through the floor, terminals inside, flange under the floor.
   { name: 'Switch', shapes: [box(18, 31, -29.5, -21.5, 43.5, 67.5), box(17, 32, -30.75, -20.25, 41.5, 45.5)] },
 ];
@@ -66,9 +66,6 @@ const JOINTS = [['L', -22], ['R', 22]].flatMap(([s, x]) => [
   // face -21.32) or standing up to 0.6 off it, uncut arm pointing down into the sole, screw head in the web.
   { name: 'Ankle horn ' + s, shapes: [cyl(x, 20, 3.4, -21.95, -16.5), box(x - 2.8, x + 2.8, -21.95, -19.24, 11, 20),
     box(x - 2.2, x + 2.2, -21.95, -19.24, 2.1, 11), cyl(x, 20, 2.2, -23.5, -21.95)] },
-  // Tip of the pivot screw at its WORST case (7.74 thread, foot pushed fully forward): across the rear gap into
-  // the bore in the leg's rear wall, ending inside the wall, 3.5 mm short of the servo.
-  { name: 'Ankle pivot screw tip ' + s, shapes: [cyl(x, 20, 1, 15.36, 17.75)] },
 ]);
 export const OTTO_ELECTRONICS = [
   ...BODY_AND_HEAD.map(c => ({ ...c, shapes: c.shapes.map(lift), ...(c.minus ? { minus: c.minus.map(lift) } : {}) })),
