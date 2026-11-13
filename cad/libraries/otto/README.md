@@ -75,7 +75,9 @@ an 80-byte credit/license header; keep this README and source with redistributio
   pivot; switch moved 1.5 mm forward for the longer leg. Robot height 149.5. The official V13 leg also fits this
   body. Fit-test prints: otto_fit_cut(0) half a leg, otto_fit_cut(1) one hip station. Details: docs/reference/otto-fit.md.
 - Rear ankle pivot is a printed knob again (Nov 12): the servo-screw pivot went in where the ankle servo's cable
-  runs. A round pin on the leg's rear wall now clicks into a dimple in the foot's rear bracket, as on V13. Also
+  runs. V13's own knob (a full round Ø5 pin, 2.5 long, rounded edge) on the leg's rear wall snaps into a dimple in
+  the foot's rear bracket, which stands 27 high as on V13; the leg's front bottom edge is cut away at 45° as on V13.
+  (A first pin, Ø4.4 with its upper side cut away, held the foot loosely and was replaced the same day.) Also
   from V13, at the builder's request: finger windows in both sides of the leg under the top plate, and a slot
   for an extra screw into the horn's arm at the hip (leg top plate) and at the ankle (front bracket; a short
   screw, 6 mm of thread at most), and the ankle servo's cable leaves the leg through its top into a window in

@@ -42,7 +42,12 @@ for(let headStyle=0;headStyle<4;headStyle++) test('Otto assembled view compiles 
 });
 for(const p of [0,1,2,3,4,5,8].map(part=>({part})).concat([{part:0,mouth:1}])) test('Otto default support-free analysis '+JSON.stringify(p),async()=> {
   const r=await compiledPart(p);
-  assert.equal(supportFaces(r.stl),0,'downward faces beyond 45 degrees above the bed');
+  // The leg's pivot knob is V13's full round pin: its bed side overhangs for 2.5 mm, as on the official leg.
+  // It is the only thing behind the leg's rear face, so that is the only place an overhang is accepted.
+  const mx=(r.info.min[0]+r.info.max[0])/2;
+  const knob=(p.part===2||p.part===3) ? v=>v.every(q=>q[1]>r.info.max[1]-2.52 && Math.abs(q[0]-mx)<2.8 && Math.abs(q[2]-31)<2.8) : null;   // print frame: ankle axis 31 above the bed
+  assert.equal(supportFaces(r.stl,knob),0,'downward faces beyond 45 degrees above the bed');
+  if(knob) assert.ok(supportFaces(r.stl)>0 && Math.abs(r.info.max[1]-r.info.min[1]-37.5)<0.02,'leg is 35 long plus the 2.5 knob');
 });
 for(let kind=0;kind<6;kind++) test('Otto fit-test print compiles '+kind,async()=> {
   const g=generate('otto');

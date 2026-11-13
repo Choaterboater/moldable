@@ -27,7 +27,7 @@ export function compiledPart(params) {
   if (!cache.has(g.source)) cache.set(g.source, compile(g.source, g.files));
   return cache.get(g.source);
 }
-export function supportFaces(stl) {
+export function supportFaces(stl, allow) {   // allow(vertices) -> true for a face that may overhang
   const dv = new DataView(stl.buffer, stl.byteOffset, stl.byteLength);
   const count = dv.getUint32(80,true);
   let unsupported = 0;
@@ -36,7 +36,10 @@ export function supportFaces(stl) {
     const nz=dv.getFloat32(off+8,true);
     const zs=[dv.getFloat32(off+20,true),dv.getFloat32(off+32,true),dv.getFloat32(off+44,true)];
     // Bed contact faces are supported by the plate, not an overhang.
-    if(nz < -SIN45-0.0001 && Math.max(...zs)>0.05) unsupported++;
+    if(nz < -SIN45-0.0001 && Math.max(...zs)>0.05) {
+      if(allow && allow([0,1,2].map(i=>[0,1,2].map(k=>dv.getFloat32(off+12+i*12+k*4,true))))) continue;
+      unsupported++;
+    }
   }
   return unsupported;
 }

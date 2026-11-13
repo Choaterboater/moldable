@@ -34,8 +34,8 @@ otto_ankle_pad = [2,10.5]; // V13's step behind the front wall, from the block u
 otto_hip_gap = 1.5; // body floor underside to the leg top
 otto_ankle_gap = 4; // leg bottom above the sole (V13: 4): a square leg bottom rolls freely (corner radius 13.9 < 15)
 otto_ankle_front_gap = 0.5; // leg face to each bracket (V13: 0.4)
-otto_ankle_rear_gap = 0.4; // leg's rear face to the rear bracket (V13: 0.4); the knob's tip stops the leg 0.3 back
-// Foot: flat sole + front/back brackets the leg pivots between. [width, length, bracket height]
+otto_ankle_rear_gap = 0.4; // leg's rear face to the rear bracket (V13: 0.4); the leg's rear face meets the bracket first; the knob's tip then still has 0.1 to the dimple's floor
+// Foot: flat sole + front/back brackets the leg pivots between. [width, length, FRONT bracket height; the rear one is otto_bracket_rear]
 otto_foot = [40,62,25];
 otto_sole = 5;
 otto_foot_outboard = 10; // sole centre offset outboard of the leg centre
@@ -118,11 +118,21 @@ otto_horn_arm = [6.6,4.4,18.6]; // pocket for the arm: [width at the hub, width 
 otto_horn_tall = [4.82,2.08]; // [hub height, arm thickness], listing drawing
 otto_horn_head = 4.4; // hole in the web for the horn screw's 4.26 head (V13: 4.5): the head in it holds the front of the foot up, so it is only just wider than the head
 otto_pin = [1.8,1.9]; // pilot a servo ear screw cuts its thread in (back-cover screws); [1] is unused
-// Rear ankle pivot: a knob printed on the leg, in a dimple in the foot's rear bracket (V13: a dia 5 hemisphere
-// standing 2.5 out, in a dia 5.4 dimple 2.6 deep, snapped in by spreading the brackets 2.1 mm).
-otto_knob = [4.4,2.1,0.3]; // round pin on the leg's rear wall: [dia, length, tip chamfer]
-otto_knob_fit = [0.15,0.3]; // dimple: [radial play, depth beyond the knob's tip]
-otto_knob_ramp = [4.8,1.1,0.6]; // lead-in down the bracket's inner face: [width, depth at the bracket top, depth at the axis]
+// Rear ankle pivot: a knob printed on the leg, in a dimple in the foot's rear bracket. V13's knob since
+// Nov 12 (measured from the mesh: a full round dia 5 pin standing 2.5 out, its edge rounded at radius 1.5 down to
+// a dia 2 flat tip, in a dia 5.4 dimple 2.6 deep, under a bracket that stands 7 above the axis). The builder
+// printed a leg with our earlier pin (dia 4.4 x 2.1, cut away on its upper side so it printed without support,
+// with a ramp into the dimple) next to the official leg and reported that ours "doesn't stick as well".
+otto_knob = [5,2.5,1.5,0.25]; // round pin on the leg's rear wall: [dia, length, edge radius, root chamfer (V13: a 0.4 fillet; 0.25 stays inside the 0.4 rear gap)]
+otto_knob_fit = [0.15,0.5]; // dimple: [radial play (V13: 0.2), depth beyond the knob's tip]
+otto_bracket_rear = 27; // top of the rear bracket above the ground: 7 above the ankle axis, as on V13
+otto_knob_ramp = [5.4,1.5,4.2]; // lead-in at the top of the bracket's inner face: [width, depth at the bracket top, height above the axis where it runs out (above the dimple's roof)]
+// V13 cuts the leg's front bottom edge away at 45 degrees, 5.5 up the front face and 5.5 along the bottom: room
+// for the tip of the arm screw in the foot's front bracket as the ankle rolls. Measured in review (dia 2 screw,
+// thread length at which the tip first touches the leg): a screw 10.5 below the axis is free up to 32 degrees of
+// roll at any length and takes 7.0 at 45 degrees (6.1 without the cut); screws 8 to 9 below the axis gain
+// nothing (6.1 at 45 degrees). So the rule stays: 5.5 mm of thread or less in the foot.
+otto_leg_toe = 5.5;
 // Extra screw through the horn's arm, at the hip (leg top plate) and at the ankle (front bracket), as on V13.
 // Small screws, about dia 2, NOT in the servo bags' count (all eight ear screws are used elsewhere). In the foot
 // the thread must be 5.5 mm or less (past 6.1 the tip leaves the bracket toward the leg); in the leg 6.5 or less

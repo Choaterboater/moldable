@@ -135,6 +135,7 @@ module leg_part(side=0,c=0.25) {
     ankle_ear_screw(c);
     leg_arm_slot();
     leg_cable_way();
+    leg_toe_cut();
   }
 }
 // Foot: flat sole, sitting outboard of the leg, with front/back pivot brackets.

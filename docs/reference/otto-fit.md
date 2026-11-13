@@ -89,7 +89,7 @@ electronics and the V13-size legs and joints need 7 mm more, so 149.5) but are p
 - Head 63.5 wide × 62 tall × 69.5 deep including the 2 mm back cover, the same for every mouth.
   Its bottom 3 mm band (63.5 deep from the face) drops inside the body; behind the band the head
   rests on the body's rear rim. The face plane is unchanged; the extra 6 mm depth is at the rear. Body 68×68×38 with 3 mm chamfered vertical edges, cavity 64×64.
-  Leg 17×35×42 (the official V13 leg's outside) plus a 2.1 pivot knob on its rear face; foot sole 40×62×5 with front/rear brackets, sitting 10 mm outboard of the leg.
+  Leg 17×35×42 (the official V13 leg's outside) plus a 2.5 pivot knob on its rear face; foot sole 40×62×5 with front/rear brackets (front 25 tall, rear 27), sitting 10 mm outboard of the leg.
 - Four MG90S servos: two hip servos stand shaft-down on the body floor at X ±22 (posts carry the ears,
   the shaft passes the floor into the horn inside the leg top); one ankle servo inside each leg, shaft forward,
   driving a horn recessed in the foot's front bracket, with a printed knob on the leg's rear wall turning in a dimple in the rear bracket.
@@ -149,7 +149,7 @@ electronics and the V13-size legs and joints need 7 mm more, so 149.5) but are p
 - Assembly order: hip servos into the body; a horn into each leg's top pocket from inside, leg onto the hip shaft,
   horn screw driven from the leg's open end; ankle servo up into the leg, far ear first, its plug fed first through the opening in the leg top (cable
   over the top of the servo), one ear screw through the window into the block; horn onto the ankle shaft, leg
-  down into the foot, horn screw from the front (the knob on the back of the leg clicks into the rear bracket as the leg goes down); then shield on cover, leads plugged in,
+  down into the foot, horn screw from the front (hold the leg forward: the knob on its back slides down the lead-in on the rear bracket and snaps into the dimple); then shield on cover, leads plugged in,
   cover into head, one ear screw through each head side wall into the cover posts, head pushed down into the body until both clips click. Pull the head straight up
   out and take both screws out before removing the cover (the shield's lower edge is behind the body's rear wall).
 - Legs and feet (Nov 11): REBUILT ON THE OFFICIAL OTTO DIY V13 LEG. Two legs of our own layout (a 24.7 mm bay
@@ -173,24 +173,33 @@ electronics and the V13-size legs and joints need 7 mm more, so 149.5) but are p
     a hole nearer the case than the drawing says still catches; U-slot 12.9; a rear window (9 wide, from the
     plate to 13.5 with a gable) serves the screwdriver and the horn arm (side windows and the cable's way out of the
     leg top were added on Nov 12, see below);
-    the rear pivot is a printed round pin instead of a hemisphere (see "Rear pivot" below); the front bracket's keyhole is open to its top: the leg drops in
+    the rear pivot is V13's knob (see "Rear pivot" below); the front bracket's keyhole is open to its top: the leg drops in
     with the horn on the servo.
   - Rear pivot (Nov 12): KNOB, NOT A SCREW. The first V13-based version drove a servo ear screw through the rear
     bracket into a bore in the leg's rear wall. The builder pointed out that this screw goes in exactly where the
     cable runs up the inside of that wall, and that the official parts have a knob there instead. Now, as on V13:
-    a round pin on the leg's rear wall (Ø4.4, 2.1 long, 0.3 tip chamfer) in a Ø4.7 dimple 2.0 deep in the rear
-    bracket, rear gap 0.4. The leg's rear wall and the bracket behind the dimple are whole. The pin's upper side
-    (the side on the bed when the leg prints) is cut away at 45° from the wall outward so it prints without
-    support; the lower side, which carries the robot, is a full half cylinder, so the play is 0.15 down and
-    sideways wherever the leg sits front to back. Upward it is 0.4 with the leg 0.3 back, 0.55 nominal and 1.0
-    with the leg 0.5 forward (measured in review): it only shows when the foot is lifted, and the horn holds the
-    foot then.
-    A first attempt with a cone was dropped in review: its play grew to 0.67 as the leg slid forward. A 4.8 wide
-    ramp runs down the bracket's inner face from 1.1 deep at the top to 0.6 at the axis; the pin reaches 1.7 into
-    the bracket, and the brackets have to spread up to 0.93 for it to click in (measured; the tip chamfer takes
-    the rest), 0.5 of which the leg's play front to back gives for free (V13: 2.1 less 0.8). Pulling the foot off
-    is the same click backwards, because the pin's upper side is the 45° cut: nothing has to be pried. Anything below that still says "pivot screw"
-    or "pivot bore" describes the superseded version.
+    a round pin on the leg's rear wall in a dimple in the rear bracket, rear gap 0.4. The leg's rear wall and
+    the bracket behind the dimple are whole.
+    SECOND VERSION, SAME DAY: V13'S KNOB. The first pin (Ø4.4, 2.1 long, its upper side cut away at 45° so it
+    printed without support, with a ramp running into a Ø4.7 dimple) was printed and compared with the official
+    leg: the builder reported that it "doesn't stick as well". Its cut side is the side the foot hangs on, and the
+    ramp took away the dimple's rim there (upward play 0.4 to 1.0). Now, measured from the official meshes: a
+    full round Ø5 pin 2.5 long, edge rounded at radius 1.5 to a Ø2 flat tip, 0.25 chamfer at its root (V13: 0.4
+    fillet); dimple Ø5.3 (V13: 5.4), 2.6 deep, with a teardrop roof (the round pin bears on its two flanks);
+    rear bracket raised from 25 to 27 above the ground, 7 above the axis as on V13, which leaves 3.25 above the
+    dimple's roof. Play: 0.15 down and sideways, 0.21 up (V13: 0.2), the same wherever the leg sits front to back,
+    because the rim always bears on the straight part of the pin. The pin reaches 2.1 into the bracket (1.6 with
+    the leg hard forward). A 5.4 wide lead-in, 1.5 deep at the bracket top, runs out 4.2 above the axis, above the
+    dimple's roof, so the rim is whole all round: the knob has to snap in over 2.1 (1.6 with the leg held forward;
+    V13: 1.7 and no lead-in), so hold the leg forward and, if need be, ease the rear bracket back with a thumb.
+    PRINTING: the pin's bed side overhangs for its 2.5 mm (3.5 wide), exactly as on the official leg, which prints
+    that way without support. It is the one accepted overhang in the model (the test allows it only there).
+    Also from V13 (builder: the corners "that face the foot" are cut off there "so it doesn't hit a screw"): the
+    leg's front bottom edge is cut away at 45°, 5.5 up the front face and 5.5 along the bottom, across the whole
+    width. It gives the arm screw in the front bracket room as the ankle rolls: a screw 10.5 below the axis is
+    free at any length up to 32° of roll and takes 7.0 of thread at 45° (6.1 without the cut); for screws 8 to 9
+    below the axis nothing changes. It does not reach the servo (2.6 of side wall stays in front of the case).
+    Anything below that still says "pivot screw" or "pivot bore" describes the superseded version.
   - Arm screws and finger windows (Nov 12), both asked for by the builder after using the V13 parts. V13 has a
     Ø2.2 hole 11.0 from the hub in the leg's top plate and one 10.5 below the axis in the foot's front bracket:
     a small screw through each into a hole of the horn's arm. Ours are slots for screw centres 8 to 11.5 from the
@@ -204,7 +213,7 @@ electronics and the V13-size legs and joints need 7 mm more, so 149.5) but are p
     the leg is fitted. Thread 6.5 or less: a 7.7 ear screw ends in the path of the ankle ear screw's head.
     Foot: 1.8 PILOT slot through the 1.6 web, not a clearance slot: the arm lies 0.7 behind the web, so a screw
     that only threaded into the arm would pull the bracket against the leg's front face. Threading in the web,
-    the screw just reaches into the arm's hole like a pin. Thread 5.5 or less: the leg's front face is 6.1 behind
+    the screw just reaches into the arm's hole like a pin. Thread 5.5 or less (unchanged by the Nov 12 cut across the leg's front bottom edge, see "Rear pivot"): the leg's front face is 6.1 behind
     the bracket's outside, and a longer screw's tip meets the edge of the leg's U-slot as the ankle rolls (there is
     no front wall on the centreline there, so it does not jam straight away, which makes it easy to miss). A pad
     that made room for the long screw was removed the same day: the builder's screw there is a short one.

@@ -114,9 +114,11 @@ All of this is coded from reference sizes, not measured parts. See the fit recor
   with its cable lying over its top end. One of the servo's own ear screws goes through
   the top ear into a seat in the leg; reach it with a small screwdriver through the hole
   in the back of the leg.
-- **Feet:** with the horn on the ankle servo, push the leg straight down into the foot:
-  the knob on the back of the leg clicks into the rear bracket. Then the horn screw from
-  the front. There is no screw at the back.
+- **Feet:** with the horn on the ankle servo, hold the leg forward against the front
+  bracket and push it down into the foot: the knob on the back of the leg slides down
+  the notch in the rear bracket and snaps into its hole. It is a firm snap, like the
+  official foot; ease the rear bracket back with a thumb if it will not go. Then the horn
+  screw from the front. There is no screw at the back.
 - **Optional arm screws:** a small screw (about 2 mm, short: 5.5 mm of thread or less in
   the foot, a head no wider than 4.4 mm in the leg top) through the slot in the leg's top
   plate and through the slot in the foot's front bracket into a hole of the horn's arm.

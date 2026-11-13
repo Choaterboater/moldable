@@ -273,20 +273,22 @@ module ankle_ear_screw(clearance=0.25) {
 
 // Rear ankle pivot: a printed knob on the leg's rear wall, on the ankle axis (V13 has a hemisphere there). It
 // turns in a round dimple in the foot's rear bracket. No screw goes in from the rear, because the servo cable
-// runs up the inside of that wall. The knob is a short round pin, so the play in the dimple does not depend on
-// how far forward the leg sits (a cone got looser as the leg slid forward: review, Nov 12). The side that faces
-// the bed when the leg prints (the upper side on the robot, which carries no weight) is cut away at 45 degrees
-// from the wall outward, so the pin prints without support.
+// runs up the inside of that wall. The knob is V13's: a full round pin with a rounded edge. Its upper side is
+// what the foot hangs on when it is lifted, so it is NOT cut away (the earlier pin was, to print without support,
+// and held the foot loosely). The side of the pin that faces the bed when the leg prints therefore overhangs
+// for its 2.5 mm, exactly as on the official leg, which prints that way without support.
 module ankle_knob() {
-  k=otto_knob; a=otto_leg[2]-otto_ankle_z; y0=otto_leg[1]/2; c=0.7*k[0]/2;
-  intersection() {
-    translate([0,y0-0.01,a]) rotate([-90,0,0]) {
-      cylinder(d=k[0],h=k[1]-k[2]+0.02,$fn=48);
-      translate([0,0,k[1]-k[2]+0.01]) cylinder(d1=k[0],d2=k[0]-2*k[2],h=k[2],$fn=48);
-    }
-    translate([-k[0],0,0]) rotate([90,0,90]) linear_extrude(2*k[0])
-      polygon([[y0-0.02,a-c],[y0+k[1]+1,a-c+1.05*(k[1]+1.02)],[y0+k[1]+1,a+k[0]],[y0-0.02,a+k[0]]]);
+  k=otto_knob; a=otto_leg[2]-otto_ankle_z; y0=otto_leg[1]/2; r=k[0]/2; e=k[2];
+  translate([0,y0-0.01,a]) rotate([-90,0,0]) rotate_extrude($fn=64) intersection() {
+    square([r,k[1]+0.01]);
+    hull() { square([r,k[1]+0.01-e]); square([r-e,k[1]+0.01]); translate([r-e,k[1]+0.01-e]) circle(e,$fn=48); }
   }
+  translate([0,y0-0.01,a]) rotate([-90,0,0]) cylinder(r1=r+k[3]+0.01,r2=r,h=k[3]+0.01,$fn=64);   // root chamfer
+}
+// V13's cut across the leg's front bottom edge (the leg prints top-down, so this face looks up).
+module leg_toe_cut() {
+  t=otto_leg_toe; y=-otto_leg[1]/2; h=otto_leg[2];
+  translate([-otto_leg[0],0,0]) rotate([90,0,90]) linear_extrude(2*otto_leg[0]) polygon([[y-1,h-t-1],[y+t+1,h+1],[y-1,h+1]]);
 }
 // Slot for the extra screw that fixes the horn's arm to the leg's top plate (V13 has a hole 11 from the hub
 // centre). A slot, because where the holes sit along the builder's arm is unmeasured. The screw goes in from
@@ -319,7 +321,7 @@ function bracket_front_y() = otto_leg[1]/2+otto_ankle_front_gap;
 function bracket_rear_y() = otto_leg[1]/2+otto_ankle_rear_gap;
 module foot_brackets() {
   translate([0,-bracket_front_y()-otto_bracket[1]/2,0]) fit_box([otto_bracket[0],otto_bracket[1],otto_foot[2]]);
-  translate([0,bracket_rear_y()+otto_bracket[2]/2,0]) fit_box([otto_bracket[0],otto_bracket[2],otto_foot[2]]);
+  translate([0,bracket_rear_y()+otto_bracket[2]/2,0]) fit_box([otto_bracket[0],otto_bracket[2],otto_bracket_rear]);
 }
 module foot_cavities(clearance=0.25) {
   translate([0,-bracket_front_y()+0.01,ankle_axis_z()]) horn_recess_wall(clearance);
@@ -329,13 +331,15 @@ module foot_cavities(clearance=0.25) {
   // thread or less: past 6.1 its tip comes out of the bracket and meets the edge of the leg's U-slot as the ankle rolls.
   m=otto_arm_slot;
   hull() for(d=[m[1],m[2]]) translate([0,-bracket_front_y(),ankle_axis_z()-d]) rotate([90,0,0]) linear_extrude(40) teardrop2d(otto_ear_pilot[0]);
-  // Round dimple for the leg's knob (teardrop roof, so it prints), and a ramp down the bracket's inner face that
-  // leads the knob to it: the leg is pushed straight down and the knob clicks in past the ramp's shallow end.
+  // Round dimple for the leg's knob (teardrop roof, so it prints; a round pin bears on its two flanks). The
+  // lead-in at the bracket top only starts the knob (hold the leg forward and it slides in on its rounded edge):
+  // it runs out above the dimple's roof, so the dimple's rim is whole all round and the knob has to snap in over
+  // 2.1 mm (1.6 with the leg held forward; V13: 1.7 and no lead-in).
   k=otto_knob; g=otto_ankle_rear_gap; d=k[1]-g+otto_knob_fit[1];
   y=bracket_rear_y(); z=ankle_axis_z(); r=otto_knob_ramp;
   translate([0,y+d,z]) rotate([90,0,0]) linear_extrude(d+0.01) teardrop2d(k[0]+2*otto_knob_fit[0]);
   translate([-r[0]/2,0,0]) rotate([90,0,90]) linear_extrude(r[0])
-    polygon([[y-0.01,otto_foot[2]+0.01],[y+r[1],otto_foot[2]+0.01],[y+r[2],z],[y-0.01,z]]);
+    polygon([[y-0.01,otto_bracket_rear+0.01],[y+r[1],otto_bracket_rear+0.01],[y-0.01,z+r[2]]]);
 }
 // ---------- back-cover cross screws ----------
 // One servo ear screw through each head side wall into a post on the cover: the cover cannot slide out
